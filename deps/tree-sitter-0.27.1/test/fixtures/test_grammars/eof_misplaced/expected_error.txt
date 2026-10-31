@@ -1,1 +1,0 @@
-Rule `source_file` has no reachable productions.
