@@ -1,0 +1,33 @@
+*.o
+*.lo
+*.la
+.libs
+t/*.t
+tools/*
+!tools/*.c
+.*.swp
+/.maint
+/tags
+
+!CMakeLists.txt
+
+# autoreconf
+aclocal.m4
+autom4te.cache/
+config.guess
+config.sub
+configure
+ltmain.sh
+
+# configure
+Makefile
+config.log
+config.status
+libtool
+
+# Tools
+compile_commands.json
+
+# Build/deps dir
+/build/
+/.cache/clangd/

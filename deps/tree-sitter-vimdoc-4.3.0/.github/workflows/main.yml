@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Tree-sitter tests
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - name: Set up repository
+        uses: actions/checkout@v7
+
+      - name: Set up tree-sitter
+        uses: tree-sitter/setup-action@v2
+        with:
+          install-lib: false
+
+      - name: Run tests
+        uses: tree-sitter/parser-test-action@v3
+
+      - name: Clone neovim runtime corpus
+        uses: actions/checkout@v7
+        with:
+          repository: neovim/neovim
+          path: .tests/neovim
+          sparse-checkout: runtime/doc/
+
+      - name: Parse corpus
+        uses: tree-sitter/parse-action@v4
+        with:
+          files: |-
+            .tests/neovim/runtime/doc/*.txt
+            !.tests/neovim/runtime/doc/xxx.txt
