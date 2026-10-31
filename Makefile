@@ -177,20 +177,9 @@ endif
 distclean:
 	$(call rmdir, $(DEPS_BUILD_DIR))
 	$(call rmdir, build)
-	$(call rmdir, .zig-cache)
-	$(call rmdir, zig-out)
 	$(MAKE) clean
 
 install: checkprefix nvim
 	$(CMAKE) --install build
 
-appimage:
-	bash scripts/genappimage.sh
-
-# Build an appimage with embedded update information.
-#   appimage-nightly: for nightly builds
-#   appimage-latest: for a release
-appimage-%:
-	bash scripts/genappimage.sh $*
-
-.PHONY: test clean distclean nvim libnvim cmake deps install appimage checkprefix benchmark $(FORMAT) $(LINT) $(TEST)
+.PHONY: test clean distclean nvim libnvim cmake deps install checkprefix benchmark $(FORMAT) $(LINT) $(TEST)
