@@ -1,3 +1,6 @@
+# wgvim: repository root, used to resolve vendored dependency paths (deps/...).
+get_filename_component(WGVIM_SOURCE_ROOT "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)
+
 set(DEPS_INSTALL_DIR "${CMAKE_BINARY_DIR}/usr")
 set(DEPS_BIN_DIR "${DEPS_INSTALL_DIR}/bin")
 set(DEPS_LIB_DIR "${DEPS_INSTALL_DIR}/lib")
@@ -75,6 +78,20 @@ foreach(dep ${DEPENDENCIES})
     continue()
   endif()
   list(GET dep 1 value)
+  # wgvim: dependencies are vendored under deps/ and must never be downloaded.
+  if(${name} MATCHES "_URL$")
+    if(value MATCHES "^[A-Za-z][A-Za-z0-9+.-]*://")
+      message(FATAL_ERROR
+        "${name} is a network URL (${value}). wgvim builds only from vendored files "
+        "in deps/; point ${name} at a local path in cmake.deps/deps.txt.")
+    endif()
+    if(NOT IS_ABSOLUTE "${value}")
+      set(value "${WGVIM_SOURCE_ROOT}/${value}")
+    endif()
+    if(NOT EXISTS "${value}")
+      message(WARNING "${name}: vendored file not found: ${value}")
+    endif()
+  endif()
   if(NOT ${name})
     # _URL variables must NOT be set when USE_EXISTING_SRC_DIR is set,
     # otherwise ExternalProject will try to re-download the sources.
