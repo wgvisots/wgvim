@@ -189,6 +189,12 @@ static TermKeyResult handle_csi_u(TermKey *tk, TermKeyKey *key, int cmd, TermKey
 {
   switch (cmd) {
   case 'u': {
+    // wgvim: "ESC [ u" has no parameters, so params[0] was never filled in by parse_csi() and
+    // was read anyway: an uninitialized pointer, often still pointing into an earlier, freed
+    // input buffer (use-after-free / wild read). Found by test/fuzz/termkey_fuzzer.
+    if (nparams < 1) {
+      return TERMKEY_RES_NONE;
+    }
     int args[2];
     if (nparams > 1 && params[1].param != NULL) {
       int subparam = 0;
@@ -564,18 +570,25 @@ TermKeyResult termkey_interpret_csi_param(TermKeyCsiParam param, int *paramp, in
 
   int arg = 0;
   size_t i = 0;
-  size_t capacity = nsubparams ? *nsubparams : 0;
+  size_t capacity = (nsubparams && subparams) ? *nsubparams : 0;
   size_t length = 0;
-  for (; i < param.length && length <= capacity; i++) {
+  // wgvim: `length` counts the values seen so far (main parameter + subparameters). The old loop
+  // let it reach capacity + 1 and then wrote subparams[capacity], one past the end: e.g.
+  // "ESC [ 1 ; 2 : 3 : 4 ~" overflowed the caller's one-element array on the stack
+  // (handle_csifunc). Found by test/fuzz/termkey_fuzzer. Extra subparameters are now ignored.
+  for (; i < param.length; i++) {
     unsigned char c = param.param[i];
     if (c == ':') {
       if (length == 0) {
         *paramp = arg;
-      } else if (subparams != NULL) {
+      } else if (length - 1 < capacity) {
         subparams[length - 1] = arg;
       }
 
       arg = 0;
+      if (length > capacity) {
+        break;  // no room for another subparameter
+      }
       length++;
       continue;
     }
@@ -592,12 +605,13 @@ TermKeyResult termkey_interpret_csi_param(TermKeyCsiParam param, int *paramp, in
 
   if (length == 0) {
     *paramp = arg;
-  } else if (subparams != NULL) {
+  } else if (length - 1 < capacity) {
     subparams[length - 1] = arg;
   }
 
   if (nsubparams) {
-    *nsubparams = length;
+    // Number of subparameters actually stored (excluding the main parameter).
+    *nsubparams = length == 0 ? 0 : (length - 1 < capacity ? length : capacity);
   }
 
   return TERMKEY_RES_KEY;
