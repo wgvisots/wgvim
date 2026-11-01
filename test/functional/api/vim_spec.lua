@@ -3923,7 +3923,7 @@ describe('API', function()
     local function hl(group, str, shift)
       return function(next_col)
         local col = next_col + (shift or 0)
-        return (('%s:%u:%u:%s'):format('wgvim' .. group, 0, col, str)), (col + #str)
+        return (('%s:%u:%u:%s'):format('Nvim' .. group, 0, col, str)), (col + #str)
       end
     end
     local function fmtn(typ, args, rest)

@@ -340,7 +340,7 @@ describe('startup --listen', function()
     t.assert_nolog('Failed to start server', testlog, 100)
     t.assert_nolog('Host lookup failed', testlog, 100)
 
-    _test({ '--listen' }, nil, 'nvim.*: Argument missing after: "%-%-listen"')
+    _test({ '--listen' }, nil, 'wgvim.*: Argument missing after: "%-%-listen"')
     _test({ '--listen2' }, nil, 'nvim.*: Garbage after option argument: "%-%-listen2"')
     _test(
       { '--listen', in_use },
