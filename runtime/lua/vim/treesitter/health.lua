@@ -18,7 +18,8 @@ function M.check()
   health.info(string.format('WASM parser support: %s', tostring(can_wasm)))
 
   health.start('Treesitter parsers')
-  local parsers = vim.api.nvim_get_runtime_file('parser/*', true)
+  -- wgvim: only bundled parsers in the install directory are ever loaded.
+  local parsers = vim.fn.glob(vim.treesitter.language._parser_dir() .. '/*.so', true, true)
 
   ---@class ParserEntry
   ---@field name string
