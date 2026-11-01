@@ -4053,7 +4053,7 @@ void list_version(void)
   version_msg(p_verbose > 0
               ? "\nRun :checkhealth for more info"
               : (starting
-                 ? "\nRun \"nvim -V1 -v\" for more info"
+                 ? "\nRun \"wgvim -V1 -v\" for more info"
                  : "\nRun \":verbose version\" for more info"));
 }
 

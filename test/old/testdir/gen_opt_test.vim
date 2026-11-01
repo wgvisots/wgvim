@@ -394,6 +394,8 @@ let test_values = {
       "\ 'pythondll': [[], []],
       "\ 'pythonthreedll': [[], []],
       \ 'pyxversion': [[], []],
+      "\ wgvim: 'exrc' is immutable (always off)
+      \ 'exrc': [[], []],
       "\ 'rubydll': [[], []],
       "\ 'tcldll': [[], []],
       \ 'term': [[], []],

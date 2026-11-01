@@ -3412,7 +3412,7 @@ static void attention_message(buf_T *buf, char *fname, char *fhname, StringBuild
                     " instances of the same\n    file when making changes."
                     "  Quit, or continue with caution.\n"));
   kv_printf(*msg, _("(2) An edit session for this file crashed.\n"));
-  kv_printf(*msg, _("    If this is the case, use \":recover\" or \"nvim -r "));
+  kv_printf(*msg, _("    If this is the case, use \":recover\" or \"wgvim -r "));
   kv_printf(*msg, "%s", buf->b_fname);
   kv_printf(*msg, (_("\"\n    to recover the changes (see \":help recovery\").\n")));
   kv_printf(*msg, _("    If you did this already, delete the swap file \""));

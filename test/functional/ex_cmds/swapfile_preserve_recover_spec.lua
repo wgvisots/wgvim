@@ -416,7 +416,7 @@ describe('swapfile detection', function()
     screen:expect([[
       ^                                        |
       {1:~                                       }|*16
-      {19:W325: Ignoring swapfile from wgvim proces}|
+      {19:W325: Ignoring swapfile from wgvim proce}|
     ]])
     eq(('\n' .. msg_expected):rep(2):sub(2), n.exec_capture('messages'))
     command('bwipe!')
@@ -428,7 +428,7 @@ describe('swapfile detection', function()
     screen:expect([[
       ^                                                            |
       {1:~                                                           }|*16
-      {19:W325: Ignoring swapfile from wgvim process }0,0-1          All|
+      {19:W325: Ignoring swapfile from wgvim process}0,0-1          All|
     ]])
     eq(('\n' .. msg_expected):rep(3):sub(2), n.exec_capture('messages'))
     command('bwipe!')
