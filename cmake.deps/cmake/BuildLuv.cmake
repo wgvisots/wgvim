@@ -30,6 +30,9 @@ ExternalProject_Add(luv
   DEPENDS lua_compat53
   DOWNLOAD_DIR ${DEPS_DOWNLOAD_DIR}/luv
   SOURCE_DIR ${DEPS_BUILD_DIR}/src/luv
+  # wgvim: drop the tcp/udp/dns API from Lua (see PatchLuv.cmake).
+  PATCH_COMMAND ${CMAKE_COMMAND} -D LUV_SRC=${DEPS_BUILD_DIR}/src/luv
+    -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/PatchLuv.cmake
   CMAKE_ARGS ${DEPS_CMAKE_ARGS} ${LUV_CMAKE_ARGS}
   ${EXTERNALPROJECT_OPTIONS})
 
