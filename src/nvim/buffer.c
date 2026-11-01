@@ -3474,12 +3474,12 @@ void maketitle(void)
         title_str = p_titlestring;
       }
     } else {
-      // Format: "fname + (path) (1 of 2) - Nvim".
+      // Format: "fname + (path) (1 of 2) - wgvim".
 #ifdef MSWIN
       int p_ssl_save = p_ssl;
       p_ssl = true;
 #endif
-      char *default_titlestring = "%t%( %M%)%( (%{expand('%:p:~:h')})%)%a - Nvim";
+      char *default_titlestring = "%t%( %M%)%( (%{expand('%:p:~:h')})%)%a - wgvim";
       build_stl_str_hl(curwin, outbuf, default_titlestring,
                        kOptTitlestring, 0, 0, maxlen, NULL, NULL, NULL, NULL);
       title_str = buf;

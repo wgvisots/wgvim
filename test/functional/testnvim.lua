@@ -19,9 +19,9 @@ local sleep = uv.sleep
 --- Functions executing in the current nvim session/process being tested.
 local M = {}
 
-M.runtime_set = 'set runtimepath^=' .. t.paths.test_build_dir .. '/lib/nvim'
+M.runtime_set = 'set runtimepath^=' .. t.paths.test_build_dir .. '/lib/wgvim'
 
-M.nvim_prog = (os.getenv('NVIM_PRG') or t.paths.test_build_dir .. '/bin/nvim')
+M.nvim_prog = (os.getenv('WGVIM_PRG') or t.paths.test_build_dir .. '/bin/wgvim')
 -- Default settings for the test session.
 M.nvim_set = (
   'set shortmess+=IS background=light noswapfile noautoindent startofline'
@@ -132,8 +132,8 @@ end
 --- @param ... any
 --- @return any
 function M.request(method, ...)
-  assert(session, 'no Nvim session')
-  assert(not session.eof_err, 'RPC request after Nvim EOF')
+  assert(session, 'no wgvim session')
+  assert(not session.eof_err, 'RPC request after wgvim EOF')
   local status, rv = session:request(method, ...)
   if not status then
     if loop_running then
@@ -359,7 +359,7 @@ function M.call_lua(name, ...)
   return M.exec_lua([[return vim.call(...)]], name, ...)
 end
 
---- Sends user input to Nvim.
+--- Sends user input to wgvim.
 --- Does not fail on Vimscript error, but v:errmsg will be updated.
 --- @param input string
 local function nvim_feed(input)
@@ -398,7 +398,7 @@ function M.merge_args(...)
   return argv
 end
 
---- Removes Nvim startup args from `args` matching items in `args_rm`.
+--- Removes wgvim startup args from `args` matching items in `args_rm`.
 ---
 --- - Special case: "-u", "-i", "--cmd" are treated specially: their "values" are also removed.
 --- - Special case: "runtimepath" will remove only { '--cmd', 'set runtimepath^=…', }
@@ -477,11 +477,11 @@ function M.connect(file_or_address)
   return s
 end
 
---- Starts a new, global Nvim session and clears the current one.
+--- Starts a new, global wgvim session and clears the current one.
 ---
 --- Note:
 --- - Use `new_session()` to start a session without replacing the current one.
---- - Use `spawn_wait()` to start Nvim without connecting a RPC session.
+--- - Use `spawn_wait()` to start wgvim without connecting a RPC session.
 ---
 --- Parameters are interpreted as startup args, OR a map with these keys:
 --- - args:       List: Args appended to the default `nvim_argv` set.
@@ -496,7 +496,7 @@ end
 --- clear{args={'-e'}, args_rm={'-i'}, env={TERM=term}}
 --- ```
 ---
---- @param ... string Nvim CLI args
+--- @param ... string wgvim CLI args
 --- @return test.Session
 --- @overload fun(opts: test.session.Opts): test.Session
 function M.clear(...)
@@ -506,12 +506,12 @@ end
 
 local n_processes = 0
 
---- Starts a new Nvim process with the given args and returns a msgpack-RPC session.
+--- Starts a new wgvim process with the given args and returns a msgpack-RPC session.
 ---
 --- Does not replace the current global session, unlike `clear()`.
 ---
 --- @param keep boolean (default: false) Don't close the current global session.
---- @param ... string Nvim CLI args
+--- @param ... string wgvim CLI args
 --- @return test.Session
 --- @overload fun(keep: boolean, opts: test.session.Opts): test.Session
 function M.new_session(keep, ...)
@@ -569,19 +569,19 @@ harness.on_suite_end(function()
     sigpipe_handler:close()
   end
   -- Drain close callbacks queued by explicit Session/ProcStream cleanup before
-  -- Nvim checks the runner loop for active handles.
+  -- wgvim checks the runner loop for active handles.
   for _ = 1, 10 do
     uv.run('nowait')
   end
   if timed_out then
-    print(('warning: %d dangling Nvim processes'):format(n_processes))
+    print(('warning: %d dangling wgvim processes'):format(n_processes))
     io.stdout:flush()
   end
 end)
 
---- Starts a (non-RPC, `--headless --listen "Tx"`) Nvim process, waits for exit, and returns result.
+--- Starts a (non-RPC, `--headless --listen "Tx"`) wgvim process, waits for exit, and returns result.
 ---
---- @param ... string Nvim CLI args, or `test.session.Opts` table.
+--- @param ... string wgvim CLI args, or `test.session.Opts` table.
 --- @return test.ProcStream
 --- @overload fun(opts: test.session.Opts): test.ProcStream
 function M.spawn_wait(...)
@@ -598,7 +598,7 @@ function M.spawn_wait(...)
 end
 
 --- @class test.session.Opts
---- Nvim CLI args
+--- wgvim CLI args
 --- @field args? string[]
 --- Remove these args from the default `nvim_argv` args set. Ignored if `merge=false`.
 --- @field args_rm? string[]
@@ -613,7 +613,7 @@ end
 ---
 --- Builds an argument list for use in `new_session()`, `clear()`, and `spawn_wait()`.
 ---
---- @param ... string Nvim CLI args, or `test.session.Opts` table.
+--- @param ... string wgvim CLI args, or `test.session.Opts` table.
 --- @return string[]
 --- @return string[]?
 --- @return uv.uv_pipe_t?
@@ -655,9 +655,9 @@ function M._new_argv(...)
         'HOME',
         'LD_LIBRARY_PATH',
         'MSAN_OPTIONS',
-        'NVIM_TEST',
-        'NVIM_LOG_FILE',
-        'NVIM_RPLUGIN_MANIFEST',
+        'WGVIM_TEST',
+        'WGVIM_LOG_FILE',
+        'WGVIM_RPLUGIN_MANIFEST',
         'PATH',
         'TMPDIR',
         'TSAN_OPTIONS',
@@ -718,7 +718,7 @@ function M.has_powershell()
   return M.eval('executable("pwsh")') == 1
 end
 
---- Sets Nvim shell to powershell.
+--- Sets wgvim shell to powershell.
 ---
 --- @param fake boolean? Use a fake if powershell is not found on the system.
 --- @returns true if powershell was found on the system, else false.
@@ -768,8 +768,8 @@ end
 --- @param method string
 --- @param ... any
 function M.nvim_async(method, ...)
-  assert(session, 'no Nvim session')
-  assert(not session.eof_err, 'sending notification after EOF from Nvim')
+  assert(session, 'no wgvim session')
+  assert(not session.eof_err, 'sending notification after EOF from wgvim')
   session:notify(method, ...)
 end
 
@@ -849,7 +849,7 @@ function M.expect_any(contents)
   return ok(nil ~= string.find(M.curbuf_contents(), contents, 1, true))
 end
 
--- Checks that the Nvim session did not terminate.
+-- Checks that the wgvim session did not terminate.
 function M.assert_alive()
   assert(2 == M.eval('1+1'), 'crash? request failed')
 end
@@ -907,7 +907,7 @@ function M.exec_capture(code)
   return M.api.nvim_exec2(code, { output = true }).output
 end
 
---- Execute Lua code in the wrapped Nvim session.
+--- Execute Lua code in the wrapped wgvim session.
 ---
 --- When `code` is passed as a function, it is converted into Lua byte code.
 ---
@@ -952,11 +952,11 @@ function M.exec_lua(code, ...)
     return M.api.nvim_exec_lua(code, { ... })
   end
 
-  assert(session, 'no Nvim session')
+  assert(session, 'no wgvim session')
   return require('test.functional.testnvim.exec_lua')(session, 2, code, ...)
 end
 
---- Runs `cmd` via `vim.system()` in the Nvim-under-test and returns its result.
+--- Runs `cmd` via `vim.system()` in the wgvim-under-test and returns its result.
 ---
 --- Asserts the child process is gone afterward, polling to absorb the brief lag between the
 --- exit-handler and nvim_get_proc() reporting it (seen on Windows).
@@ -1005,7 +1005,7 @@ local function system(cmd, opts, async)
   end)
 end
 
---- Runs `cmd` via `vim.system()` in the Nvim-under-test and waits (synchronously) for it to exit.
+--- Runs `cmd` via `vim.system()` in the wgvim-under-test and waits (synchronously) for it to exit.
 function M.system_sync(cmd, opts)
   return system(cmd, opts, false)
 end
@@ -1015,7 +1015,7 @@ function M.system_async(cmd, opts)
   return system(cmd, opts, true)
 end
 
---- Benchmarks `fn` in the Nvim-under-test: runs it `opts.n` times, timing each run in-session, then reports.
+--- Benchmarks `fn` in the wgvim-under-test: runs it `opts.n` times, timing each run in-session, then reports.
 ---
 --- Note: see `testutil.bench()` to run in the test-runner process.
 ---
@@ -1064,14 +1064,14 @@ function M.testprg(name)
   return ('%s/%s%s'):format(M.nvim_dir, name, ext)
 end
 
---- Returns a valid, platform-independent Nvim listen address.
+--- Returns a valid, platform-independent wgvim listen address.
 --- Useful for communicating with child instances.
 ---
 --- @return string
 function M.new_pipename()
   -- HACK: Start a server temporarily, get the name, then stop it.
   --
-  -- XXX: If a (still-alive) Nvim process is using an old "--listen nvim.<PID>.<counter>" pipename,
+  -- XXX: If a (still-alive) wgvim process is using an old "--listen nvim.<PID>.<counter>" pipename,
   -- and the OS reuses the PID, then serverstart() may generate a duplicate name (bc of PID reuse).
   -- Retry serverstart() to force an incremented <counter>.
   local ok = false
@@ -1177,12 +1177,12 @@ return function()
     harness.after_each(function()
       close_extra_sessions(_G._nvim_test_id, true)
       if not vim.endswith(_G._nvim_test_id, 'x') then
-        -- Use a different test ID for skipped tests as well as Nvim instances spawned
+        -- Use a different test ID for skipped tests as well as wgvim instances spawned
         -- between this after_each() and the next before_each() (e.g. in setup()).
         _G._nvim_test_id = _G._nvim_test_id .. 'x'
       end
       check_logs()
-      check_cores('build/bin/nvim')
+      check_cores('build/bin/wgvim')
       if session then
         local msg = session:next_message(0)
         if msg then

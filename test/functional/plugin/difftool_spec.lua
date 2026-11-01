@@ -115,7 +115,7 @@ describe('nvim.difftool', function()
   end)
 
   it('opens difftool automatically when started with nvim -d', function()
-    -- Start Neovim with -d flag for directory diff
+    -- Start wgvim with -d flag for directory diff
     clear({
       args = {
         '--cmd',

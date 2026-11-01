@@ -276,7 +276,7 @@ describe('autocmd', function()
   end)
 
   it('internal `aucmd_win` window', function()
-    -- Nvim uses a special internal window `aucmd_win` to execute certain
+    -- wgvim uses a special internal window `aucmd_win` to execute certain
     -- actions for an invisible buffer (:help E813).
     -- Check redrawing (never shown) and API access to this window.
 

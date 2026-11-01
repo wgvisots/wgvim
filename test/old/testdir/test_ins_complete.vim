@@ -245,7 +245,7 @@ func Test_completefunc_args()
 endfunc
 
 func s:CompleteDone_CompleteFuncNone( findstart, base )
-  throw 'skipped: Nvim does not support v:none'
+  throw 'skipped: wgvim does not support v:none'
   if a:findstart
     return 0
   endif
@@ -292,7 +292,7 @@ func s:CompleteDone_CheckCompletedItemDict(pre)
 endfunc
 
 func Test_CompleteDoneNone()
-  throw 'skipped: Nvim does not support v:none'
+  throw 'skipped: wgvim does not support v:none'
   au CompleteDone * :call <SID>CompleteDone_CheckCompletedItemNone()
   let oldline = join(map(range(&columns), 'nr2char(screenchar(&lines-1, v:val+1))'), '')
 
@@ -1269,7 +1269,7 @@ func Test_complete_func_error()
   func ListMonths()
     call complete(col('.'), test_null_list())
   endfunc
-  " Nvim allows a NULL list
+  " wgvim allows a NULL list
   " call assert_fails('exe "normal i\<C-R>=ListMonths()\<CR>"', 'E474:')
   delfunc ListColors
   delfunc ListMonths
@@ -3274,7 +3274,7 @@ func Test_thesaurusfunc_callback()
     new
     call setline(1, 'sun')
     LET g:TsrFunc1Args = []
-    " Nvim: message is an actual error rather than message with error highlight
+    " wgvim: message is an actual error rather than message with error highlight
     silent! call feedkeys("A\<C-X>\<C-T>\<Esc>", "x")
     call assert_equal('sun', getline(1))
     call assert_equal([], g:TsrFunc1Args)
@@ -3946,7 +3946,7 @@ endfunc
 
 func Test_complete_fuzzy_collect()
   new
-  redraw  " need this to prevent NULL dereference in Nvim
+  redraw  " need this to prevent NULL dereference in wgvim
   set completeopt+=fuzzy
   call setline(1, ['hello help hero h'])
   " Use "!" flag of feedkeys() so that ex_normal_busy is not set and
@@ -5383,7 +5383,7 @@ func Test_complete_fuzzy_omnifunc_backspace()
   endfunc
 
   new
-  redraw  " need this to prevent NULL dereference in Nvim
+  redraw  " need this to prevent NULL dereference in wgvim
   setlocal omnifunc=Omni_test
   setlocal completeopt=menuone,fuzzy,noinsert
   call setline(1, 'abc')
@@ -5961,7 +5961,7 @@ func Test_omni_start_invalid_col()
   endfunc
 
   new
-  redraw  " need this to prevent NULL dereference in Nvim
+  redraw  " need this to prevent NULL dereference in wgvim
   set complete=o
   set omnifunc=funcref('OmniFunc',\ [-1])
   call setline(1, ['baz '])

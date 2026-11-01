@@ -62,7 +62,7 @@ describe('startup', function()
       { term = true }
     )
     screen:expect([[
-      ^Cannot attach UI of :terminal child to its parent. (Unset $NVIM to skip this check) |
+      ^Cannot attach UI of :terminal child to its parent. (Unset $WGVIM to skip this check) |
       [Process exited 1]                                                                  |
                                                                                           |
     ]])
@@ -159,7 +159,7 @@ describe('startup', function()
       eq(1, proc.status)
     end)
 
-    it('os.exit() sets Nvim exitcode', function()
+    it('os.exit() sets wgvim exitcode', function()
       -- nvim -l foo.lua -arg1 -- a b c
       assert_l_out(
         [[
@@ -175,7 +175,7 @@ describe('startup', function()
       eq(73, eval('v:shell_error'))
     end)
 
-    it('os.exit() runs Nvim teardown', function()
+    it('os.exit() runs wgvim teardown', function()
       local exit_file = t.tmpname(false)
       finally(function()
         os.remove(exit_file)
@@ -229,7 +229,7 @@ describe('startup', function()
       matches('E5560: os%.exit must not be called in a fast event context', out)
     end)
 
-    it('Lua-error sets Nvim exitcode', function()
+    it('Lua-error sets wgvim exitcode', function()
       local proc = n.spawn_wait('-l', 'test/functional/fixtures/startup-fail.lua')
       matches('E5113: .* my pearls!!', (proc:output()))
       eq(0, proc.signal)
@@ -505,7 +505,7 @@ describe('startup', function()
   end)
 
   it('output to pipe: has("ttyin")==1 has("ttyout")==0', function()
-    clear({ env = { NVIM_LOG_FILE = testlog } })
+    clear({ env = { WGVIM_LOG_FILE = testlog } })
     if is_os('win') then
       command([[set shellcmdflag=/s\ /c shellxquote=\"]])
     end
@@ -537,7 +537,7 @@ describe('startup', function()
   end)
 
   it('input from pipe: has("ttyin")==0 has("ttyout")==1', function()
-    clear({ env = { NVIM_LOG_FILE = testlog } })
+    clear({ env = { WGVIM_LOG_FILE = testlog } })
     if is_os('win') then
       command([[set shellcmdflag=/s\ /c shellxquote=\"]])
     end
@@ -570,7 +570,7 @@ describe('startup', function()
   end)
 
   it('input from pipe (implicit) #7679', function()
-    clear({ env = { NVIM_LOG_FILE = testlog } })
+    clear({ env = { WGVIM_LOG_FILE = testlog } })
     local screen = Screen.new(25, 4)
     screen._default_attr_ids = nil
     if is_os('win') then
@@ -1436,13 +1436,13 @@ describe('sysinit', function()
     )
   end)
 
-  it('respects NVIM_APPNAME in XDG_CONFIG_DIRS', function()
+  it('respects WGVIM_APPNAME in XDG_CONFIG_DIRS', function()
     local appname = 'mysysinitapp'
     mkdir(('%s/%s'):format(xdgdir, appname))
     write_file(('%s/%s/sysinit.vim'):format(xdgdir, appname), [[let g:appname_sysinit = 1]])
     clear {
       args_rm = { '-u' },
-      env = { HOME = xhome, XDG_CONFIG_DIRS = xdgdir, NVIM_APPNAME = appname },
+      env = { HOME = xhome, XDG_CONFIG_DIRS = xdgdir, WGVIM_APPNAME = appname },
     }
     eq(1, eval('g:appname_sysinit'))
     -- Should not load from nvim/ subdir (which has the default sysinit.vim from before_each)
@@ -1524,7 +1524,7 @@ describe('user config init', function()
           vim.g.exrc_file = '---'
         ]]
       )
-      mkdir_p(('%s/%s'):format(xstate, is_os('win') and 'nvim-data' or 'nvim'))
+      mkdir_p(('%s/%s'):format(xstate, is_os('win') and 'wgvim-data' or 'nvim'))
     end)
 
     after_each(function()
@@ -1732,7 +1732,7 @@ describe('user config init', function()
       eq(1, eval('g:xdg_vim'))
     end)
 
-    it('respects NVIM_APPNAME', function()
+    it('respects WGVIM_APPNAME', function()
       local appname = 'mytestapp'
       mkdir_p(('%s/%s'):format(xdgdir, appname))
       -- Also create nvim/ with a config that should NOT be loaded
@@ -1744,7 +1744,7 @@ describe('user config init', function()
           XDG_CONFIG_HOME = xconfig,
           XDG_DATA_HOME = xdata,
           XDG_CONFIG_DIRS = xdgdir,
-          NVIM_APPNAME = appname,
+          WGVIM_APPNAME = appname,
         },
       }
       eq(1, eval('g:appname_lua'))
@@ -1816,7 +1816,7 @@ describe('runtime:', function()
   end)
 
   it('loads plugin/*.lua from site packages', function()
-    local nvimdata = is_os('win') and 'nvim-data' or 'nvim'
+    local nvimdata = is_os('win') and 'wgvim-data' or 'nvim'
     local plugin_path = ('%s/%s/site/pack/xa/start/yb'):format(xdata, nvimdata)
     local plugin_folder_path = ('%s/plugin'):format(plugin_path)
     local plugin_after_path = ('%s/after/plugin'):format(plugin_path)

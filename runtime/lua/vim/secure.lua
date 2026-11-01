@@ -6,7 +6,7 @@ local fileformat_newlines = {
   mac = '\r',
 }
 
---- Reads trust database from $XDG_STATE_HOME/nvim/trust.
+--- Reads trust database from $XDG_STATE_HOME/wgvim/trust.
 ---
 ---@return table<string, string> Contents of trust database, if it exists. Empty table otherwise.
 local function read_trust()
@@ -79,7 +79,7 @@ local function compute_hash(fullpath, bufnr)
 end
 
 --- Writes provided {trust} table to trust database at
---- $XDG_STATE_HOME/nvim/trust.
+--- $XDG_STATE_HOME/wgvim/trust.
 ---
 ---@param trust table<string, string> Trust table to write
 local function write_trust(trust)
@@ -101,7 +101,7 @@ end
 --- the user as necessary.
 ---
 --- The user's choice is persisted in a trust database at
---- $XDG_STATE_HOME/nvim/trust.
+--- $XDG_STATE_HOME/wgvim/trust.
 ---
 ---@since 11
 ---@see |:trust|

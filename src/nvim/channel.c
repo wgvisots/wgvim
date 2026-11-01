@@ -358,11 +358,11 @@ static void close_cb(Stream *stream, void *data)
 /// @param[in]  stdin_mode  Stdin mode. Either kChannelStdinPipe to open a
 ///                         channel for stdin or kChannelStdinNull to leave
 ///                         stdin disconnected.
-/// @param[in]  cwd  Initial working directory for the job.  Nvim's working
+/// @param[in]  cwd  Initial working directory for the job.  wgvim's working
 ///                  directory if `cwd` is NULL
 /// @param[in]  pty_width  Width of the pty, ignored if `pty` is false
 /// @param[in]  pty_height  Height of the pty, ignored if `pty` is false
-/// @param[in]  env  Nvim's configured environment is used if this is NULL,
+/// @param[in]  env  wgvim's configured environment is used if this is NULL,
 ///                  otherwise defines all environment variables
 /// @param[out]  status_out  0 for invalid arguments, > 0 for the channel id,
 ///                          < 0 if the job can't start
@@ -543,7 +543,7 @@ void channel_from_connection(SocketWatcher *watcher)
   channel_create_event(channel, watcher->addr);
 }
 
-/// Creates an API channel from stdin/stdout. Used when embedding Nvim.
+/// Creates an API channel from stdin/stdout. Used when embedding wgvim.
 uint64_t channel_from_stdio(bool rpc, CallbackReader on_output, const char **error)
   FUNC_ATTR_NONNULL_ALL
 {
@@ -574,7 +574,7 @@ uint64_t channel_from_stdio(bool rpc, CallbackReader on_output, const char **err
   if (embedded_mode) {
     // Redirect stdout/stdin (the UI channel) to stderr. Use fnctl(F_DUPFD_CLOEXEC) instead of dup()
     // to prevent child processes from inheriting the file descriptors, which are used by UIs to
-    // detect when Nvim exits.
+    // detect when wgvim exits.
     stdin_dup_fd = fcntl(STDIN_FILENO, F_DUPFD_CLOEXEC, STDERR_FILENO + 1);
     stdout_dup_fd = fcntl(STDOUT_FILENO, F_DUPFD_CLOEXEC, STDERR_FILENO + 1);
     dup2(STDERR_FILENO, STDOUT_FILENO);

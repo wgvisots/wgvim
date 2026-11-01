@@ -1,4 +1,4 @@
--- Neovim syntax file
+-- wgvim syntax file
 -- Language:	Treesitter query
 
 -- it's a lisp!

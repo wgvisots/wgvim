@@ -7,7 +7,7 @@
 ==============================================================================
 LSP client/framework                                     *lsp* *LSP* *vim.lsp*
 
-Nvim supports the Language Server Protocol (LSP), which means it acts as
+wgvim supports the Language Server Protocol (LSP), which means it acts as
 a client to LSP servers and includes a Lua framework `vim.lsp` for building
 enhanced LSP tools.
 
@@ -22,7 +22,7 @@ analysis (unlike |ctags|).
 ==============================================================================
 QUICKSTART                                              *lsp-quickstart*
 
-Nvim provides an LSP client, but the servers are provided by third parties.
+wgvim provides an LSP client, but the servers are provided by third parties.
 Follow these steps to get LSP features:
 
 1. Install language servers using your package manager or by following the
@@ -74,7 +74,7 @@ or detached.
 
 GLOBAL DEFAULTS                       *gra* *gri* *grn* *grr* *grt* *grx* *i_CTRL-S*
 
-These GLOBAL keymaps are created unconditionally when Nvim starts:
+These GLOBAL keymaps are created unconditionally when wgvim starts:
 
 - "gra" (Normal and Visual mode) is mapped to |vim.lsp.buf.code_action()|
 - "gri" is mapped to |vim.lsp.buf.implementation()|
@@ -181,7 +181,7 @@ dynamically via |lsp-attach| or |Client:on_attach()|.
 Use |vim.lsp.config()| to define or modify LSP configurations, and
 |vim.lsp.enable()| to auto-activate them. This is basically a wrapper around
 |vim.lsp.start()| which allows you to share and merge configs (provided by
-Nvim, plugins, and your local config).
+wgvim, plugins, and your local config).
 
 
 NEW CONFIG                                            *lsp-new-config*
@@ -294,7 +294,7 @@ Example: given the following configs... >lua
 
 CONFIGURE ON ATTACH                                     *lsp-attach*
 
-To use LSP features beyond those provided by Nvim (see |lsp-buf|), you can set
+To use LSP features beyond those provided by wgvim (see |lsp-buf|), you can set
 keymaps and options on |Client:on_attach()| or |LspAttach|. Not all language
 servers provide the same capabilities; check `supports_method()` in your
 LspAttach handler.
@@ -335,7 +335,7 @@ Example: Enable auto-completion and auto-formatting ("linting"): >lua
 <
                                                          *lsp-buf-working-dir*
 The LSP server decides the "workspace root" (|lsp-root_dir()|) of a buffer,
-but the Nvim |current-directory| does not follow it, so commands like |:make|,
+but the wgvim |current-directory| does not follow it, so commands like |:make|,
 |:grep| and |:terminal| do not run from the workspace root. You can use |:bcd|
 to sync each buffer's directory to its LSP workspace root: >lua
 
@@ -395,7 +395,7 @@ FAQ                                                     *lsp-faq*
      like syntax highlighting, simple goto-definitions, scope analysis and
      more.
 
-     A |ctags|-like program can generate a |tags| file that allows Nvim to
+     A |ctags|-like program can generate a |tags| file that allows wgvim to
      jump to definitions, provide simple completions via |i_CTRL-X_CTRL-]|
      command. It is not as featureful and doesn't have semantic understanding,
      but it is fast, lightweight and useful for navigating polyglot projects.
@@ -415,7 +415,7 @@ Requests and notifications defined by the LSP specification are referred to as
 "LSP methods". These are handled by |lsp-handler| functions.
 
 HANDLER                                                          *lsp-handler*
-LSP handlers are functions that handle |lsp-response|s to requests made by Nvim
+LSP handlers are functions that handle |lsp-response|s to requests made by wgvim
 to the server. (Notifications, as opposed to requests, are fire-and-forget:
 there is no response, so they can't be handled. |lsp-notification|)
 
@@ -539,7 +539,7 @@ https://microsoft.github.io/language-server-protocol/specifications/specificatio
 IN-PROCESS LSP SERVER                                             *lsp-server*
 
 For maximum flexibility you may want to create your own server. This allows
-you to hook into Nvim LSP features automatically. The "server" can be an
+you to hook into wgvim LSP features automatically. The "server" can be an
 in-process Lua function instead of an external process. For example see
 `runtime/lua/vim/pack/_lsp.lua` which provides features like "docs
 hover" in the vim.pack "Confirm Updates" UI.
@@ -691,7 +691,7 @@ You probably want these inside a |ColorScheme| autocommand.
 Use |LspTokenUpdate| and |vim.lsp.semantic_tokens.highlight_token()| for more
 complex highlighting.
 
-The following is a list of standard captures used in queries for Nvim,
+The following is a list of standard captures used in queries for wgvim,
 highlighted according to the current colorscheme (use |:Inspect| on one to see
 the exact definition):
 
@@ -954,7 +954,7 @@ vim.lsp.Config                                                *vim.lsp.Config*
                          defined. The list order decides priority. To indicate
                          "equal priority", specify names in a nested list
                          `{ { 'a.txt', 'b.lua' }, ... }`.
-                         • For each item, Nvim will search upwards (from the
+                         • For each item, wgvim will search upwards (from the
                            buffer file) for that marker, or list of markers;
                            search stops at the first directory containing that
                            marker, and the directory is used as the root dir
@@ -1040,7 +1040,7 @@ buf_request_all({bufnr}, {method}, {params}, {handler})  *vim.lsp.buf_request_al
 buf_request_sync({bufnr}, {method}, {params}, {timeout_ms})  *vim.lsp.buf_request_sync()*
     Sends a request to all server and waits for the response of all of them.
 
-    Calls |vim.lsp.buf_request_all()| but blocks Nvim while awaiting the
+    Calls |vim.lsp.buf_request_all()| but blocks wgvim while awaiting the
     result. Parameters are the same as |vim.lsp.buf_request_all()| but the
     result is different. Waits a maximum of {timeout_ms}.
 
@@ -1069,7 +1069,7 @@ commands                                                    *vim.lsp.commands*
     is a function which is called when an LSP action (code action, code
     lenses, …) requests it by name.
 
-    If an LSP response requests a command not defined client-side, Nvim will
+    If an LSP response requests a command not defined client-side, wgvim will
     forward it to the server as `workspace/executeCommand`.
     • Argument 1 is the `Command`: >
       Command
@@ -1937,20 +1937,20 @@ vim.lsp.ClientConfig                                    *vim.lsp.ClientConfig*
                                global |vim.lsp.commands|.
       • {detached}?            (`boolean`, default: `true`) Daemonize the
                                server process so that it runs in a separate
-                               process group from Nvim. Nvim will shutdown the
-                               process on exit, but if Nvim fails to exit
+                               process group from wgvim. wgvim will shutdown the
+                               process on exit, but if wgvim fails to exit
                                cleanly this could leave behind orphaned server
                                processes.
       • {exit_timeout}?        (`integer|boolean`, default: `false`) Decides
                                if/when to force-stop the server after sending
                                the "shutdown" request. See |Client:stop()|.
-                               Note: when Nvim itself is exiting,
-                               • `false`: Nvim will not force-stop LSP
+                               Note: when wgvim itself is exiting,
+                               • `false`: wgvim will not force-stop LSP
                                  server(s).
-                               • `true`: Nvim will force-stop LSP server(s)
+                               • `true`: wgvim will force-stop LSP server(s)
                                  that did not comply with the "shutdown"
                                  request.
-                               • `number`: Nvim will wait up to `exit_timeout`
+                               • `number`: wgvim will wait up to `exit_timeout`
                                  milliseconds before performing force-stop.
       • {flags}?               (`table`) Experimental client flags:
                                • {allow_incremental_sync}? (`boolean`,
@@ -2218,7 +2218,7 @@ run({opts})                                           *vim.lsp.codelens.run()*
 Lua module: vim.lsp.completion                                *lsp-completion*
 
 The `vim.lsp.completion` module enables insert-mode completion driven by an
-LSP server. Call `enable()` to make it available through Nvim builtin
+LSP server. Call `enable()` to make it available through wgvim builtin
 completion (via the |CompleteDone| event). Specify `autotrigger=true` to
 activate "auto-completion" when you type any of the server-defined
 `triggerCharacters`. Use CTRL-Y to select an item from the completion menu.
@@ -2514,8 +2514,8 @@ To try it out, here is a quickstart example using Copilot:       *lsp-copilot*
      root_markers = { '.git' },
       init_options = {
         editorInfo = {
-          name = 'Neovim', version = tostring(vim.version()) },
-          editorPluginInfo = { name = 'Neovim', version = tostring(vim.version()) },
+          name = 'wgvim', version = tostring(vim.version()) },
+          editorPluginInfo = { name = 'wgvim', version = tostring(vim.version()) },
         },
    })
 <
@@ -2645,7 +2645,7 @@ enable({enable}, {filter})             *vim.lsp.linked_editing_range.enable()*
 ==============================================================================
 Lua module: vim.lsp.log                                              *lsp-log*
 
-The `vim.lsp.log` module provides logging for the Nvim LSP client.
+The `vim.lsp.log` module provides logging for the wgvim LSP client.
 
 When debugging language servers, it is helpful to enable extra-verbose logging
 of the LSP client RPC events. Example: >lua

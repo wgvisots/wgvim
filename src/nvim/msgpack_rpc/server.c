@@ -23,7 +23,7 @@
 #include "nvim/types_defs.h"
 
 #define MAX_CONNECTIONS 32
-#define ENV_LISTEN "NVIM_LISTEN_ADDRESS"  // deprecated
+#define ENV_LISTEN "WGVIM_LISTEN_ADDRESS"  // deprecated
 
 static garray_T watchers = GA_EMPTY_INIT_VALUE;
 
@@ -39,7 +39,7 @@ bool server_init(const char *listen_addr)
   TriState user_arg = kTrue;  // User-provided --listen arg.
   ga_init(&watchers, sizeof(SocketWatcher *), 1);
 
-  // $NVIM_LISTEN_ADDRESS (deprecated)
+  // $WGVIM_LISTEN_ADDRESS (deprecated)
   if (!listen_addr || listen_addr[0] == '\0') {
     if (os_env_exists(ENV_LISTEN, true)) {
       user_arg = kFalse;  // User-provided env var.
@@ -67,14 +67,14 @@ bool server_init(const char *listen_addr)
   (void)snprintf(IObuff, IOSIZE,
                  user_arg ==
                  kTrue ? "Failed to --listen: %s: \"%s\""
-                       : "Failed $NVIM_LISTEN_ADDRESS: %s: \"%s\"",
+                       : "Failed $WGVIM_LISTEN_ADDRESS: %s: \"%s\"",
                  rv < 0 ? os_strerror(rv) : (rv == 1 ? "empty address" : "?"),
                  listen_addr);
   ok = false;
 
 end:
   if (os_env_exists(ENV_LISTEN, false)) {
-    // Unset $NVIM_LISTEN_ADDRESS, it's a liability hereafter. It is "input only", it must not be
+    // Unset $WGVIM_LISTEN_ADDRESS, it's a liability hereafter. It is "input only", it must not be
     // leaked to child jobs or :terminal.
     os_unsetenv(ENV_LISTEN);
   }
@@ -92,7 +92,7 @@ static void close_socket_watcher(SocketWatcher **watcher)
   socket_watcher_close(*watcher, free_server);
 }
 
-/// Sets the "primary address" (v:servername and $NVIM) to the first server in
+/// Sets the "primary address" (v:servername and $WGVIM) to the first server in
 /// the server list, or unsets if no servers are known.
 static void set_vservername(garray_T *srvs)
 {

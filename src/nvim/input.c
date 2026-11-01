@@ -16,7 +16,7 @@
 //     3. main-loop wakeup (K_NOP): stuffed so it precedes input (unlike an event).
 // - TYPEAHEAD vs READ-AHEAD:
 //   - typeahead = external input that arrived faster than can be executed (user typed fast).
-//   - readahead = Nvim's own self-input.
+//   - readahead = wgvim's own self-input.
 //     - vgetorpeek() drains it BEFORE typeahead.
 //     - Its keys are never mapped (mappings apply only to the
 //       typebuf; abbreviations are disabled too), though they count as typed for most purposes

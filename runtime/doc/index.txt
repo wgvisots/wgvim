@@ -1,4 +1,4 @@
-*index.txt*     Nvim
+*index.txt*     wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -1536,7 +1536,7 @@ Tag		Command		Action ~
 |:redrawtabline|	:redrawt[abline]	force a redraw of the tabline
 |:registers|	:reg[isters]	display the contents of registers
 |:resize|	:res[ize]	change current window height
-|:restart|	:restart	restart the Nvim server
+|:restart|	:restart	restart the wgvim server
 |:retab|	:ret[ab]	change tab size
 |:return|	:retu[rn]	return from a user function
 |:rewind|	:rew[ind]	go to the first file in the argument list
@@ -1685,7 +1685,7 @@ Tag		Command		Action ~
 |:unmenu|	:unme[nu]	remove menu
 |:unsilent|	:uns[ilent]	run a command not silently
 |:update|	:up[date]	write buffer if modified
-|:uptime|	:upt[ime]	show Nvim's uptime
+|:uptime|	:upt[ime]	show wgvim's uptime
 |:vglobal|	:v[global]	execute commands for not matching lines
 |:version|	:ve[rsion]	print version number and other info
 |:verbose|	:verb[ose]	execute command with 'verbose' set

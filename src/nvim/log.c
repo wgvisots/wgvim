@@ -56,11 +56,11 @@ static bool log_try_create(char *fname)
   return true;
 }
 
-/// Initializes the log file path and sets $NVIM_LOG_FILE if empty.
+/// Initializes the log file path and sets $WGVIM_LOG_FILE if empty.
 ///
-/// Tries $NVIM_LOG_FILE, or falls back to $XDG_STATE_HOME/nvim/logs/nvim.log.
+/// Tries $WGVIM_LOG_FILE, or falls back to $XDG_STATE_HOME/wgvim/logs/nvim.log.
 /// Failed initialization indicates either a bug in expand_env() or both
-/// $NVIM_LOG_FILE and $HOME environment variables are undefined.
+/// $WGVIM_LOG_FILE and $HOME environment variables are undefined.
 static void log_path_init(void)
 {
   size_t size = sizeof(log_file_path);
@@ -71,7 +71,7 @@ static void log_path_init(void)
       || log_file_path[0] == NUL
       || os_isdir(log_file_path)
       || !log_try_create(log_file_path)) {
-    if (user_set) {  // User-provided $NVIM_LOG_FILE.
+    if (user_set) {  // User-provided $WGVIM_LOG_FILE.
       // Used by _core/log.lua:check_log_file to validate logfile on startup.
       os_setenv(ENV_LOGFILE_WANT, log_file_path, true);
     }
@@ -83,7 +83,7 @@ static void log_path_init(void)
       log_dir_failure = os_mkdir_recurse(loghome, 0700, &failed_dir, NULL);
     }
     XFREE_CLEAR(loghome);
-    // Invalid $NVIM_LOG_FILE or failed to expand; fall back to default.
+    // Invalid $WGVIM_LOG_FILE or failed to expand; fall back to default.
     char *defaultpath = stdpaths_user_state_subpath("logs/nvim.log", 0, true);
     size_t len = xstrlcpy(log_file_path, defaultpath, size);
     xfree(defaultpath);
@@ -127,7 +127,7 @@ void log_unlock(void)
   uv_mutex_unlock(&mutex);
 }
 
-/// Logs a message to $NVIM_LOG_FILE.
+/// Logs a message to $WGVIM_LOG_FILE.
 ///
 /// @param log_level  Log level (see log.h)
 /// @param context    Description of a shared context or subsystem
@@ -302,7 +302,7 @@ static bool v_do_log_to_file(FILE *log_file, int log_level, const char *context,
                              va_list args)
   FUNC_ATTR_PRINTF(7, 0)
 {
-  // Name of the Nvim instance that produced the log.
+  // Name of the wgvim instance that produced the log.
   static char name[32] = { 0 };
 
   static const char *log_levels[] = {
@@ -337,16 +337,16 @@ static bool v_do_log_to_file(FILE *log_file, int log_level, const char *context,
   // - no v:servername yet
   bool regen = ui || name[0] == NUL || name[0] == '?';
 
-  // Get a name for this Nvim instance.
+  // Get a name for this wgvim instance.
   // TODO(justinmk): expose this as v:name ?
   if (regen) {
     char parent_buf[MAXPATHL];
-    // Parent servername ($NVIM).
+    // Parent servername ($WGVIM).
     const char *parent = path_tail(os_getenv_buf(ENV_NVIM, parent_buf, sizeof(parent_buf)));
     // Servername. Empty until starting=false.
     const char *serv = path_tail(get_vim_var_str(VV_SEND_SERVER));
     if (parent[0] != NUL) {
-      snprintf(name, sizeof(name), ui ? "ui/c/%s" : "c/%s", parent);  // "c/" = child of $NVIM.
+      snprintf(name, sizeof(name), ui ? "ui/c/%s" : "c/%s", parent);  // "c/" = child of $WGVIM.
     } else if (serv[0] != NUL) {
       snprintf(name, sizeof(name), ui ? "ui/%s" : "%s", serv);
     } else {

@@ -17,7 +17,7 @@ describe('runtime:', function()
   local plug_dir = 'Test_Plugin'
   local init = 'dummy_init.lua'
 
-  -- All test cases below use the same Nvim instance.
+  -- All test cases below use the same wgvim instance.
   setup(function()
     io.open(init, 'w'):close() --  touch init file
     clear({ args = { '-u', init } })

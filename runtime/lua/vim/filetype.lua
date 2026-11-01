@@ -2871,7 +2871,7 @@ local pattern = {
     ['printcap'] = starsetf(function(_path, _bufnr)
       return require('vim.filetype.detect').printcap('print')
     end),
-    ['/queries/.*%.scm$'] = 'query', -- treesitter queries (Neovim only)
+    ['/queries/.*%.scm$'] = 'query', -- treesitter queries (wgvim only)
     [',v$'] = 'rcs',
     ['/supertux2/.*/info$'] = 'scheme',
     ['^svn%-commit.*%.tmp$'] = 'svn',
@@ -3004,7 +3004,7 @@ end
 --- buffer's filetype. Optionally, the function can return a second function
 --- value which, when called, modifies the state of the buffer. This can be used
 --- to, for example, set filetype-specific buffer variables. This function will
---- be called by Nvim before setting the buffer's filetype.
+--- be called by wgvim before setting the buffer's filetype.
 ---
 --- Filename patterns can specify an optional priority to resolve cases when a
 --- file path matches multiple patterns. Higher priorities are matched first.

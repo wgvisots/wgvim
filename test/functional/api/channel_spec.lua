@@ -172,7 +172,7 @@ describe('API', function()
       eq({ [1] = testinfo, [2] = stderr, [3] = info }, api.nvim_list_chans())
       eq(info, api.nvim_get_chan_info(3))
 
-      -- :terminal with args + running process (Nvim TUI).
+      -- :terminal with args + running process (wgvim TUI).
       -- Don't use a shell here, so that SIGHUP handling doesn't depend on the shell.
       command('enew')
       local argv = { n.nvim_prog, '-u', 'NONE', '-i', 'NONE' }
@@ -186,17 +186,17 @@ describe('API', function()
       expected2.pty = actual2.pty
       eq(expected2, actual2)
 
-      -- Make sure Nvim TUI is started (which is after registering SIGHUP handler).
+      -- Make sure wgvim TUI is started (which is after registering SIGHUP handler).
       t.retry(nil, nil, function()
-        matches('Nvim is open source and freely distributable', n.curbuf_contents())
+        matches('wgvim is open source and freely distributable', n.curbuf_contents())
       end)
 
-      -- :terminal with args + stopped process (Nvim TUI).
+      -- :terminal with args + stopped process (wgvim TUI).
       eq(1, eval('jobstop(&channel)'))
       eval('jobwait([&channel], 1000)') -- Wait.
       expected2.pty = (is_os('win') and '?' or '') -- pty stream was closed.
-      -- On Unix, SIGHUP is handled by Nvim TUI, so exit code is 1.
-      -- On Windows, even though Nvim TUI handles SIGHUP, it's not possible for the
+      -- On Unix, SIGHUP is handled by wgvim TUI, so exit code is 1.
+      -- On Windows, even though wgvim TUI handles SIGHUP, it's not possible for the
       -- parent process to know that, so exit code reflects SIGHUP.
       expected2.exitcode = (is_os('win') and 129 or 1)
       eq(expected2, eval('nvim_get_chan_info(&channel)'))

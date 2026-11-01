@@ -65,7 +65,7 @@ if v:version > 900 || has('nvim')
         " Test the magic number and the major version number (45 for v1.0).
         " Since v9.0.2027.
         if len(octad) == 8 && octad[0 : 3] == 0zcafe.babe &&
-              " Nvim: no << operator
+              " wgvim: no << operator
               "\ or((octad[6] << 8), octad[7]) >= 45
               \ or((octad[6] * 256), octad[7]) >= 45
           echomsg printf('Deleting %s: %d', classname, delete(classname))

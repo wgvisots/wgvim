@@ -721,7 +721,7 @@ func s:GdbOutCallback(job_id, msgs, event)
 
   " Add the output above the current prompt.
   for line in lines
-    " Nvim supports multi-line input in prompt-buffer, so the prompt line is
+    " wgvim supports multi-line input in prompt-buffer, so the prompt line is
     " not always the last line.
     call append(line("':") - 1, line)
   endfor
@@ -900,7 +900,7 @@ func s:HandleDisasmMsg(msg)
   elseif a:msg !~ '^&"disassemble'
     let value = substitute(a:msg, '^\~\"[ ]*', '', '')
     let value = substitute(value, '^=>[ ]*', '', '')
-    " Nvim already trims the final "\r" in s:CommOutput()
+    " wgvim already trims the final "\r" in s:CommOutput()
     " let value = substitute(value, '\\n\"\r$', '', '')
     let value = substitute(value, '\\n\"$', '', '')
     let value = substitute(value, '\r', '', '')
@@ -956,7 +956,7 @@ endfunc
 
 func s:CommOutput(job_id, msgs, event)
   for msg in a:msgs
-    " Nvim job lines are split on "\n", so trim a suffixed CR.
+    " wgvim job lines are split on "\n", so trim a suffixed CR.
     if msg[-1:] == "\r"
       let msg = msg[:-2]
     endif

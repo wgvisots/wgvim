@@ -1,4 +1,4 @@
-*treesitter.txt*    Nvim
+*treesitter.txt*    wgvim
 
 
                             NVIM REFERENCE MANUAL
@@ -7,7 +7,7 @@
 ==============================================================================
 Treesitter integration                                 *treesitter*
 
-Nvim integrates the `tree-sitter` library for incremental parsing of buffers:
+wgvim integrates the `tree-sitter` library for incremental parsing of buffers:
 https://tree-sitter.github.io/tree-sitter/
 
 WARNING: Treesitter support is still experimental and subject to frequent
@@ -21,7 +21,7 @@ PARSER FILES                                              *treesitter-parsers*
 Parsers are the heart of treesitter. They are libraries that treesitter will
 search for in the `parser` runtime directory.
 
-Nvim includes these parsers:
+wgvim includes these parsers:
 
 - C
 - Diff
@@ -53,7 +53,7 @@ treesitter parser for buffers with filetype `svg` or `xslt`, use: >lua
 <
                                                     *treesitter-parsers-wasm*
 
-If Nvim is built with `ENABLE_WASMTIME`, then wasm parsers can also be
+If wgvim is built with `ENABLE_WASMTIME`, then wasm parsers can also be
 loaded: >lua
 
     vim.treesitter.language.add('python', { path = "/path/to/python.wasm" })
@@ -72,15 +72,15 @@ adds arbitrary metadata and conditional data to a match.
 
 Queries are written in a lisp-like language documented in
 https://tree-sitter.github.io/tree-sitter/using-parsers/queries/1-syntax.html
-Note: The predicates listed there differ from those Nvim supports. See
-|treesitter-predicates| for a complete list of predicates supported by Nvim.
+Note: The predicates listed there differ from those wgvim supports. See
+|treesitter-predicates| for a complete list of predicates supported by wgvim.
 
-Nvim looks for queries as `*.scm` files in a `queries` directory under
+wgvim looks for queries as `*.scm` files in a `queries` directory under
 `runtimepath`, where each file contains queries for a specific language and
 purpose, e.g., `queries/lua/highlights.scm` for highlighting Lua files.
 By default, the first query on `runtimepath` is used (which usually implies
 that user config takes precedence over plugins, which take precedence over
-queries bundled with Nvim). If a query should extend other queries instead
+queries bundled with wgvim). If a query should extend other queries instead
 of replacing them, use |treesitter-query-modeline-extends|.
 
 The Lua interface is described at |lua-treesitter-query|.
@@ -280,7 +280,7 @@ Use |vim.treesitter.query.list_directives()| to list all available directives.
 
 TREESITTER QUERY MODELINES                          *treesitter-query-modeline*
 
-Nvim supports to customize the behavior of the queries using a set of
+wgvim supports to customize the behavior of the queries using a set of
 "modelines", that is comments in the queries starting with `;`. Here are the
 currently supported modeline alternatives:
 
@@ -348,7 +348,7 @@ treesitter highlighting for the current buffer can be enabled simply via
                                                  *treesitter-highlight-groups*
 The capture names, prefixed with `@`, are directly usable as highlight groups.
 For many commonly used captures, the corresponding highlight groups are linked
-to Nvim's standard |highlight-groups| by default (e.g., `@comment` links to
+to wgvim's standard |highlight-groups| by default (e.g., `@comment` links to
 `Comment`) but can be overridden in colorschemes.
 
 A fallback system is implemented, so that more specific groups fallback to
@@ -366,7 +366,7 @@ instance, to highlight comments differently per language: >vim
     hi @comment.lua guifg=DarkBlue
     hi link @comment.documentation.java String
 <
-The following is a list of standard captures used in queries for Nvim,
+The following is a list of standard captures used in queries for wgvim,
 highlighted according to the current colorscheme (use |:Inspect| on one to see
 the exact definition):
 
@@ -488,7 +488,7 @@ Capture			Meaning ~
 
                                                   *treesitter-highlight-spell*
 The special `@spell` capture can be used to indicate that a node should be
-spell checked by Nvim's builtin |spell| checker. For example, the following
+spell checked by wgvim's builtin |spell| checker. For example, the following
 capture marks comments as to be checked: >query
 
     (comment) @spell
@@ -646,7 +646,7 @@ in                      Selects [count]th previous (or first) child node.
 VIM.TREESITTER                              *lua-treesitter* *vim.treesitter*
 
 The remainder of this document is a reference manual for the `vim.treesitter`
-Lua module, which is the main interface for Nvim's treesitter integration.
+Lua module, which is the main interface for wgvim's treesitter integration.
 Most of the following content is automatically generated from the function
 documentation.
 

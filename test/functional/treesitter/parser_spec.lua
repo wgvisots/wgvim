@@ -1529,7 +1529,7 @@ describe('treesitter parser API', function()
       insert(dedent [[
         Treesitter integration                                 *treesitter*
 
-        Nvim integrates the `tree-sitter` library for incremental parsing of buffers:
+        wgvim integrates the `tree-sitter` library for incremental parsing of buffers:
         https://tree-sitter.github.io/tree-sitter/
 
       ]])

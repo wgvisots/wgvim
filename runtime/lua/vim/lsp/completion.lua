@@ -1,6 +1,6 @@
 --- @brief
 --- The `vim.lsp.completion` module enables insert-mode completion driven by an LSP server. Call
---- `enable()` to make it available through Nvim builtin completion (via the |CompleteDone| event).
+--- `enable()` to make it available through wgvim builtin completion (via the |CompleteDone| event).
 --- Specify `autotrigger=true` to activate "auto-completion" when you type any of the server-defined
 --- `triggerCharacters`. Use CTRL-Y to select an item from the completion menu. |complete_CTRL-Y|
 ---

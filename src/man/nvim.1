@@ -36,10 +36,10 @@ Use <Tab> and CTRL-D to complete subjects (\(lq:help cmdline-completion\(rq).
 The \(lqquickref\(rq help section is a condensed reference of editor features:
 .Dl :help quickref
 .Pp
-If you are new to Vim/Nvim, start with the 30-minute tutorial:
+If you are new to Vim/wgvim, start with the 30-minute tutorial:
 .Dl :Tutor
 .Pp
-After installing/updating Nvim, it\(aqs a good idea to run the self-check:
+After installing/updating wgvim, it\(aqs a good idea to run the self-check:
 .Dl :checkhealth
 .Bl -tag -width Fl
 .It Ar file ...
@@ -169,7 +169,7 @@ Alias for
 Use
 .Ar vimrc
 instead of the default
-.Pa ~/.config/nvim/init.vim .
+.Pa ~/.config/wgvim/init.vim .
 If
 .Ar vimrc
 is
@@ -185,7 +185,7 @@ loading plugins is also skipped.
 Use
 .Ar shada
 instead of the default
-.Pa ~/.local/state/nvim/shada/main.shada .
+.Pa ~/.local/state/wgvim/shada/main.shada .
 If
 .Ar shada
 is
@@ -197,7 +197,7 @@ Skip loading plugins (by setting the \(aqnoloadplugins\(aq option).
 Implied by
 .Cm -u NONE .
 .It Fl -clean
-Start Nvim with \(lqfactory defaults\(rq (only builtin plugins, no user
+Start wgvim with \(lqfactory defaults\(rq (only builtin plugins, no user
 config/plugins, no shada).
 .Ic ":help --clean"
 .It Fl o Ns Op Ar N
@@ -271,12 +271,12 @@ Execute Lua
 .Ar script
 with optional
 .Op Ar args
-after processing any preceding Nvim startup arguments.
+after processing any preceding wgvim startup arguments.
 All
 .Op Ar args
 are treated as script arguments and are passed literally to Lua, that is,
 .Fl l
-stops processing of Nvim arguments.
+stops processing of wgvim arguments.
 .Ic ":help -l"
 .It Fl S Op Ar session
 Execute
@@ -344,15 +344,15 @@ Print version information and exit.
 .El
 .Sh ENVIRONMENT
 .Bl -tag -width Fl
-.It Ev NVIM_APPNAME
+.It Ev WGVIM_APPNAME
 The name of sub-directories used within each XDG user directory.
 Defaults to
 .Cm nvim .
-.Ic ":help $NVIM_APPNAME"
-.It Ev NVIM_LOG_FILE
+.Ic ":help $WGVIM_APPNAME"
+.It Ev WGVIM_LOG_FILE
 Low-level log file, usually found at
-.Pa ~/.local/state/nvim/nvim.log .
-.Ic ":help $NVIM_LOG_FILE"
+.Pa ~/.local/state/wgvim/nvim.log .
+.Ic ":help $WGVIM_LOG_FILE"
 .It Ev VIM
 Used to locate user files, such as init.vim.
 System-dependent.
@@ -393,12 +393,12 @@ and
 .Ic system() .
 .El
 .Sh FILES
-.Bl -tag -width "~/.config/nvim/init.vim"
-.It Pa ~/.config/nvim/init.lua
+.Bl -tag -width "~/.config/wgvim/init.vim"
+.It Pa ~/.config/wgvim/init.lua
 User-local
 .Nm
 Lua configuration file.
-.It Pa ~/.config/nvim
+.It Pa ~/.config/wgvim
 User-local
 .Nm
 configuration directory.
@@ -414,7 +414,7 @@ System-global
 runtime directory.
 .El
 .Sh AUTHORS
-Nvim was started by
+wgvim was started by
 .An "Thiago de Arruda" .
 Most of Vim was written by
 .An -nosplit

@@ -1,4 +1,4 @@
-*support.txt*			    Nvim
+*support.txt*			    wgvim
 
 
                             NVIM REFERENCE MANUAL
@@ -50,7 +50,7 @@ Common
 
 Some common notes when adding support for new platforms:
 
-CMake is the only supported build system. Nvim must be buildable on the
+CMake is the only supported build system. wgvim must be buildable on the
 platform with CMake.
 
 All functionality related to the new platform must be implemented in its own

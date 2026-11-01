@@ -465,7 +465,7 @@ describe('confirm()', function()
     screen:expect({ any = '%[No Name%]' })
     eq(2, api.nvim_get_var('a'))
 
-    -- Not possible to match Vim's CTRL-C test here as CTRL-C always sets got_int in Nvim.
+    -- Not possible to match Vim's CTRL-C test here as CTRL-C always sets got_int in wgvim.
 
     -- confirm() should return 0 when pressing ESC.
     async_meths.nvim_command([[let a = confirm('Are you sure?', "&Yes\n&No")]])

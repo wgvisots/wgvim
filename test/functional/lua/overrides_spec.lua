@@ -194,8 +194,8 @@ describe('_G.debug', function()
     screen = Screen.new()
   end)
 
-  it('if broken, Nvim reports it instead of crashing #41504', function()
-    -- If user code breaks `_G.debug.traceback`, Nvim should function enough to allow ":qa!".
+  it('if broken, wgvim reports it instead of crashing #41504', function()
+    -- If user code breaks `_G.debug.traceback`, wgvim should function enough to allow ":qa!".
     -- But `_G.debug=nil` panics immediately, and that is intentional/wontfix.
     for _, override in ipairs({ 'debug.traceback = nil', '_G.debug = {}' }) do
       clear()

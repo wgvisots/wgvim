@@ -1,5 +1,5 @@
 " Vim syntax file
-" Language:     Nvim :checkhealth buffer
+" Language:     wgvim :checkhealth buffer
 
 if exists("b:current_syntax")
   finish

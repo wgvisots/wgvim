@@ -97,7 +97,7 @@ describe('wait()', function()
     eq('Vim:E475: Invalid value for argument 3', pcall_err(call, 'wait', 0, 1, ''))
   end)
 
-  it('does not leak when Nvim exits while waiting', function()
+  it('does not leak when wgvim exits while waiting', function()
     n.expect_exit(
       500,
       source,

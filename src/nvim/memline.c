@@ -866,7 +866,7 @@ void ml_recover(bool checkext)
     msg_start();
     msg_puts_hl(_("Unable to read block 0 from "), hl_id, true);
     msg_outtrans(mfp->mf_fname, hl_id, true);
-    msg_puts_hl(_("\nMaybe no changes were made or Nvim did not update the swap file."), hl_id,
+    msg_puts_hl(_("\nMaybe no changes were made or wgvim did not update the swap file."), hl_id,
                 true);
     msg_end();
     goto theend;
@@ -875,13 +875,13 @@ void ml_recover(bool checkext)
   if (strncmp(b0p->b0_version, "VIM 3.0", 7) == 0) {
     msg_start();
     msg_outtrans(mfp->mf_fname, 0, true);
-    msg_puts_hl(_(" cannot be used with this version of Nvim.\n"), 0, true);
+    msg_puts_hl(_(" cannot be used with this version of wgvim.\n"), 0, true);
     msg_puts_hl(_("Use Vim version 3.0.\n"), 0, true);
     msg_end();
     goto theend;
   }
   if (ml_check_b0_id(b0p) == FAIL) {
-    semsg(_("E307: %s does not look like a Nvim swap file"), mfp->mf_fname);
+    semsg(_("E307: %s does not look like a wgvim swap file"), mfp->mf_fname);
     goto theend;
   }
   if (b0_magic_wrong(b0p)) {
@@ -1559,7 +1559,7 @@ static time_t swapfile_info(char *fname, StringBuilder *msg)
       if (strncmp(b0.b0_version, "VIM 3.0", 7) == 0) {
         kv_printf(*msg, _("         [from Vim version 3.0]"));
       } else if (ml_check_b0_id(&b0) == FAIL) {
-        kv_printf(*msg, _("         [does not look like a Nvim swap file]"));
+        kv_printf(*msg, _("         [does not look like a wgvim swap file]"));
       } else if (!ml_check_b0_strings(&b0)) {
         kv_printf(*msg, _("         [garbled strings (not nul terminated)]"));
       } else {
@@ -3668,7 +3668,7 @@ static char *findswapname(buf_T *buf, char **dirp, char *old_fname, bool *found_
     // Permute the ".swp" extension to find a unique swapfile name.
     // First decrement the last char: ".swo", ".swn", etc.
     // If that still isn't enough decrement the last but one char: ".svz"
-    // Can happen when many Nvim instances are editing the same file (including "No Name" buffers).
+    // Can happen when many wgvim instances are editing the same file (including "No Name" buffers).
     if (fname[n - 1] == 'a') {          // ".s?a"
       if (fname[n - 2] == 'a') {        // ".saa": tried enough, give up
         emsg(_("E326: Too many swap files found"));

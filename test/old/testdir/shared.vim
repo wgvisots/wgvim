@@ -7,7 +7,7 @@ endif
 
 source view_util.vim
 
-" {Nvim}
+" {wgvim}
 " Filepath captured from output may be truncated, like this:
 "   /home/va...estdir/X-test-tmpdir/nvimxbXN4i/10
 " Get last 2 segments, then combine with $TMPDIR.
@@ -256,7 +256,7 @@ endfunc
 " Get $VIMPROG to run the Vim executable.
 " The Makefile writes it as the first line in the "vimcmd" file.
 " Falls back to the Vim executable in the src directory.
-" Nvim: uses $NVIM_TEST_ARG0.
+" wgvim: uses $NVIM_TEST_ARG0.
 func GetVimProg()
   if !empty($NVIM_TEST_ARG0)
     if has('win32')
@@ -351,8 +351,8 @@ func RunVimPiped(before, after, arguments, pipecmd)
   " Optionally run Vim under valgrind
   " let cmd = 'valgrind --tool=memcheck --leak-check=yes --num-callers=25 --log-file=valgrind ' . cmd
 
-  let $NVIM_LOG_FILE = exists($NVIM_LOG_FILE) ? $NVIM_LOG_FILE : 'Xnvim.log'
-  " Nvim does not support -Z flag, remove it.
+  let $WGVIM_LOG_FILE = exists($WGVIM_LOG_FILE) ? $WGVIM_LOG_FILE : 'Xnvim.log'
+  " wgvim does not support -Z flag, remove it.
   exe "silent !" .. a:pipecmd .. ' ' ..  cmd .. args .. ' ' .. a:arguments->substitute('-Z', '', 'g')
 
   if len(a:before) > 0

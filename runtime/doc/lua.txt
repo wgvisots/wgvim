@@ -1,4 +1,4 @@
-*lua.txt*    Nvim
+*lua.txt*    wgvim
 
 
                             NVIM REFERENCE MANUAL
@@ -17,10 +17,10 @@ get an idea of what lurks beneath: >vim
 
     :lua vim.print(package.loaded)
 
-Nvim includes a "standard library" |lua-stdlib| for Lua.  It complements the
+wgvim includes a "standard library" |lua-stdlib| for Lua.  It complements the
 "editor stdlib" (|vimscript-functions| + |Ex-command|s) and the |API|, all of
 which can be used from Lua code (|lua-vimscript| |vim.api|). These three
-namespaces form the Nvim programming interface.
+namespaces form the wgvim programming interface.
 
 Lua plugins and user config are automatically discovered and loaded, just like
 Vimscript. See |lua-guide| for practical guidance.
@@ -29,13 +29,13 @@ You can also run Lua scripts from your shell using the |-l| argument: >
     nvim -l foo.lua [args...]
 <
                                                                   *lua-compat*
-Lua 5.1 is the permanent interface for Nvim Lua. Plugins should target Lua 5.1
+Lua 5.1 is the permanent interface for wgvim Lua. Plugins should target Lua 5.1
 as specified in |luaref|; later versions (which are essentially different,
 incompatible, dialects) are not supported. This includes extensions such as
 `goto` that some Lua 5.1 interpreters like LuaJIT may support.
 
                                                                   *lua-luajit*
-While Nvim officially only requires Lua 5.1 support, it should be built with
+While wgvim officially only requires Lua 5.1 support, it should be built with
 LuaJIT or a compatible fork on supported platforms for performance reasons.
 LuaJIT also comes with useful extensions such as `ffi`, |lua-profile|, and
 enhanced standard library functions; these cannot be assumed to be available,
@@ -48,11 +48,11 @@ before using them: >lua
   end
 <
 One exception is the LuaJIT `bit` extension, which is always available: when
-built with PUC Lua, Nvim includes a fallback implementation which provides
+built with PUC Lua, wgvim includes a fallback implementation which provides
 `require("bit")`. See |lua-bit|.
 
                                                                   *lua-profile*
-If Nvim is built with LuaJIT, Lua code can be profiled via >lua
+If wgvim is built with LuaJIT, Lua code can be profiled via >lua
     -- Start a profiling session:
     require('jit.p').start('ri1', '/tmp/profile')
 
@@ -83,7 +83,7 @@ https://www.lua.org/doc/cacm2018.pdf
   A Lua module is literally just a big closure discovered on the "path"
   (where your modules are found: |package.cpath|).
 - Stackful coroutines enable cooperative multithreading, generators, and
-  versatile control for both Lua and its host (Nvim).
+  versatile control for both Lua and its host (wgvim).
 
                                                           *lua-error-handling*
 Lua functions may throw |lua-errors| for exceptional (unexpected) failures,
@@ -203,7 +203,7 @@ For a module `foo.bar`, each directory is searched for `lua/foo/bar.lua`, then
 `lua/foo/bar/init.lua`.  If no files are found, the directories are searched
 again for a shared library with a name matching `lua/foo/bar.?`, where `?` is
 a list of suffixes (such as `so` or `dll`) derived from the initial value of
-|package.cpath|. If still no files are found, Nvim falls back to Lua's default
+|package.cpath|. If still no files are found, wgvim falls back to Lua's default
 search mechanism. The first script found is run and `require()` returns the
 value returned by the script if any, else `true`.
 
@@ -225,7 +225,7 @@ and loads the first module found ("first wins"): >
 <
 Note:
 
-- Although 'runtimepath' is tracked, Nvim does not track current
+- Although 'runtimepath' is tracked, wgvim does not track current
   values of |package.path| or |package.cpath|. If you happen to delete some
   paths from there you can set 'runtimepath' to trigger an update: >vim
       let &runtimepath = &runtimepath
@@ -249,7 +249,7 @@ has its own scope (closure), so only global variables are shared between
 command calls. The |lua-stdlib| modules, user modules, and anything else on
 |package.path| are available.
 
-The Lua print() function redirects its output to the Nvim message area, with
+The Lua print() function redirects its output to the wgvim message area, with
 arguments separated by " " (space) instead of "\t" (tab).
 
                                                                   *:lua=* *:lua*
@@ -259,7 +259,7 @@ arguments separated by " " (space) instead of "\t" (tab).
     are equivalent to `:lua print(vim.inspect(expr))`. |E5107| |E5108|
 
     Examples: >vim
-        :lua vim.api.nvim_command('echo "Hello, Nvim!"')
+        :lua vim.api.nvim_command('echo "Hello, wgvim!"')
 <    To see the Lua version: >vim
         :lua print(_VERSION)
 <    To see the LuaJIT version: >vim
@@ -323,7 +323,7 @@ arguments separated by " " (space) instead of "\t" (tab).
 ==============================================================================
 luaeval()                                                 *lua-eval*
 
-The (dual) equivalent of "vim.eval" for passing Lua values to Nvim is
+The (dual) equivalent of "vim.eval" for passing Lua values to wgvim is
 "luaeval". "luaeval" takes an expression string and an optional argument used
 for _A inside expression and returns the result of the expression. It is
 semantically equivalent in Lua to: >lua
@@ -436,7 +436,7 @@ Note: `v:lua` without a call is not allowed in a Vimscript expression:
 ==============================================================================
 Lua standard modules                                              *lua-stdlib*
 
-The Nvim Lua "standard library" (stdlib) is the `vim` module, which exposes
+The wgvim Lua "standard library" (stdlib) is the `vim` module, which exposes
 various functions and sub-modules. It is always loaded, thus `require("vim")`
 is unnecessary.
 
@@ -470,9 +470,9 @@ internal/private and must not be used by plugins.
 ------------------------------------------------------------------------------
 VIM.UV                                                   *lua-loop* *vim.uv*
 
-`vim.uv` exposes the "luv" Lua bindings for the libUV library that Nvim uses
+`vim.uv` exposes the "luv" Lua bindings for the libUV library that wgvim uses
 for networking, filesystem, and process management, see |luvref.txt|.
-In particular, it allows interacting with the main Nvim |luv-event-loop|.
+In particular, it allows interacting with the main wgvim |luv-event-loop|.
 
                                                     *E5560* *lua-loop-callbacks*
 It is an error to directly invoke `vim.api` functions (except |api-fast|) in
@@ -515,7 +515,7 @@ Example: File-change detection                                    *watch-file*
     2. Execute it with ":luafile %".
     3. Use ":Watch %" to watch any file.
     4. Try editing the file from another text editor.
-    5. Observe that the file reloads in Nvim (because on_change() calls
+    5. Observe that the file reloads in wgvim (because on_change() calls
        |:checktime|). >lua
 
     local w = vim.uv.new_fs_event()
@@ -601,7 +601,7 @@ A subset of the `vim.*` stdlib is available in threads, including:
 VIM                                                              *vim.builtin*
 
 vim.api.{func}({...})                                                *vim.api*
-    Invokes Nvim |API| function {func} with arguments {...}.
+    Invokes wgvim |API| function {func} with arguments {...}.
     Example: call the "nvim_get_current_line()" API function: >lua
         print(tostring(vim.api.nvim_get_current_line()))
 
@@ -658,12 +658,12 @@ Log levels are one of the values defined in `vim.log.levels`:
 
 
 vim.empty_dict()                                            *vim.empty_dict()*
-    Creates a special empty table (marked with a metatable), which Nvim
+    Creates a special empty table (marked with a metatable), which wgvim
     converts to an empty dictionary when translating Lua values to Vimscript
-    or API types. Nvim by default converts an empty table `{}` without this
+    or API types. wgvim by default converts an empty table `{}` without this
     metatable to an list/array.
 
-    Note: If numeric keys are present in the table, Nvim ignores the metatable
+    Note: If numeric keys are present in the table, wgvim ignores the metatable
     marker and converts the dict to a list/array anyway.
 
     Return: ~
@@ -687,7 +687,7 @@ vim.iconv({str}, {from}, {to})                                   *vim.iconv()*
 vim.in_fast_event()                                      *vim.in_fast_event()*
     Returns true if the code is executing as part of a "fast" event handler,
     where most of the API is disabled. These are low-level events (e.g.
-    |lua-loop-callbacks|) which can be invoked whenever Nvim polls for input.
+    |lua-loop-callbacks|) which can be invoked whenever wgvim polls for input.
     When this is `false` most API functions are callable (but may be subject
     to other restrictions such as |textlock|).
 
@@ -841,7 +841,7 @@ vim.ui_attach({ns}, {opts}, {callback})                      *vim.ui_attach()*
                     • {set_cmdheight}? (`boolean`) If false, avoid setting
                       'cmdheight' to 0 when `ext_messages` is enabled.
       • {callback}  (`fun(event: string, ...): any`) Function called for each
-                    UI event. A truthy return value signals to Nvim that the
+                    UI event. A truthy return value signals to wgvim that the
                     event is handled, in which case it is not propagated to
                     remote UIs.
 
@@ -856,7 +856,7 @@ vim.ui_detach({ns})                                          *vim.ui_detach()*
 ==============================================================================
 LUA-VIMSCRIPT BRIDGE                                           *lua-vimscript*
 
-Nvim Lua provides an interface or "bridge" to Vimscript variables and
+wgvim Lua provides an interface or "bridge" to Vimscript variables and
 functions, and editor commands and options.
 
 Objects passed over this bridge are COPIED (marshalled): there are no
@@ -910,7 +910,7 @@ Example: >lua
 <
 
 Note that setting dictionary fields directly will not write them back into
-Nvim. This is because the index into the namespace simply returns a copy.
+wgvim. This is because the index into the namespace simply returns a copy.
 Instead the whole dictionary must be written as one. This can be achieved by
 creating a short-lived temporary.
 
@@ -1335,7 +1335,7 @@ vim.deprecate({name}, {alternative}, {version}, {plugin}, {backtrace})  *vim.dep
       • {version}      (`string`) Version when the deprecated function will be
                        removed.
       • {plugin}       (`string?`) Name of the plugin that owns the deprecated
-                       feature. Defaults to "Nvim".
+                       feature. Defaults to "wgvim".
       • {backtrace}    (`boolean?`) Prints backtrace. Defaults to true.
 
     Return: ~
@@ -1950,7 +1950,7 @@ vim.str_byteindex({s}, {encoding}, {index}, {strict_indexing})  *vim.str_byteind
     length instead of throwing an error.
 
     Use `"utf-32"` to convert Unicode code-point indices to byte indices.
-    `"utf-8"` is Nvim's native string encoding, so this function is idempotent
+    `"utf-8"` is wgvim's native string encoding, so this function is idempotent
     for that encoding: {index} is already a byte index and is returned
     unchanged.
 
@@ -2248,7 +2248,7 @@ vim.wait({time}, {callback}, {interval}, {fast_only})             *vim.wait()*
     events, and approximately every `interval` milliseconds. Returns `true`
     plus any remaining callback results on success.
 
-    Nvim processes other events while waiting. Cannot be called during an
+    wgvim processes other events while waiting. Cannot be called during an
     |api-fast| event.
 
     Examples: >lua
@@ -2481,7 +2481,7 @@ vim.filetype.add({filetypes})                             *vim.filetype.add()*
     the buffer's filetype. Optionally, the function can return a second
     function value which, when called, modifies the state of the buffer. This
     can be used to, for example, set filetype-specific buffer variables. This
-    function will be called by Nvim before setting the buffer's filetype.
+    function will be called by wgvim before setting the buffer's filetype.
 
     Filename patterns can specify an optional priority to resolve cases when a
     file path matches multiple patterns. Higher priorities are matched first.
@@ -2911,7 +2911,7 @@ vim.fs.normalize({path}, {opts})                          *vim.fs.normalize()*
     Examples: >lua
         [[C:\Users\jdoe]]                         --> "C:/Users/jdoe"
         "~/src/neovim"                            --> "/home/jdoe/src/neovim"
-        "$XDG_CONFIG_HOME/nvim/init.vim"          --> "/Users/jdoe/.config/nvim/init.vim"
+        "$XDG_CONFIG_HOME/wgvim/init.vim"          --> "/Users/jdoe/.config/wgvim/init.vim"
         "~/src/nvim/api/../tui/./tui.c"           --> "/home/jdoe/src/nvim/tui/tui.c"
         "./foo/bar"                               --> "foo/bar"
         "foo/../../../bar"                        --> "../../bar"
@@ -3007,7 +3007,7 @@ vim.fs.root({source}, {marker})                                *vim.fs.root()*
     to a file path or buffer.
 
     If the buffer is unnamed (has no backing file) or has a non-empty
-    'buftype' then the search begins from Nvim's |current-directory|.
+    'buftype' then the search begins from wgvim's |current-directory|.
 
     Examples: >lua
         -- Find the root of a Python project, starting from file 'main.py'
@@ -4017,11 +4017,11 @@ vim.loader.enable({enable})                              *vim.loader.enable()*
     • overrides |loadfile()|
     • adds the Lua loader using the byte-compilation cache
     • adds the libs loader
-    • removes the default Nvim loader
+    • removes the default wgvim loader
 
     Disable (`enable=false`):
     • removes the loaders
-    • adds the default Nvim loader
+    • adds the default wgvim loader
 
     Parameters: ~
       • {enable}  (`boolean?`) true/nil to enable, false to disable
@@ -4608,7 +4608,7 @@ vim.net.request({method}, {url}, {opts}, {on_response})    *vim.net.request()*
           function (err, res)
             if err then return end
             local stars = vim.json.decode(res.body).stargazers_count
-            vim.print(('Neovim currently has %d stars'):format(stars))
+            vim.print(('wgvim currently has %d stars'):format(stars))
           end
         )
 
@@ -5216,7 +5216,7 @@ vim.secure.read({path})                                    *vim.secure.read()*
     (non-recursive), prompting the user as necessary.
 
     The user's choice is persisted in a trust database at
-    $XDG_STATE_HOME/nvim/trust.
+    $XDG_STATE_HOME/wgvim/trust.
 
     Attributes: ~
         Since: 0.9.0
@@ -5792,7 +5792,7 @@ Lua module: vim.ui.img                                            *vim.ui.img*
 EXPERIMENTAL: This API may change in the future. Its semantics are not yet
 finalized.
 
-This provides a functional API for displaying images in Nvim. Currently
+This provides a functional API for displaying images in wgvim. Currently
 supports PNG images via the Kitty graphics protocol.
 
 To override the image backend, replace `vim.ui.img` with your own
@@ -5939,7 +5939,7 @@ Example: >lua
     end
 <
 
-|vim.version()| returns the version of the current Nvim process.
+|vim.version()| returns the version of the current wgvim process.
 
 VERSION RANGE SPEC                                             *version-range*
 
@@ -5995,7 +5995,7 @@ VersionRange:has({version})                               *VersionRange:has()*
         local r = vim.version.range('1.0.0 - 2.0.0')
         print(r:has('1.9.9'))       -- true
         print(r:has('2.0.0'))       -- false
-        print(r:has(vim.version())) -- check against current Nvim version
+        print(r:has(vim.version())) -- check against current wgvim version
 <
 
     Or use cmp(), le(), lt(), ge(), gt(), and/or eq() to compare a version
@@ -6017,7 +6017,7 @@ VersionRange:has({version})                               *VersionRange:has()*
       • https://github.com/npm/node-semver#ranges
 
 vim.version()                                                  *vim.version()*
-    Returns the current Nvim version.
+    Returns the current wgvim version.
 
     Return: ~
         (`vim.Version`)

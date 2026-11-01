@@ -1,4 +1,4 @@
-*recover.txt*   Nvim
+*recover.txt*   wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -90,7 +90,7 @@ The default |SwapExists| handler (|default-autocmds|) skips the |E325| prompt
 (and automatically chooses "(E)dit") if the swapfile owner process is still
 running and owned by the current user.  This presumes that you normally don't
 want to be bothered with the |ATTENTION| message just because you happen to
-edit the same file from multiple Nvim instances.  In the worst case (a system
+edit the same file from multiple wgvim instances.  In the worst case (a system
 crash) there will be more than one swapfile for the file; use |:recover| to
 inspect all of its swapfiles.
 

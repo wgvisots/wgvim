@@ -4,7 +4,7 @@
 " URL:          http://neovim.io
 " Remark:       Uses markdown syntax file
 
-" Source the default Nvim markdown syntax, not other random ones.
+" Source the default wgvim markdown syntax, not other random ones.
 execute 'source' expand('<sfile>:p:h') .. '/markdown.vim'
 
 syn cluster mkdNonListItem add=mkdEscape,mkdNbsp

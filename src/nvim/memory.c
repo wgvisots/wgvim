@@ -215,7 +215,7 @@ void *xmallocz(size_t size)
 {
   size_t total_size = size + 1;
   if (total_size < size) {
-    preserve_exit(_("Nvim: Data too large to fit into virtual memory space\n"));
+    preserve_exit(_("wgvim: Data too large to fit into virtual memory space\n"));
   }
 
   void *ret = xmalloc(total_size);
@@ -373,7 +373,7 @@ size_t memcnt(const void *data, char c, size_t len)
 /// WARNING: If copying takes place between objects that overlap, the behavior
 /// is undefined.
 ///
-/// Nvim version of POSIX 2008 stpcpy(3). We do not require POSIX 2008, so
+/// wgvim version of POSIX 2008 stpcpy(3). We do not require POSIX 2008, so
 /// implement our own version.
 ///
 /// @param dst

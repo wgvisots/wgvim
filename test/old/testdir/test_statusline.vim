@@ -68,7 +68,7 @@ func Test_statusline_will_be_disabled_with_error()
   catch
   endtry
   call assert_true(s:func_in_statusline_called)
-  " Nvim: resets to default value instead.
+  " wgvim: resets to default value instead.
   " call assert_equal('', &statusline)
   call assert_equal(nvim_get_option_info2('statusline', {}).default, &statusline)
   set statusline=
@@ -362,7 +362,7 @@ func Test_statusline()
   call assert_equal(sa3, screenattr(&lines - 1, 7))
 
   " %*: Set highlight group to User{N}
-  " Nvim: Combined with hl-StatusLine so needs to be set.
+  " wgvim: Combined with hl-StatusLine so needs to be set.
   hi link User1 ErrorMsg
   set statusline=a%1*b%0*c
   call assert_match('^abc\s*$', s:get_statusline())
@@ -600,7 +600,7 @@ endfunc
 " Used to write beyond allocated memory.  This assumes MAXPATHL is 4096 bytes.
 func Test_statusline_verylong_filename()
   let fname = repeat('x', 4090)
-  " Nvim's swap file creation fails on Windows (E303) due to fname's length
+  " wgvim's swap file creation fails on Windows (E303) due to fname's length
   " exe "new " .. fname
   exe "noswapfile new " .. fname
   set buftype=help

@@ -403,7 +403,7 @@ describe('Command-line coloring', function()
     screen:expect([[
       ^                                        |
       {EOB:~                                       }|*6
-      Type  :qa  and pre...nter> to exit Nvim |
+      Type  :qa  and pre...nter> to exit wgvim |
     ]])
   end)
   it('works fine with NUL, NL, CR', function()

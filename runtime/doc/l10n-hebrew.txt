@@ -1,4 +1,4 @@
-*l10n-hebrew.txt*    Nvim
+*l10n-hebrew.txt*    wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Ron Aaron and Avner Lottem

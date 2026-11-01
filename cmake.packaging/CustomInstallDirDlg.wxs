@@ -19,7 +19,7 @@
                 <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
 
                 <Control Id="Note" Type="Text" X="20" Y="45" Width="290" Height="45" NoPrefix="yes">
-                  <Text>Note: besides its installation folder, [ProductName] stores configuration, data, and logs in standard locations. These can be further configured by the $NVIM_APPNAME environment variable. Also, the "base" (root) directories conform to the XDG Base Directory Specification. For more information see:</Text>
+                  <Text>Note: besides its installation folder, [ProductName] stores configuration, data, and logs in standard locations. These can be further configured by the $WGVIM_APPNAME environment variable. Also, the "base" (root) directories conform to the XDG Base Directory Specification. For more information see:</Text>
                 </Control>
                 <Control Id="Link1" Type="Hyperlink" X="20" Y="90" Width="290" Height="15">
                   <Text><![CDATA[<a href="https://neovim.io/doc/user/starting.html#standard-path">https://neovim.io/doc/user/starting.html#standard-path</a>]]></Text>
@@ -28,7 +28,7 @@
                   <Text><![CDATA[<a href="https://neovim.io/doc/user/starting.html#base-directories">https://neovim.io/doc/user/starting.html#base-directories</a>]]></Text>
                 </Control>
                 <Control Id="Link3" Type="Hyperlink" X="20" Y="120" Width="290" Height="15">
-                  <Text><![CDATA[<a href="https://neovim.io/doc/user/starting.html#%24NVIM_APPNAME">https://neovim.io/doc/user/starting.html#$NVIM_APPNAME</a>]]></Text>
+                  <Text><![CDATA[<a href="https://neovim.io/doc/user/starting.html#%24NVIM_APPNAME">https://neovim.io/doc/user/starting.html#$WGVIM_APPNAME</a>]]></Text>
                 </Control>
                 <Control Id="FolderLabel" Type="Hyperlink" X="20" Y="135" Width="290" Height="15">
                   <Text>Install [ProductName] to:</Text>

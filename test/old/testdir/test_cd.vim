@@ -106,7 +106,7 @@ func Test_chdir_func()
   call assert_match('^\[tabpage\]', trim(execute('verbose pwd')))
   call chdir('.', 'window')
   call assert_match('^\[window\]', trim(execute('verbose pwd')))
-  " Nvim: buffer is the narrowest scope and shadows the others, so it goes last.
+  " wgvim: buffer is the narrowest scope and shadows the others, so it goes last.
   call chdir('.', 'buffer')
   call assert_match('^\[buffer\]', trim(execute('verbose pwd')))
 

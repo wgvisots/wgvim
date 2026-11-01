@@ -1,4 +1,4 @@
-*mbyte.txt*     Nvim
+*mbyte.txt*     wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar et al.
@@ -20,7 +20,7 @@ For changing the language of messages and menus see |mlang.txt|.
 ==============================================================================
 Getting started						*mbyte-first*
 
-This is a summary of the multibyte features in Nvim.
+This is a summary of the multibyte features in wgvim.
 
 
 LOCALE
@@ -50,13 +50,13 @@ See |mbyte-locale| for details.
 
 ENCODING
 
-Nvim always uses UTF-8 internally. Thus 'encoding' is always set to "utf-8"
+wgvim always uses UTF-8 internally. Thus 'encoding' is always set to "utf-8"
 and cannot be changed.
 
 All the text that is used inside Vim will be in UTF-8. Not only the text in
 the buffers, but also in registers, variables, etc.
 
-You can edit files in different encodings than UTF-8.  Nvim will convert the
+You can edit files in different encodings than UTF-8.  wgvim will convert the
 file when you read it and convert it back when you write it.
 See 'fileencoding', 'fileencodings' and |++enc|.
 
@@ -75,7 +75,7 @@ must be exactly twice as wide as 'guifont'. Example for UTF-8: >
 	:set guifont=-misc-fixed-medium-r-normal-*-18-120-100-100-c-90-iso10646-1
 	:set guifontwide=-misc-fixed-medium-r-normal-*-18-120-100-100-c-180-iso10646-1
 
-You can also set 'guifont' alone, the Nvim GUI will try to find a matching
+You can also set 'guifont' alone, the wgvim GUI will try to find a matching
 'guifontwide' for you.
 
 
@@ -612,10 +612,10 @@ one file, which is impossible with other encodings.
 Unicode can be encoded in several ways.  The most popular one is UTF-8, which
 uses one or more bytes for each character and is backwards compatible with
 ASCII.  On MS-Windows UTF-16 is also used (previously UCS-2), which uses
-16-bit words.  Nvim supports all of these encodings, but always uses UTF-8
+16-bit words.  wgvim supports all of these encodings, but always uses UTF-8
 internally.
 
-Nvim supports double-width characters; works best with 'guifontwide'.  When
+wgvim supports double-width characters; works best with 'guifontwide'.  When
 using only 'guifont' the wide characters are drawn in the normal width and
 a space to fill the gap.
 
@@ -643,7 +643,7 @@ A composing or combining character is used to change the meaning of the
 character before it.  The combining characters are drawn on top of the
 preceding character.
 
-Nvim largely follows the definition of extended grapheme clusters in UAX#29
+wgvim largely follows the definition of extended grapheme clusters in UAX#29
 in the Unicode standard, with some modifications: An ascii char will always
 start a new cluster. In addition 'arabicshape' enables the combining of some
 arabic letters, when they are shaped to be displayed together in a single cell.
@@ -694,7 +694,7 @@ You need to specify a font to be used.  For double-wide characters another
 font is required, which is exactly twice as wide.  There are two ways to do
 this:
 
-1. Set 'guifont' and let Nvim find a matching 'guifontwide'
+1. Set 'guifont' and let wgvim find a matching 'guifontwide'
 2. Set 'guifont' and 'guifontwide'
 
 See the documentation for each option for details.  Example: >
@@ -726,7 +726,7 @@ COMMAND ARGUMENTS					*utf-8-char-arg*
 
 Commands like |f|, |F|, |t| and |r| take an argument of one character.  For
 UTF-8 this argument may include one or two composing characters.  These need
-to be produced together with the base character, Nvim doesn't wait for the next
+to be produced together with the base character, wgvim doesn't wait for the next
 character to be typed to find out if it is a composing character or not.
 Using 'keymap' or |:lmap| is a nice way to type these characters.
 

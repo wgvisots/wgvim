@@ -354,7 +354,7 @@ void lang_init(void)
 # else
     char buf[50] = { 0 };
 
-    // $LANG is not set, either because it was unset or Nvim was started
+    // $LANG is not set, either because it was unset or wgvim was started
     // from the Dock. Query the system locale.
     if (LocaleRefGetPartString(NULL,
                                kLocaleLanguageMask | kLocaleLanguageVariantMask |

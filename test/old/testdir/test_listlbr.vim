@@ -43,7 +43,7 @@ func Test_set_linebreak()
 endfunc
 
 func Test_linebreak_with_list()
-  throw 'skipped: Nvim does not support enc=latin1'
+  throw 'skipped: wgvim does not support enc=latin1'
   set listchars=
   call s:test_windows('setl ts=4 sbr=+ list listchars=')
   call setline(1, "\tabcdef hijklmn\tpqrstuvwxyz_1060ABCDEFGHIJKLMNOP ")
@@ -268,7 +268,7 @@ endfunc
 func Test_undo_after_block_visual()
   call s:test_windows()
   call setline(1, ["aaa", "aaa", "a"])
-  " Nvim: "." re-executes the captured keysequence ("<C-V>2jg~"), not an
+  " wgvim: "." re-executes the captured keysequence ("<C-V>2jg~"), not an
   " equal-size reselect (|visual-repeat|).
   exe "norm! gg\<C-V>2j~e."
   let lines = s:screen_lines([1, 3], winwidth(0))
@@ -296,7 +296,7 @@ func Test_norm_after_block_visual()
 endfunc
 
 func Test_block_replace_after_wrapping()
-  throw 'skipped: Nvim does not support enc=latin1'
+  throw 'skipped: wgvim does not support enc=latin1'
   call s:test_windows()
   call setline(1, repeat("a", 150))
   exe "norm! 0yypk147|\<C-V>jr0"

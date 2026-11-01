@@ -1,36 +1,36 @@
-*dev_tools.txt*          Nvim
+*dev_tools.txt*          wgvim
 
 
                             NVIM REFERENCE MANUAL
 
 
 ==============================================================================
-Tools and techniques for developing Nvim                        *dev-tools*
+Tools and techniques for developing wgvim                        *dev-tools*
 
-This is for developing or debugging Nvim itself.
+This is for developing or debugging wgvim itself.
 
                                   Type |gO| to see the table of contents.
 
 ==============================================================================
-Quickstart guide to developing Nvim                           *dev-quickstart*
+Quickstart guide to developing wgvim                           *dev-quickstart*
 
-You can start hacking on Nvim in less than 5 minutes:
+You can start hacking on wgvim in less than 5 minutes:
 
 1. Ensure you have the build prerequisites from `BUILD.md`.
 2. Clone the source repo and "cd" into it: >
         git clone https://github.com/neovim/neovim
         cd neovim
-        # (Optional) Build and run Nvim:
+        # (Optional) Build and run wgvim:
         make
-        VIMRUNTIME=./runtime ./build/bin/nvim --luamod-dev
+        VIMRUNTIME=./runtime ./build/bin/wgvim --luamod-dev
 3. Run a single test. We will start with "example_spec.lua", which is a real
    test that shows how tests are written: >
         make functionaltest TEST_FILE=test/functional/example_spec.lua
 4. Notice the `before_each` block in the test file. Because it calls
-   `clear()`, each `it()` test will start a new Nvim instance.
-5. Tests will do stuff in the Nvim instance and make assertions using `eq()`.
+   `clear()`, each `it()` test will start a new wgvim instance.
+5. Tests will do stuff in the wgvim instance and make assertions using `eq()`.
    Tests that want to check the UI can also use `screen:expect()`.
-6. Now make a code change in Nvim itself, then you can see the effects. The
+6. Now make a code change in wgvim itself, then you can see the effects. The
    example test does `feed('iline1…')`, so let's make a change to the
    insert-mode code, which lives in `src/nvim/insert.c`. In the
    `insert_handle_key` function, just after the `normalchar` label, add this
@@ -58,7 +58,7 @@ You now understand how to modify the codebase, write tests, and run tests. See
 ==============================================================================
 Logs                                                          *dev-tools-logs*
 
-Low-level log messages sink to `$NVIM_LOG_FILE`.
+Low-level log messages sink to `$WGVIM_LOG_FILE`.
 
 UI events are logged at DEBUG level. >
 
@@ -75,13 +75,13 @@ alternate file (e.g. stderr) use `LOG_CALLSTACK_TO_FILE(FILE*)`. Requires
 Many log messages have a shared prefix, such as "UI" or "RPC". Use the shell to
 filter the log, e.g. at DEBUG level you might want to exclude UI messages: >
 
-    tail -F ~/.local/state/nvim/nvim.log | cat -v | stdbuf -o0 grep -v UI | stdbuf -o0 tee -a log
+    tail -F ~/.local/state/wgvim/nvim.log | cat -v | stdbuf -o0 grep -v UI | stdbuf -o0 tee -a log
 
 
 ==============================================================================
 Reproducible build
 
-To make a reproducible build of Nvim, set cmake variable `LUA_GEN_PRG` to
+To make a reproducible build of wgvim, set cmake variable `LUA_GEN_PRG` to
 a LuaJIT binary built with `LUAJIT_SECURITY_PRN=0`. See commit
 cb757f2663e6950e655c6306d713338dfa66b18d.
 
@@ -92,20 +92,20 @@ Debug TUI                                                      *dev-tools-tui*
 TUI INSPECT
 
 Use the Ghostty https://ghostty.org/ inspector tool to observe and query the
-output and events from any terminal application such as Nvim.
+output and events from any terminal application such as wgvim.
 
 From the Ghostty inspector you can click the "Terminal IO" tab to get a trace.
 
 TERMINFO LOGGING
 
-At 'verbose' level 3, Nvim logs its internal terminfo state, so you can see
+At 'verbose' level 3, wgvim logs its internal terminfo state, so you can see
 exactly what terminfo values it is using on the current system. >
 
     nvim -V3log
 
 TUI DEBUGGING WITH GDB LLDB
 
-Launching the Nvim TUI involves two processes, one for main editor state and one
+Launching the wgvim TUI involves two processes, one for main editor state and one
 for rendering the TUI. Both of these processes use the nvim binary, so somewhat
 confusingly setting a breakpoint in either will generally succeed but may not be
 hit depending on which process the breakpoints were set in.
@@ -114,12 +114,12 @@ To debug the main process, you can debug the nvim binary with the `--headless`
 flag which does not launch the TUI and will allow you to set breakpoints in code
 not related to TUI rendering like so: >
 
-    lldb -- ./build/bin/nvim --headless --listen ~/.cache/nvim/debug-server.pipe
+    lldb -- ./build/bin/wgvim --headless --listen ~/.cache/wgvim/debug-server.pipe
 
 While in lldb, enter `run`. You can then attach to the headless process in a
 new terminal window to interact with the editor like so: >
 
-    ./build/bin/nvim --remote-ui --server ~/.cache/nvim/debug-server.pipe
+    ./build/bin/wgvim --remote-ui --server ~/.cache/wgvim/debug-server.pipe
 
 Conversely for debugging TUI rendering, you can start a headless process and
 debug the remote-ui process multiple times without losing editor state.
@@ -129,13 +129,13 @@ process, see [here](https://zignar.net/2023/02/17/debugging-neovim-with-neovim-a
 
 TUI REDRAW
 
-For debugging Nvim TUI redraw behavior it is sometimes useful to slow down its
+For debugging wgvim TUI redraw behavior it is sometimes useful to slow down its
 redraws. Set the 'writedelay' and 'redrawdebug' options to see where and when
 the UI is painted. >
 
     :set writedelay=50 rdb=compositor
 
-Note: Nvim uses an internal screenbuffer to only send minimal updates even if a large
+Note: wgvim uses an internal screenbuffer to only send minimal updates even if a large
 region is repainted internally. To also highlight excess internal redraws, use >
 
     :set writedelay=50 rdb=compositor,nodelta
@@ -147,10 +147,10 @@ From the Ghostty inspector you can click the "Terminal IO" tab to get a trace.
 Alternatively, the ancient `script` command is the "state of the art". The
 libvterm `vterm-dump` utility formats the result for human-readability.
 
-Record a Nvim terminal session and format it with `vterm-dump`: >sh
+Record a wgvim terminal session and format it with `vterm-dump`: >sh
 
     script foo
-    ./build/bin/nvim -u NONE
+    ./build/bin/wgvim -u NONE
     # Exit the script session with CTRL-d
 
     # Use `vterm-dump` utility to format the result.
@@ -212,13 +212,13 @@ function timing: >
       delete(@pidmap[args->pid]);
     }
 
-    usdt:build/bin/nvim:neovim:eval__call_func__entry {
+    usdt:build/bin/wgvim:neovim:eval__call_func__entry {
         @pidmap[pid] = 1;
         @depth++;
         @funcentry[@depth] = nsecs;
     }
 
-    usdt:build/bin/nvim:neovim:eval__call_func__return {
+    usdt:build/bin/wgvim:neovim:eval__call_func__return {
         $func = str(arg0);
         $msecs = (nsecs - @funcentry[@depth]) / 1000000;
 
@@ -302,7 +302,7 @@ https://stackoverflow.com/a/18368068
 
 To get a backtrace from the `./core` dump file:
 >bash
-    gdb build/bin/nvim ./core 2>&1 | tee backtrace.txt
+    gdb build/bin/wgvim ./core 2>&1 | tee backtrace.txt
     (gdb) thread apply all bt full
 <
 
@@ -340,12 +340,12 @@ core dumps with `/etc/launchd.conf`).
 
 WINDOWS
 
-If the Windows version of Nvim crashes in a reproducible manner, you can take
+If the Windows version of wgvim crashes in a reproducible manner, you can take
 some steps to provide a useful bug report.
 
-You must obtain the debugger symbols (PDB) file for the Nvim executable: nvim.pdb.
+You must obtain the debugger symbols (PDB) file for the wgvim executable: nvim.pdb.
 The PDB should be available from the same place that you obtained the
-executable (TODO: not currently provided by Nvim CI releases).  Be sure to use
+executable (TODO: not currently provided by wgvim CI releases).  Be sure to use
 the PDB that matches the EXE (same build).
 
 If you built the executable yourself with the Microsoft Visual C++ compiler,
@@ -355,15 +355,15 @@ If you have Visual Studio, use that instead of the VC Toolkit and WinDbg.
 
 For other compilers, always use the corresponding debugger: gdb or lldb.
 
-Debugging Nvim crashes with Visual Studio 2005 ~
+Debugging wgvim crashes with Visual Studio 2005 ~
 
 First launch nvim.exe and then launch Visual Studio.  (If you don't have
 Visual Studio, get it from https://visualstudio.microsoft.com/downloads/).
 
-On the Tools menu, click Attach to Process.  Choose the Nvim process.
+On the Tools menu, click Attach to Process.  Choose the wgvim process.
 
-In Nvim, reproduce the crash.  A dialog will appear in Visual Studio, telling
-you about the unhandled exception in the Nvim process.  Click Break to break
+In wgvim, reproduce the crash.  A dialog will appear in Visual Studio, telling
+you about the unhandled exception in the wgvim process.  Click Break to break
 into the process.
 
 Visual Studio will pop up another dialog, telling you that no symbols are
@@ -375,7 +375,7 @@ to the directory where you have the PDB file and click Open.
 
 At this point, you should have a full call stack with vim function names and
 line numbers.  Double-click one of the lines and the Find Source dialog will
-navigate to the directory where the Nvim source is (if you have it.)
+navigate to the directory where the wgvim source is (if you have it.)
 
 If you don't know how to debug this any further, follow the instructions
 at ":help bug-report".  Paste the call stack into the bug report.
@@ -396,7 +396,7 @@ Use `TEST_TAG` to run tests matching `#foo` tags (e.g.
 <
 Then, in another terminal:
 >bash
-    gdb build/bin/nvim
+    gdb build/bin/wgvim
     (gdb) target remote localhost:7777
 
 -- See `nvim_argv` in https://github.com/neovim/neovim/blob/master/test/functional/testnvim.lua.
@@ -404,14 +404,14 @@ Then, in another terminal:
 USING LLDB TO STEP THROUGH UNIT TESTS
 
 >
-    lldb build/bin/nvim -- -l test/runner.lua --lpath=./build/?.lua test/unit/
+    lldb build/bin/wgvim -- -l test/runner.lua --lpath=./build/?.lua test/unit/
 <
 USING GDB
 
 To attach to a running `nvim` process with a pid of 1234 (Tip: the pid of a
-running Nvim instance can be obtained by calling |getpid()|), for instance:
+running wgvim instance can be obtained by calling |getpid()|), for instance:
 >bash
-    gdb -tui -p 1234 build/bin/nvim
+    gdb -tui -p 1234 build/bin/wgvim
 <
 The `gdb` interactive prompt will appear. At any time you can:
 
@@ -445,12 +445,12 @@ from multiple `gdb` clients.
 
 Open a terminal and start `gdbserver` attached to `nvim` like this:
 >bash
-    gdbserver :6666 build/bin/nvim 2> gdbserver.log
+    gdbserver :6666 build/bin/wgvim 2> gdbserver.log
 <
 `gdbserver` is now listening on port 6666. You then need to attach to this
 debugging session in another terminal:
 >bash
-    gdb build/bin/nvim
+    gdb build/bin/wgvim
 <
 Once you've entered `gdb`, you need to attach to the remote session:
 >
@@ -481,10 +481,10 @@ This example `local.mk` will create the debugging session when you type
         @$(MAKE) nvim
 
     dbg-start: build
-        @tmux new-window -n 'dbg-neovim' 'gdbserver :6666 ./build/bin/nvim -D'
+        @tmux new-window -n 'dbg-neovim' 'gdbserver :6666 ./build/bin/wgvim -D'
 
     dbg-attach:
-        @tmux new-window -n 'dbg-cgdb' 'cgdb -x gdb_start.sh ./build/bin/nvim'
+        @tmux new-window -n 'dbg-cgdb' 'cgdb -x gdb_start.sh ./build/bin/wgvim'
 
     debug: dbg-start dbg-attach
 <
@@ -500,7 +500,7 @@ Debugging crashes or memory leaks                             *dev-tools-asan*
 
 BUILD WITH ASAN
 
-Building Nvim with Clang sanitizers (Address Sanitizer: ASan, Undefined
+Building wgvim with Clang sanitizers (Address Sanitizer: ASan, Undefined
 Behavior Sanitizer: UBSan, Memory Sanitizer: MSan, Thread Sanitizer: TSan) is
 a good way to catch undefined behavior, leaks and other errors as soon as they
 happen.  It's significantly faster than Valgrind.
@@ -509,7 +509,7 @@ Requires clang 3.4 or later, and `llvm-symbolizer` must be in `$PATH`: >
 
     clang --version
 
-Build Nvim with sanitizer instrumentation (choose one): >
+Build wgvim with sanitizer instrumentation (choose one): >
 
     CC=clang make CMAKE_EXTRA_FLAGS="-DENABLE_ASAN_UBSAN=ON"
     CC=clang make CMAKE_EXTRA_FLAGS="-DENABLE_MSAN=ON"

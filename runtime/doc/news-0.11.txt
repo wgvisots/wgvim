@@ -1,11 +1,11 @@
-*news-0.11.txt*    Nvim
+*news-0.11.txt*    wgvim
 
 
                             NVIM REFERENCE MANUAL
 
 
 ==============================================================================
-Notable changes since Nvim 0.10                                 *news-0.11*
+Notable changes since wgvim 0.10                                 *news-0.11*
 
 For changes in the previous release, see |news-0.10|.
 
@@ -34,7 +34,7 @@ API
 BUILD
 
 • On Windows, only building with the UCRT runtime is supported.
-• Translations are turned off by default. Enable by building Nvim with the
+• Translations are turned off by default. Enable by building wgvim with the
   CMake flag `ENABLE_TRANSLATIONS=ON`.
 
 DIAGNOSTICS
@@ -348,7 +348,7 @@ PLUGINS
 STARTUP
 
 • |-es| ("script mode") disables shada by default.
-• Nvim will fail if the |--listen| or |$NVIM_LISTEN_ADDRESS| address is
+• wgvim will fail if the |--listen| or |$WGVIM_LISTEN_ADDRESS| address is
   invalid, instead of silently skipping an invalid address.
 
 TERMINAL
@@ -415,11 +415,11 @@ TUI
 • |log| messages written by the builtin UI client (TUI, |--remote-ui|) are
   now prefixed with "ui" instead of "?".
 • The TUI will re-query the terminal's background color when a theme update
-  notification is received and Nvim will update 'background' accordingly.
+  notification is received and wgvim will update 'background' accordingly.
 
 UI
 
-• |:detach| the current UI, let the Nvim server continue running as a background
+• |:detach| the current UI, let the wgvim server continue running as a background
   process. Works with the builtin TUI, and all GUIs.
 • |vim.ui.open()| (by default bound to |gx|) accepts an `opt.cmd` parameter
   which controls the tool used to open the given path or URL. If you want to
@@ -481,7 +481,7 @@ These existing features changed their behavior.
 
 • Default 'titlestring' is now implemented with 'statusline' "%" format items.
   This means the default, empty value is essentially an alias to:
-  `%t%(\ %M%)%(\ \(%{expand(\"%:~:h\")}\)%)%a\ -\ Nvim`. This is only an
+  `%t%(\ %M%)%(\ \(%{expand(\"%:~:h\")}\)%)%a\ -\ wgvim`. This is only an
   implementation simplification, not a behavior change.
 
 ==============================================================================

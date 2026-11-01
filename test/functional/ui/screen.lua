@@ -1,4 +1,4 @@
--- This module contains the Screen class, a complete Nvim UI implementation
+-- This module contains the Screen class, a complete wgvim UI implementation
 -- designed for functional testing (verifying screen state, in particular).
 --
 -- Screen:expect() takes a string representing the expected screen state and an
@@ -6,7 +6,7 @@
 --
 -- Example usage:
 --
---     -- Attach a screen to the current Nvim instance.
+--     -- Attach a screen to the current wgvim instance.
 --     local screen = Screen.new(25, 10)
 --     -- Enter insert-mode and type some text.
 --     feed('ihello screen')
@@ -903,7 +903,7 @@ between asynchronous (feed(), nvim_input()) and synchronous API calls.
     states that should be added to the test to make it more robust.
   - If the purpose of the test is to assert state after some user input sent
     with feed(), adding screen:expect() before the feed() will help to ensure
-    the input is sent when Nvim is in a predictable state. This is preferable
+    the input is sent when wgvim is in a predictable state. This is preferable
     to poke_eventloop(), for being closer to real user interaction.
   - poke_eventloop() can trigger redraws and thus generate more indeterminism.
     Try removing poke_eventloop().

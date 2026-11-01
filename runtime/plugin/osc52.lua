@@ -102,7 +102,7 @@ vim.api.nvim_create_autocmd('UILeave', {
       return
     end
 
-    -- If no TUI is connected to Nvim's stdout then reset the OSC 52 term features flag
+    -- If no TUI is connected to wgvim's stdout then reset the OSC 52 term features flag
     for _, ui in ipairs(vim.api.nvim_list_uis()) do
       if ui.stdout_tty then
         return

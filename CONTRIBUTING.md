@@ -1,4 +1,4 @@
-Contributing to Neovim
+Contributing to wgvim
 ======================
 
 Getting started
@@ -14,8 +14,8 @@ low-risk/isolated tasks:
 - Fix bugs found by [Coverity](#coverity).
 - [Merge a Vim patch] (requires strong familiarity with Vim)
   - NOTE: read the above link before sending improvements to "runtime files" (anything in `runtime/`).
-    - *Vimscript* files are (mostly) maintained by [Vim], not Nvim.
-    - *Lua* files are maintained by *Nvim*.
+    - *Vimscript* files are (mostly) maintained by [Vim], not wgvim.
+    - *Lua* files are maintained by *wgvim*.
     - Nvim's [filetype detection](https://github.com/neovim/neovim/blob/master/runtime/lua/vim/filetype.lua) behavior matches Vim, so changes to filetype detection should be submitted to [Vim] first.
 
 Reporting problems
@@ -23,14 +23,14 @@ Reporting problems
 
 - [Check the FAQ][wiki-faq].
 - [Search existing issues][github-issues] (including closed!)
-- Update Neovim to the latest version to see if your problem persists.
+- Update wgvim to the latest version to see if your problem persists.
 - Try to reproduce with `nvim --clean` ("factory defaults").
 - If a specific configuration or plugin is necessary to recreate the problem, use the minimal template in `contrib/minimal.lua` with `nvim --clean -u contrib/minimal.lua` after making the necessary changes.
 - [Bisect](https://neovim.io/doc/user/starting.html#bisect) your config: disable plugins incrementally, to narrow down the cause of the issue.
-- [Bisect][git-bisect] Neovim's source code to find the cause of a regression, if you can. This is _extremely_ helpful.
+- [Bisect][git-bisect] wgvim's source code to find the cause of a regression, if you can. This is _extremely_ helpful.
 - When reporting a crash, [include a stacktrace](https://neovim.io/doc/user/dev_tools.html#dev-tools-backtrace).
 - Use [ASAN/UBSAN](#sanitizers-asan-and-ubsan) to get detailed errors for segfaults and undefined behavior.
-- Check the logs. `:edit $NVIM_LOG_FILE`
+- Check the logs. `:edit $WGVIM_LOG_FILE`
 - Include `cmake --system-information` for build-related issues.
 
 Developer guidelines
@@ -42,13 +42,13 @@ Developer guidelines
 - Read [:help dev](https://neovim.io/doc/user/dev.html#dev) and [:help dev-doc][dev-doc-guide] if you are working on Nvim core.
 - Read [:help dev-ui](https://neovim.io/doc/user/dev.html#dev-ui) if you are developing a UI.
 - Read [:help dev-api-client](https://neovim.io/doc/user/dev.html#dev-api-client) if you are developing an API client.
-- Install `ninja` for faster builds of Nvim.
+- Install `ninja` for faster builds of wgvim.
   ```bash
   sudo apt-get install ninja-build
   make distclean
-  make  # Nvim build system uses ninja automatically, if available.
+  make  # wgvim build system uses ninja automatically, if available.
   ```
-- Install `ccache` or `sccache` for faster rebuilds of Nvim. Nvim will use one
+- Install `ccache` or `sccache` for faster rebuilds of wgvim. wgvim will use one
   of these automatically if it's found. To disable caching use:
   ```bash
   cmake -B build -D CACHE_PRG=OFF
@@ -168,7 +168,7 @@ a maintainer sees the email.
   ```
   fix(coverity/{id}): {description}
   ```
-- Search the Neovim commit history to find examples:
+- Search the wgvim commit history to find examples:
   ```bash
   git log --oneline --no-merges --grep coverity
   ```
@@ -177,15 +177,15 @@ a maintainer sees the email.
 
   ASAN/UBSAN can be used to detect memory errors and other common forms of undefined behavior at runtime in debug builds.
 
-- To build Neovim with sanitizers enabled, use
+- To build wgvim with sanitizers enabled, use
   ```
   rm -rf build && CMAKE_EXTRA_FLAGS="-DCMAKE_C_COMPILER=clang -DENABLE_ASAN_UBSAN=1" make
   ```
-- When running Neovim, use
+- When running wgvim, use
   ```
   ASAN_OPTIONS=log_path=/tmp/nvim_asan nvim args...
   ```
-- If Neovim exits unexpectedly, check `/tmp/nvim_asan.{PID}` (or your preferred `log_path`) for log files with error messages.
+- If wgvim exits unexpectedly, check `/tmp/nvim_asan.{PID}` (or your preferred `log_path`) for log files with error messages.
 
 
 Coding
@@ -208,7 +208,7 @@ make lint  # or lintc, lintlua, lintquery, lintdoc
   This will format changed C, Lua, and treesitter query files with all
   appropriate flags set.
 - Style rules are (mostly) defined by `src/uncrustify.cfg` which tries to match
-  the [style-guide]. To use the Nvim `gq` command with `uncrustify`:
+  the [style-guide]. To use the wgvim `gq` command with `uncrustify`:
   ```vim
   if !empty(findfile('src/uncrustify.cfg', ';'))
     setlocal formatprg=uncrustify\ -q\ -l\ C\ -c\ src/uncrustify.cfg\ --no-backup
@@ -247,12 +247,12 @@ See [#549][549] for more details.
 ### Lua runtime files
 
 The Lua [`runtime/lua/vim/_core/`](./runtime/lua/vim/_core/) modules are
-precompiled to bytecode, so changes won't be usable unless you (1) rebuild Nvim
-or (2) start Nvim with `--luamod-dev` and `$VIMRUNTIME`. For example try adding
+precompiled to bytecode, so changes won't be usable unless you (1) rebuild wgvim
+or (2) start wgvim with `--luamod-dev` and `$VIMRUNTIME`. For example try adding
 a function to `runtime/lua/vim/_core/editor.lua`, then:
 
 ```bash
-VIMRUNTIME=./runtime ./build/bin/nvim --luamod-dev
+VIMRUNTIME=./runtime ./build/bin/wgvim --luamod-dev
 ```
 
 Documentation
@@ -309,7 +309,7 @@ the pinned checker automatically. Settings are in `.emmyrc.json`.
 Third-party dependencies
 ------------------------
 
-To build Nvim using a different commit of a dependency change the appropriate
+To build wgvim using a different commit of a dependency change the appropriate
 URL in `cmake.deps/deps.txt`. For example, to use a different version of luajit
 replace the value in `LUAJIT_URL` with the wanted commit hash:
 

@@ -250,7 +250,7 @@ func Test_Ambiguous()
   call assert_equal('also', g:didthat)
   delcommand Dothat
 
-  " Nvim removed the ":Ni!" easter egg in 87e107d92.
+  " wgvim removed the ":Ni!" easter egg in 87e107d92.
   call assert_fails("\x4ei\041", 'E492: Not an editor command: Ni!')
 endfunc
 
@@ -836,7 +836,7 @@ endfunc
 
 " Test for using buffer-local user command from cmdwin.
 func Test_buflocal_usercmd_cmdwin()
-  throw 'Skipped: Nvim supports cmdwin freedom #40312'
+  throw 'Skipped: wgvim supports cmdwin freedom #40312'
   new
   command -buffer TestCmd edit Test
   " This used to crash Vim

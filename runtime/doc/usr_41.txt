@@ -1,4 +1,4 @@
-*usr_41.txt*	Nvim
+*usr_41.txt*	wgvim
 
 
 		     VIM USER MANUAL	by Bram Moolenaar
@@ -2282,7 +2282,7 @@ Example: >
 
 Write this single-line file as "ftdetect/foofoo.vim" in the first directory
 that appears in 'runtimepath'.  For Unix that would be
-"~/.config/nvim/ftdetect/foofoo.vim".  The convention is to use the name of
+"~/.config/wgvim/ftdetect/foofoo.vim".  The convention is to use the name of
 the filetype for the script name.
 
 You can make more complicated checks if you like, for example to inspect the
@@ -2353,7 +2353,7 @@ you can write the different setting in a script: >
 
 Now write this in the "after" directory, so that it gets sourced after the
 distributed "vim.vim" ftplugin |after-directory|.  For Unix this would be
-"~/.config/nvim/after/ftplugin/vim.vim".  Note that the default plugin will
+"~/.config/wgvim/after/ftplugin/vim.vim".  Note that the default plugin will
 have set "b:did_ftplugin", but it is ignored here.
 
 
@@ -2556,7 +2556,7 @@ a user to overrule or add to the default file.  The default files start with: >
 	:let current_compiler = "mine"
 
 When you write a compiler file and put it in your personal runtime directory
-(e.g., ~/.config/nvim/compiler for Unix), you set the "current_compiler"
+(e.g., ~/.config/wgvim/compiler for Unix), you set the "current_compiler"
 variable to make the default file skip the settings.
 							*:CompilerSet*
 The second mechanism is to use ":set" for ":compiler!" and ":setlocal" for
@@ -2573,7 +2573,7 @@ runtime directory, use the mechanism mentioned above.  When
 When you write a compiler plugin to overrule settings from a default plugin,
 don't check "current_compiler".  This plugin is supposed to be loaded
 last, thus it should be in a directory at the end of 'runtimepath'.  For Unix
-that could be ~/.config/nvim/after/compiler.
+that could be ~/.config/wgvim/after/compiler.
 
 ==============================================================================
 *41.14*	Writing a plugin that loads quickly	*write-plugin-quickload*
@@ -2691,7 +2691,7 @@ want to use subdirectories.  Example: >
 
 For Unix the library script used for this could be:
 
-	~/.config/nvim/autoload/netlib/ftp.vim
+	~/.config/wgvim/autoload/netlib/ftp.vim
 
 Where the function is defined like this: >
 

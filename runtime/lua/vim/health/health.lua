@@ -79,7 +79,7 @@ local function check_runtime()
         'Found old files in $VIMRUNTIME (this can cause weird behavior):\n%s',
         bad_files_msg
       ),
-      { 'Delete the $VIMRUNTIME directory, then reinstall Nvim.' }
+      { 'Delete the $VIMRUNTIME directory, then reinstall wgvim.' }
     )
   end
 end
@@ -110,9 +110,9 @@ local function check_config()
     health.error('$VIM is invalid: ' .. vim.env.VIM)
   end
 
-  if vim.env.NVIM_TUI_ENABLE_CURSOR_SHAPE then
+  if vim.env.WGVIM_TUI_ENABLE_CURSOR_SHAPE then
     ok = false
-    health.warn('$NVIM_TUI_ENABLE_CURSOR_SHAPE is ignored in Nvim 0.2+', {
+    health.warn('$WGVIM_TUI_ENABLE_CURSOR_SHAPE is ignored in wgvim 0.2+', {
       "Use the 'guicursor' option to configure cursor shape. :help 'guicursor'",
       'https://github.com/neovim/neovim/wiki/Following-HEAD#20170402',
     })
@@ -160,7 +160,7 @@ local function check_config()
     or (vim.o.shadafile == 'NONE' and '' or vim.o.shadafile)
   )
   if shadafile ~= '' and vim.fn.glob(shadafile) == '' then
-    -- Since this may be the first time Nvim has been run, try to create a shada file.
+    -- Since this may be the first time wgvim has been run, try to create a shada file.
     if not pcall(vim.cmd.wshada) then
       writeable = false
     end
@@ -233,7 +233,7 @@ end
 -- Note: this is part of check_performance().
 ---@async
 local function check_limits()
-  -- 'ulimit -n' (RLIMIT_NOFILE): each Nvim buffer may hold an open swapfile. Sockets, channels, filewatchers also consume file descriptors.
+  -- 'ulimit -n' (RLIMIT_NOFILE): each wgvim buffer may hold an open swapfile. Sockets, channels, filewatchers also consume file descriptors.
   if vim.fn.has('win32') == 0 then
     local ok, out = system({ 'sh', '-c', 'ulimit -Sn' }) -- Must use a shell.
     out = vim.trim(out or '')
@@ -291,8 +291,8 @@ local function check_performance()
     health.ok(buildtype)
   else
     health.info(buildtype)
-    health.warn('Non-optimized debug build. Nvim will be slower.', {
-      'Install a different Nvim package, or rebuild with `CMAKE_BUILD_TYPE=RelWithDebInfo` (CMake) or `-Doptimize=ReleaseFast` (Zig).',
+    health.warn('Non-optimized debug build. wgvim will be slower.', {
+      'Install a different wgvim package, or rebuild with `CMAKE_BUILD_TYPE=RelWithDebInfo` (CMake) or `-Doptimize=ReleaseFast` (Zig).',
       suggest_faq,
     })
   end
@@ -714,7 +714,7 @@ local function check_stable_version(nvim_version)
   local current = vim.version.parse(current_version)
   local latest = vim.version.parse(latest_version)
   if current and latest and vim.version.lt(current, latest) then
-    vim.health.warn(('Nvim %s is available (current: %s)'):format(latest_version, current_version))
+    vim.health.warn(('wgvim %s is available (current: %s)'):format(latest_version, current_version))
   else
     vim.health.ok(('Up to date (%s)'):format(current_version))
   end
@@ -763,7 +763,7 @@ local function check_sysinfo()
 
   -- Use :version because `vim.version().build` returns "Homebrew" for brew installs.
   local version_out = vim.api.nvim_exec2('version', { output = true }).output --[[@as string]]
-  local nvim_version = version_out:match('NVIM (v[^\n]+)') or 'unknown'
+  local nvim_version = version_out:match('WGVIM (v[^\n]+)') or 'unknown'
   local commit = (version_out:match('%+g(%x+)') or ''):sub(1, 12)
 
   if vim.fn.executable('git') ~= 1 then
@@ -779,7 +779,7 @@ local function check_sysinfo()
   local terminal = detect_terminal()
   local term_env = vim.env.TERM or 'unknown'
 
-  vim.health.info(('Nvim version: `%s` %s'):format(nvim_version, commit))
+  vim.health.info(('wgvim version: `%s` %s'):format(nvim_version, commit))
   vim.health.info('Operating system: ' .. os_string)
   vim.health.info('Terminal: ' .. terminal)
   vim.health.info('$TERM: ' .. term_env)
@@ -803,7 +803,7 @@ local function check_sysinfo()
     ## System info
 
     - Nvim version (nvim -v): `%s` neovim/neovim@%s
-    - Vim (not Nvim) behaves the same?: ?
+    - Vim (not wgvim) behaves the same?: ?
     - Operating system/version: %s
     - Terminal name/version: %s
     - $TERM environment variable: `%s`

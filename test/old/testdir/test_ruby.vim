@@ -231,7 +231,7 @@ endfunc
 func Test_ruby_Vim_window_current()
   let cw = rubyeval('$curwin.to_s')
   " call assert_equal(cw, rubyeval('Vim::Window.current'))
-  call assert_match('^#<Neovim::Window:0x\x\+>$', cw)
+  call assert_match('^#<wgvim::Window:0x\x\+>$', cw)
 endfunc
 
 " Test Vim::Window.count (number of windows)
@@ -260,7 +260,7 @@ endfunc
 func Test_ruby_Vim_buffer_current()
   let cb = rubyeval('$curbuf.to_s')
   " call assert_equal(cb, rubyeval('Vim::Buffer.current'))
-  call assert_match('^#<Neovim::Buffer:0x\x\+>$', cb)
+  call assert_match('^#<wgvim::Buffer:0x\x\+>$', cb)
 endfunc
 
 " Test Vim::Buffer:.count (return the number of buffers)

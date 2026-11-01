@@ -203,7 +203,7 @@ func BackOne(expected)
 endfunc
 
 func Test_undo_del_chars()
-  throw 'Skipped: Nvim does not support test_settime()'
+  throw 'Skipped: wgvim does not support test_settime()'
   " Setup a buffer without creating undo entries
   new
   set ul=-1
@@ -399,7 +399,7 @@ func Test_insert_expr()
 endfunc
 
 func Test_undofile_earlier()
-  throw 'Skipped: Nvim does not support test_settime()'
+  throw 'Skipped: wgvim does not support test_settime()'
   if has('win32')
     " FIXME: This test is flaky on MS-Windows.
     let g:test_is_flaky = 1
@@ -693,7 +693,7 @@ endfunc
 
 " Test 'undofile' using a file encrypted with 'zip' crypt method
 func Test_undofile_cryptmethod_zip()
-  throw 'skipped: Nvim does not support cryptmethod'
+  throw 'skipped: wgvim does not support cryptmethod'
   edit Xtestfile
   set undofile cryptmethod=zip
   call append(0, ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'])
@@ -728,7 +728,7 @@ endfunc
 
 " Test 'undofile' using a file encrypted with 'blowfish' crypt method
 func Test_undofile_cryptmethod_blowfish()
-  throw 'skipped: Nvim does not support cryptmethod'
+  throw 'skipped: wgvim does not support cryptmethod'
   edit Xtestfile
   set undofile cryptmethod=blowfish
   call append(0, ['jan', 'feb', 'mar', 'apr', 'jun'])
@@ -768,7 +768,7 @@ endfunc
 
 " Test 'undofile' using a file encrypted with 'blowfish2' crypt method
 func Test_undofile_cryptmethod_blowfish2()
-  throw 'skipped: Nvim does not support cryptmethod'
+  throw 'skipped: wgvim does not support cryptmethod'
   edit Xtestfile
   set undofile cryptmethod=blowfish2
   call append(0, ['jan', 'feb', 'mar', 'apr', 'jun'])
@@ -997,7 +997,7 @@ func Test_corrupted_undofile()
            \ '00000000000000000000000000000000000000000000' ..
            \ '000000000000000000000000000000000000003B9ACA' ..
            \ '00003581E7AA')
-  " Nvim: convert undo file format
+  " wgvim: convert undo file format
   let b = b->slice(0, -2) + 0z3581 + b->slice(-2) | let b[10] = 0x03
   call writefile(b, 'Xundo', 'bD')
   rundo Xundo

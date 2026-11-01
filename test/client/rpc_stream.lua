@@ -27,7 +27,7 @@ function Response:send(value, is_error)
   self._rpc_stream._stream:write(data)
 end
 
---- Nvim msgpack RPC stream.
+--- wgvim msgpack RPC stream.
 ---
 --- @class test.RpcStream
 --- @field private _stream test.Stream

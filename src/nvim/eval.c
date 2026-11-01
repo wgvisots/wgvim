@@ -6414,7 +6414,7 @@ void last_set_msg(sctx_T script_ctx)
     msg_puts(_(line_msg));
     msg_outnum(script_ctx.sc_lnum);
   } else if (script_is_lua(script_ctx.sc_sid)) {
-    msg_puts(_(" (run Nvim with -V1 for more details)"));
+    msg_puts(_(" (run wgvim with -V1 for more details)"));
   }
   if (should_free) {
     xfree(p);

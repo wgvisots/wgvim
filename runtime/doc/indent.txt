@@ -1,4 +1,4 @@
-*indent.txt*    Nvim
+*indent.txt*    wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar

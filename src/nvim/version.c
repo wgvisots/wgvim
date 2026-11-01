@@ -45,7 +45,7 @@
   "." STR(NVIM_VERSION_MINOR) "." STR(NVIM_VERSION_PATCH) \
   NVIM_VERSION_PRERELEASE
 #endif
-#define NVIM_VERSION_LONG "NVIM " NVIM_VERSION_MEDIUM  // NOLINT(bugprone-suspicious-missing-comma)
+#define NVIM_VERSION_LONG "WGVIM " NVIM_VERSION_MEDIUM  // NOLINT(bugprone-suspicious-missing-comma)
 
 char *Versions[] = { "8.1", "8.2", "9.0", "9.1", "9.2" };
 char *longVersion = NVIM_VERSION_LONG;
@@ -3776,11 +3776,11 @@ static const int *included_patchsets[] = {
   },
 };
 
-/// Compares a version string to the current Nvim version.
+/// Compares a version string to the current wgvim version.
 ///
 /// @param version Version string like "1.3.42"
 ///
-/// @return true if Nvim is at or above the version.
+/// @return true if wgvim is at or above the version.
 bool has_nvim_version(const char *const version_str)
   FUNC_ATTR_PURE FUNC_ATTR_WARN_UNUSED_RESULT FUNC_ATTR_NONNULL_ALL
 {
@@ -4007,6 +4007,9 @@ void list_version(void)
   msg_ext_set_kind("list_cmd");
   msg_puts(longVersion);
   msg_putchar('\n');
+  // Credit: wgvim is a derivative of Neovim (Apache-2.0 / Vim license); see NOTICE.
+  msg_puts("Based on Neovim v0.13.0-dev (snapshot d299306), see NOTICE");
+  msg_putchar('\n');
   msg_puts(version_buildtype);
   msg_putchar('\n');
   list_lua_version();
@@ -4079,11 +4082,11 @@ void intro_message(bool colon)
     "",
     N_(NVIM_VERSION_LONG),
     "────────────────────────────────────────────",
-    N_("Nvim is open source and freely distributable"),
-    "https://neovim.io/#chat",
+    N_("wgvim is open source and freely distributable"),
+    "Based on Neovim; see NOTICE",
     "────────────────────────────────────────────",
     N_("type  :help nvim<Enter>     if you are new! "),
-    N_("type  :checkhealth<Enter>   to optimize Nvim"),
+    N_("type  :checkhealth<Enter>   to optimize wgvim"),
     N_("type  :q<Enter>             to exit         "),
     N_("type  :help<Enter>          for help        "),
     "────────────────────────────────────────────",

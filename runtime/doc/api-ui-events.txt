@@ -1,11 +1,11 @@
-*api-ui-events.txt*	Nvim
+*api-ui-events.txt*	wgvim
 
 
 			    NVIM REFERENCE MANUAL
 
 
 ==============================================================================
-Nvim UI protocol					*UI* *ui* *api-ui-events*
+wgvim UI protocol					*UI* *ui* *api-ui-events*
 
 This document describes the UI protocol. See |gui| and |tui| for user-facing
 UI components and features.
@@ -15,17 +15,17 @@ UI components and features.
 ==============================================================================
 UI Events						*ui-protocol* *ui-events*
 
-UIs can be implemented as external client processes communicating with Nvim
+UIs can be implemented as external client processes communicating with wgvim
 over the RPC API. The default UI model is a terminal-like grid with a single,
 monospace font. The UI can opt-in to have windows drawn on separate grids, and
-have some elements ("widgets") presented by the UI itself rather than by Nvim
+have some elements ("widgets") presented by the UI itself rather than by wgvim
 ("externalized").
 
 							*ui-option*
-Call |nvim_ui_attach()| to tell Nvim that your program wants to draw the Nvim
+Call |nvim_ui_attach()| to tell wgvim that your program wants to draw the wgvim
 screen grid with a size of width × height cells. This is typically done by an
 embedder at startup (see |ui-startup|), but UIs can also connect to a running
-Nvim instance and invoke nvim_ui_attach(). The `options` parameter is a map
+wgvim instance and invoke nvim_ui_attach(). The `options` parameter is a map
 with these (optional) keys:
 
 							*ui-rgb*
@@ -64,12 +64,12 @@ with these (optional) keys:
 Specifying an unknown option is an error; UIs can check the |api-metadata|
 `ui_options` key for supported options.
 
-By default Nvim requires all connected UIs to support the same capabilities,
+By default wgvim requires all connected UIs to support the same capabilities,
 thus the active capabilities are the intersection of those requested. UIs may
 specify |ui-override| to invert this behavior (useful for debugging). The
 "option_set" event announces which capabilities are active.
 
-Nvim sends RPC notifications to all attached UIs, with method name "redraw"
+wgvim sends RPC notifications to all attached UIs, with method name "redraw"
 and a single argument: an array (batch) of screen "update events". Each update
 event is itself an array whose first element is the event name and remaining
 elements are event-parameter tuples. Thus multiple events of the same kind can
@@ -97,7 +97,7 @@ Example of a typical "redraw" batch in a single RPC notification: >
       ]
     ]
 
-Events must be handled in-order. Nvim sends a "flush" event when it has
+Events must be handled in-order. wgvim sends a "flush" event when it has
 completed a redraw of the entire screen (so all windows have a consistent view
 of buffer state, options, etc.). Multiple "redraw" batches may be sent before
 the entire screen has been redrawn, with "flush" following only the last
@@ -105,27 +105,27 @@ batch. The user should only see the final state (when "flush" is sent), not
 any intermediate state while processing part of the batch array, nor after
 a batch not ending with "flush".
 
-By default, Nvim sends |ui-global| and |ui-grid-old| events (for backwards
+By default, wgvim sends |ui-global| and |ui-grid-old| events (for backwards
 compatibility); these suffice to implement a terminal-like interface. However
 the new |ui-linegrid| represents text more efficiently (especially highlighted
 text), and allows UI capabilities requiring multiple grids. New UIs should
 implement |ui-linegrid| instead of |ui-grid-old|.
 
-Nvim optionally sends various screen elements "semantically" as structured
+wgvim optionally sends various screen elements "semantically" as structured
 events instead of raw grid-lines, as specified by |ui-ext-options|. The UI
-must present such elements itself, Nvim will not draw them on the grid.
+must present such elements itself, wgvim will not draw them on the grid.
 
-Future versions of Nvim may add new update kinds and may append new parameters
+Future versions of wgvim may add new update kinds and may append new parameters
 to existing update kinds. Clients must be prepared to ignore such extensions,
 for forward-compatibility. |api-contract|
 
 ==============================================================================
 UI startup							   *ui-startup*
 
-UI embedders (clients that start Nvim with |--embed| and later call
-|nvim_ui_attach()|) must start Nvim without |--headless|: >bash
+UI embedders (clients that start wgvim with |--embed| and later call
+|nvim_ui_attach()|) must start wgvim without |--headless|: >bash
     nvim --embed
-Nvim will pause before loading startup files and reading buffers, so the UI
+wgvim will pause before loading startup files and reading buffers, so the UI
 has a chance to invoke requests and do early initialization. Startup will
 continue when the UI invokes |nvim_ui_attach()|.
 
@@ -142,7 +142,7 @@ UI events. A more featureful UI, should use the following startup procedure:
       nvim_command("autocmd VimEnter * call rpcrequest(1, 'vimenter')")
 4. Now invoke |nvim_ui_attach()|. The UI must handle user input by now:
    sourcing init.vim and loading buffers might lead to blocking prompts.
-5. If step 3 was used, Nvim will send a blocking "vimenter" request to the UI.
+5. If step 3 was used, wgvim will send a blocking "vimenter" request to the UI.
    Inside this request handler, the UI can safely do any initialization before
    entering normal mode, for example reading variables set by init.vim.
 
@@ -152,10 +152,10 @@ UIs should also handle |ui-event-restart|.
 UIs can support reading from stdin (like `command | nvim -`, see |--|) as follows:
 
 1. The embedding process detects that the stdin fd is not a terminal.
-2. It then needs to forward this fd to Nvim. Because fd=0 is already is used
-   to send RPC data from embedder to Nvim, it must use some other file
+2. It then needs to forward this fd to wgvim. Because fd=0 is already is used
+   to send RPC data from embedder to wgvim, it must use some other file
    descriptor, like fd=3 or higher.
-3. Then pass the fd as the `stdin_fd` parameter of `nvim_ui_attach`. Nvim will
+3. Then pass the fd as the `stdin_fd` parameter of `nvim_ui_attach`. wgvim will
    read it as text into buffer 1.
 
 ==============================================================================
@@ -215,7 +215,7 @@ the editor.
 	- 'termguicolors'
 	- "ext_*" (all |ui-ext-options|)
 
-	Triggered when the UI first connects to Nvim, and whenever an option
+	Triggered when the UI first connects to wgvim, and whenever an option
 	is changed by the user or a plugin.
 
 	Options are not represented here if their effects are communicated in
@@ -224,7 +224,7 @@ the editor.
 	mouse support is active. Some options like 'ambiwidth' have already
 	taken effect on the grid, where appropriate empty cells are added,
 	however a UI might still use such options when rendering raw text
-	sent from Nvim, like for |ui-cmdline|.
+	sent from wgvim, like for |ui-cmdline|.
 
 ["chdir", path] ~
 	The |current-directory| changed to `path`.
@@ -234,14 +234,14 @@ the editor.
 	the current mode. `mode_idx` is an index into the array emitted in
 	the `mode_info_set` event. UIs should change the cursor style
 	according to the properties specified in the corresponding item. The
-	set of modes reported will change in new versions of Nvim, for
+	set of modes reported will change in new versions of wgvim, for
 	instance more submodes and temporary states might be represented as
 	separate modes.
 
 ["mouse_on"] ~
 ["mouse_off"] ~
 	'mouse' was enabled/disabled in the current editor mode. Useful for
-	a terminal UI, or embedding into an application where Nvim mouse would
+	a terminal UI, or embedding into an application where wgvim mouse would
 	conflict with other usages of the mouse. Other UI:s may ignore this event.
 
 ["busy_start"] ~
@@ -250,14 +250,14 @@ the editor.
 	is misnamed and does not actually have anything to do with busyness.
 
 ["connect", server_addr] ~
-	User invoked the |:connect| command. Nvim detached the current UI.
+	User invoked the |:connect| command. wgvim detached the current UI.
 
 	UI is expected to:
 	1. Attach to the server at `server_addr`.
 
 							*ui-event-restart*
 ["restart", listen_addr, chan_config] ~
-	User invoked the |:restart| command. Nvim started a new server. The
+	User invoked the |:restart| command. wgvim started a new server. The
 	old server is about to exit and close its channel. `chan_config` gives
 	the channel-specific properties from the old server, which the UI
 	should pass to |nvim_chan_set()| intact.
@@ -282,7 +282,7 @@ the editor.
 	Notify the user with an audible or visual bell, respectively.
 
 ["flush"] ~
-	Nvim is done redrawing the screen. For an implementation that renders
+	wgvim is done redrawing the screen. For an implementation that renders
 	to an internal buffer, this is the time to display the redrawn parts
 	to the user.
 
@@ -375,8 +375,8 @@ numerical highlight ids to the actual attributes.
 	`id` 0 will always be used for the default highlight with colors defined
 	by `default_colors_set` and no styles applied.
 
-	Note: Nvim may reuse `id` values if its internal highlight table is full.
-	In that case Nvim will always issue redraws of screen cells that are
+	Note: wgvim may reuse `id` values if its internal highlight table is full.
+	In that case wgvim will always issue redraws of screen cells that are
 	affected by redefined ids, so UIs do not need to keep track of this
 	themselves.
 
@@ -411,7 +411,7 @@ numerical highlight ids to the actual attributes.
 	line should be cleared.
 
 	`wrap` is a boolean indicating that this line wraps to the next row.
-	When redrawing a line which wraps to the next row, Nvim will emit a
+	When redrawing a line which wraps to the next row, wgvim will emit a
 	`grid_line` event covering the last column of the line with `wrap` set
 	to true, followed immediately by a `grid_line` event starting at the
 	first column of the next row.
@@ -464,7 +464,7 @@ numerical highlight ids to the actual attributes.
 		| (clipped below SR)      |            v
 		+-------------------------+
 <
-	`cols` is always zero in this version of Nvim, and reserved for future
+	`cols` is always zero in this version of wgvim, and reserved for future
 	use.
 
 	Note when updating code from |ui-grid-old| events: ranges are
@@ -578,8 +578,8 @@ Highlight Events						  *ui-hlstate*
 Activated by the `ext_hlstate` |ui-option|.
 Activates |ui-linegrid| implicitly.
 
-If `ext_hlstate` is enabled, Nvim will emit detailed highlight state in
-|ui-linegrid| events. Otherwise (by default) Nvim only describes grid cells
+If `ext_hlstate` is enabled, wgvim will emit detailed highlight state in
+|ui-linegrid| events. Otherwise (by default) wgvim only describes grid cells
 using the final calculated highlight attributes described at
 |ui-event-highlight_set|.
 
@@ -616,7 +616,7 @@ Activates |ui-linegrid| implicitly.
 
 See |ui-linegrid| for grid events.
 See |nvim_ui_try_resize_grid()| to request changing the grid size.
-See |nvim_input_mouse()| for sending mouse events to Nvim.
+See |nvim_input_mouse()| for sending mouse events to wgvim.
 
 The multigrid extension gives UIs more control over how windows are displayed:
 - UIs receive updates on a separate grid for each window.
@@ -627,18 +627,18 @@ The multigrid extension gives UIs more control over how windows are displayed:
 - A dedicated grid is used for messages, which may scroll over the window
   area. (Alternatively |ui-messages| can be used).
 
-By default, the grid size is handled by Nvim and set to the outer grid size
-(i.e. the size of the window frame in Nvim) whenever the split is created.
-Once a UI sets a grid size, Nvim does not handle the size for that grid and
+By default, the grid size is handled by wgvim and set to the outer grid size
+(i.e. the size of the window frame in wgvim) whenever the split is created.
+Once a UI sets a grid size, wgvim does not handle the size for that grid and
 the UI must change the grid size whenever the outer size is changed. To
-delegate grid-size handling back to Nvim, request the size (0, 0).
+delegate grid-size handling back to wgvim, request the size (0, 0).
 
 A window can be hidden and redisplayed without its grid being deallocated.
 This can happen multiple times for the same window, for instance when switching
 tabs.
 
 ["win_pos", grid, win, start_row, start_col, width, height] ~
-	Set the position and size of the grid in Nvim (i.e. the outer grid
+	Set the position and size of the grid in wgvim (i.e. the outer grid
 	size). If the window was previously hidden, it should now be shown
 	again.
 
@@ -844,7 +844,7 @@ This UI extension delegates presentation of messages and dialogs. Messages
 that would otherwise render in the message/cmdline screen space, are emitted
 as UI events.
 
-Nvim will not allocate screen space for the cmdline or messages. 'cmdheight'
+wgvim will not allocate screen space for the cmdline or messages. 'cmdheight'
 will be set to zero, but can be changed and used for the replacing cmdline or
 message window. Cmdline state is emitted as |ui-cmdline| events, which the UI
 must handle.

@@ -254,7 +254,7 @@ add_glob_target(
 add_custom_target(lintquery-compilation
   COMMAND ${TS_QUERY_LS_PRG}
   check ${PROJECT_SOURCE_DIR}/runtime/queries --config
-  '{"parser_install_directories": ["${DEPS_PREFIX}/lib/nvim/parser"]}')
+  '{"parser_install_directories": ["${DEPS_PREFIX}/lib/wgvim/parser"]}')
 
 add_custom_target(lintquery-format
   COMMAND ${TS_QUERY_LS_PRG}

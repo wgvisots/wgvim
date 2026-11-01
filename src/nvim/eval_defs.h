@@ -125,7 +125,7 @@ typedef enum {
   VV_MAXCOL,
   VV_STACKTRACE,
   VV_VIM_DID_INIT,
-  // Nvim
+  // wgvim
   VV_STDERR,
   VV_MSGPACK_TYPES,
   VV__NULL_STRING,  // String with NULL value. For test purposes only.

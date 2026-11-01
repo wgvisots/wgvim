@@ -13,12 +13,12 @@
     - To build on Windows, see the [Building on Windows](#building-on-windows) section. _MSVC (Visual Studio) is recommended._
 5. `sudo make install`
     - Default install location is `/usr/local`
-    - On Debian/Ubuntu, instead of `sudo make install`, you can try `cd build && cpack -G DEB && sudo dpkg -i nvim-linux-<arch>.deb` (with `<arch>` either `x86_64` or `arm64`) to build DEB-package and install it. This helps ensure clean removal of installed files. Note: This is an unsupported, "best-effort" feature of the Nvim build.
+    - On Debian/Ubuntu, instead of `sudo make install`, you can try `cd build && cpack -G DEB && sudo dpkg -i nvim-linux-<arch>.deb` (with `<arch>` either `x86_64` or `arm64`) to build DEB-package and install it. This helps ensure clean removal of installed files. Note: This is an unsupported, "best-effort" feature of the wgvim build.
 
 **Notes**:
 - From the repository's root directory, running `make` will download and build all the needed dependencies and put the `nvim` executable in `build/bin`.
 - Third-party dependencies (libuv, LuaJIT, etc.) are downloaded automatically to `.deps/`. See the [FAQ](https://neovim.io/doc/user/faq.html#faq-build) if you have issues.
-- After building, you can run the `nvim` executable without installing it by running `VIMRUNTIME=runtime ./build/bin/nvim`.
+- After building, you can run the `nvim` executable without installing it by running `VIMRUNTIME=runtime ./build/bin/wgvim`.
 - If you plan to develop Neovim, install [Ninja](https://ninja-build.org/) for faster builds. It will automatically be used.
 - Install [ccache](https://ccache.dev/) for faster rebuilds of Neovim. It's used by default. To disable it, use `CCACHE_DISABLE=true make`.
 
@@ -34,7 +34,7 @@ The _build type_ determines the level of used compiler optimizations and debug i
 
 - `Release`: Full compiler optimizations and no debug information. Expect the best performance from this build type. Often used by package maintainers.
 - `Debug`: Full debug information; few optimizations. Use this for development to get meaningful output from debuggers like GDB or LLDB. This is the default if `CMAKE_BUILD_TYPE` is not specified.
-- `RelWithDebInfo` ("Release With Debug Info"): Enables many optimizations and adds enough debug info so that when Neovim ever crashes, you can still get a backtrace.
+- `RelWithDebInfo` ("Release With Debug Info"): Enables many optimizations and adds enough debug info so that when wgvim ever crashes, you can still get a backtrace.
 
 So, for a release build, just use:
 
@@ -46,7 +46,7 @@ make CMAKE_BUILD_TYPE=Release
 Afterwards, the `nvim` executable can be found in `build/bin`. To verify the build type after compilation, run:
 
 ```bash
-./build/bin/nvim --version | grep ^Build
+./build/bin/wgvim --version | grep ^Build
 ```
 
 To install the executable to a certain location, use:
@@ -57,7 +57,7 @@ make CMAKE_INSTALL_PREFIX=$HOME/local/nvim install
 
 CMake, our main build system, caches a lot of things in `build/CMakeCache.txt`. If you ever want to change `CMAKE_BUILD_TYPE` or `CMAKE_INSTALL_PREFIX`, run `rm -rf build` first. This is also required when rebuilding after a Git commit adds or removes files (including from `runtime`) — when in doubt, run `make distclean` (which is basically a shortcut for `rm -rf build .deps`).
 
-By default (`USE_BUNDLED=1`), Neovim downloads and statically links its needed dependencies. In order to be able to use a debugger on these libraries, you might want to compile them with debug information as well:
+By default (`USE_BUNDLED=1`), wgvim downloads and statically links its needed dependencies. In order to be able to use a debugger on these libraries, you might want to compile them with debug information as well:
 
 <!-- THIS CAUSES SCREEN INTERFERENCE
 ```
@@ -92,7 +92,7 @@ cmake -B build -LH
 
 1. Install [Visual Studio](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=Community) (2017 or later) with the _Desktop development with C++_ workload.
     - On 32-bit Windows, you will need [this workaround](https://developercommunity.visualstudio.com/content/problem/212989/ninja-binary-format.html).
-2. Open the Neovim project folder.
+2. Open the wgvim project folder.
     - Visual Studio should detect the cmake files and automatically start building...
 3. Choose the `nvim.exe (bin\nvim.exe)` target and hit F5.
     - If the build fails, it may be because Visual Studio started the build with `x64-{Debug,Release}` before you switched the configuration to `x86-Release`.
@@ -129,7 +129,7 @@ To build from the command line (i.e. invoke the `cmake` commands yourself),
 ### Windows / CLion
 
 1. Install [CLion](https://www.jetbrains.com/clion/).
-2. Open the Neovim project in CLion.
+2. Open the wgvim project in CLion.
 3. Select _Build → Build All in 'Release'_.
 
 ### Windows / Cygwin
@@ -205,7 +205,7 @@ make CMAKE_BUILD_TYPE=RelWithDebInfo
 cd build && cpack -G DEB && sudo dpkg -i nvim-linux-<arch>.deb
 
 # Verify the installation
-nvim --version && which nvim # should be debug build in /usr/bin/nvim
+nvim --version && which nvim # should be debug build in /usr/bin/wgvim
 ```
 
 **Note**: If you encounter linker errors or segfaults during the build, Windows libraries in your PATH may be interfering. Use a clean PATH to avoid conflicts:
@@ -218,7 +218,7 @@ PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" make CMAKE_B
 
 ### Localization build
 
-Translations are turned off by default. Enable by building Nvim with the CMake flag `ENABLE_TRANSLATIONS=ON`.
+Translations are turned off by default. Enable by building wgvim with the CMake flag `ENABLE_TRANSLATIONS=ON`.
 Doing this will create `.mo` files in `build/src/nvim/po`. Example:
 
 ```bash
@@ -286,7 +286,7 @@ cmake -S cmake.deps -B .deps -G Ninja -D CMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build .deps
 ```
 
-By default the libraries and headers are placed in `.deps/usr`. Now you can build Neovim:
+By default the libraries and headers are placed in `.deps/usr`. Now you can build wgvim:
 
 ```bash
 cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=RelWithDebInfo
@@ -311,7 +311,7 @@ cmake --build build
    ```
 3. Run `make`, `ninja`, or whatever build tool you told CMake to generate.
     - Using `ninja` is strongly recommended.
-4. If treesitter parsers are not bundled, they need to be available in a `parser/` runtime directory (e.g. `/usr/share/nvim/runtime/parser/`).
+4. If treesitter parsers are not bundled, they need to be available in a `parser/` runtime directory (e.g. `/usr/share/wgvim/runtime/parser/`).
 
 ### Build offline
 
@@ -369,10 +369,10 @@ podman run \
   sh -c 'apk add build-base cmake coreutils curl gettext-tiny-dev git linux-headers && make CMAKE_EXTRA_FLAGS="-DSTATIC_BUILD=1"'
 ```
 
-The resulting binary in `build/bin/nvim` will have all the dependencies statically linked:
+The resulting binary in `build/bin/wgvim` will have all the dependencies statically linked:
 
 ```
-build/bin/nvim: ELF 64-bit LSB executable, ARM aarch64, version 1 (SYSV), statically linked, BuildID[sha1]=b93fa8e678d508ac0a76a2e3da20b119105f1b2d, with debug_info, not stripped
+build/bin/wgvim: ELF 64-bit LSB executable, ARM aarch64, version 1 (SYSV), statically linked, BuildID[sha1]=b93fa8e678d508ac0a76a2e3da20b119105f1b2d, with debug_info, not stripped
 ```
 
 ## Build prerequisites
@@ -382,7 +382,7 @@ General requirements (see [#1469](https://github.com/neovim/neovim/issues/1469#i
 - Clang or GCC version 4.9+
 - CMake version 3.16+, built with TLS/SSL support
   - Optional: Get the latest CMake from https://cmake.org/download/
-    - Provides a shell script which works on most Linux systems. After running it, ensure the resulting `cmake` binary is in your $PATH so the Nvim build will find it.
+    - Provides a shell script which works on most Linux systems. After running it, ensure the resulting `cmake` binary is in your $PATH so the wgvim build will find it.
 
 Platform-specific requirements are listed below.
 
@@ -424,13 +424,13 @@ xbps-install base-devel cmake curl git
 
 ### NixOS / Nix
 
-Starting from NixOS 18.03, the Neovim binary resides in the `neovim-unwrapped` Nix package (the `neovim` package being just a wrapper to setup runtime options like Ruby/Python support):
+Starting from NixOS 18.03, the wgvim binary resides in the `neovim-unwrapped` Nix package (the `neovim` package being just a wrapper to setup runtime options like Ruby/Python support):
 
 ```bash
 cd path/to/neovim/src
 ```
 
-Drop into `nix-shell` to pull in the Neovim dependencies:
+Drop into `nix-shell` to pull in the wgvim dependencies:
 
 ```bash
 nix-shell '<nixpkgs>' -A neovim-unwrapped
@@ -453,7 +453,7 @@ Tests are not available by default, because of some unfixed failures. You can en
     nativeBuildInputs = oa.nativeBuildInputs ++ [ self.pkgs.valgrind ];
     shellHook = ''
       export NVIM_PYTHON_LOG_LEVEL=DEBUG
-      export NVIM_LOG_FILE=/tmp/log
+      export WGVIM_LOG_FILE=/tmp/log
       export VALGRIND_LOG="$PWD/valgrind.log"
     '';
   });
@@ -468,10 +468,10 @@ A flake for Neovim is hosted at [nix-community/neovim-nightly-overlay](https://g
 - `neovim-debug` to run the package with debug symbols
 - `neovim-developer` to get all the tools to develop on `neovim`
 
-Thus you can run Neovim nightly with `nix run github:nix-community/neovim-nightly-overlay`.
-Similarly to develop on Neovim: `nix run github:nix-community/neovim-nightly-overlay#neovim-developer`.
+Thus you can run wgvim nightly with `nix run github:nix-community/neovim-nightly-overlay`.
+Similarly to develop on wgvim: `nix run github:nix-community/neovim-nightly-overlay#neovim-developer`.
 
-To use a specific version of Neovim, you can pass `--override-input neovim-src .` to use your current directory,
+To use a specific version of wgvim, you can pass `--override-input neovim-src .` to use your current directory,
 or a specific SHA1 like `--override-input neovim-src github:neovim/neovim/89dc8f8f4e754e70cbe1624f030fb61bded41bc2`.
 
 ### Haiku
@@ -510,7 +510,7 @@ Another workaround is to edit `cmake/Deps.cmake` and comment out the line `set(M
 
 1. Install Xcode Command Line Tools: `xcode-select --install`
 2. Install [Homebrew](http://brew.sh)
-3. Install Neovim build dependencies:
+3. Install wgvim build dependencies:
     ```bash
     brew install ninja cmake gettext curl git
     ```
@@ -528,7 +528,7 @@ Another workaround is to edit `cmake/Deps.cmake` and comment out the line `set(M
 
 1. Install Xcode Command Line Tools: `xcode-select --install`
 2. Install [MacPorts](http://www.macports.org)
-3. Install Neovim build dependencies:
+3. Install wgvim build dependencies:
     ```bash
     sudo port install ninja cmake gettext git
     ```
@@ -572,7 +572,7 @@ Also relevant for webassembly (WASM) build.
 
 ### WebAssembly (experimental)
 
-Neovim can be cross-compiled to WebAssembly using the `wasm32-emscripten` target.
+wgvim can be cross-compiled to WebAssembly using the `wasm32-emscripten` target.
 
 - Requires the [Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html) (`emsdk`).
 - After installing and activating it, pass its sysroot to `-Demscripten-sysroot`, e.g. `$EMSDK/upstream/emscripten/cache/sysroot`.

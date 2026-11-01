@@ -229,7 +229,7 @@ endfunc
 " Test 'tabline' with truncated double-width label at the start.
 func Test_tabline_truncated_double_width()
   let save_TabLine = nvim_get_hl(0, #{name: 'TabLine'})
-  " Nvim: avoid combining TabLine with TabLineFill in custom tabline
+  " wgvim: avoid combining TabLine with TabLineFill in custom tabline
   hi TabLine cterm=underline,nocombine gui=underline,nocombine
   tabnew
   redraw

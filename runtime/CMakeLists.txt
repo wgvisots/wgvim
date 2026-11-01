@@ -58,7 +58,7 @@ foreach(PACKAGE ${PACKAGES})
 
     install_helper(
       FILES ${GENERATED_PACKAGE_DIR}/${PACKNAME}/doc/tags "${${PACKNAME}_DOC_NAMES}"
-      DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/nvim/runtime/pack/dist/opt/${PACKNAME}/doc)
+      DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/wgvim/runtime/pack/dist/opt/${PACKNAME}/doc)
 
     list(APPEND GENERATED_PACKAGE_TAGS "${GENERATED_PACKAGE_DIR}/${PACKNAME}/doc/tags")
   endif()
@@ -99,11 +99,11 @@ add_custom_target(
 
 install_helper(
   FILES ${GENERATED_HELP_TAGS} ${BUILDDOCFILES}
-  DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/nvim/runtime/doc)
+  DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/wgvim/runtime/doc)
 
 install_helper(
   FILES ${GENERATED_SYN_VIM}
-  DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/nvim/runtime/syntax/vim)
+  DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/wgvim/runtime/syntax/vim)
 
 if(NOT APPLE)
   install_helper(
@@ -117,15 +117,15 @@ install_helper(
 
 file(GLOB RUNTIME_ROOT_FILES CONFIGURE_DEPENDS *.vim *.lua *.ico)
 install_helper(FILES ${RUNTIME_ROOT_FILES}
-               DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/nvim/runtime/)
+               DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/wgvim/runtime/)
 
 file(GLOB RUNTIME_DIRS CONFIGURE_DEPENDS */)
 foreach(D ${RUNTIME_DIRS})
   if(IS_DIRECTORY ${D})
     install_helper(DIRECTORY ${D}
-                   DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/nvim/runtime/)
+                   DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/wgvim/runtime/)
   endif()
 endforeach()
 
 # only foo.sh script in runtime/
-install_helper(PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/less.sh DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/nvim/runtime/scripts/)
+install_helper(PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/less.sh DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/wgvim/runtime/scripts/)

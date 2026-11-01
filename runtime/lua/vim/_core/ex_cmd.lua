@@ -208,8 +208,8 @@ function M.ex_log(eap)
     util.wrapped_edit(log_dir, eap.smods)
   else
     local path --- @type string
-    -- Special case for NVIM_LOG_FILE
-    local nvim_log_file = vim.env.NVIM_LOG_FILE
+    -- Special case for WGVIM_LOG_FILE
+    local nvim_log_file = vim.env.WGVIM_LOG_FILE
     if filename == 'nvim' and nvim_log_file and nvim_log_file ~= '' then
       path = nvim_log_file
     else

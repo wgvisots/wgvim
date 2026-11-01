@@ -44,7 +44,7 @@ all: nvim
 CMAKE_FLAGS := -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE)
 # Extra CMake flags which extend the default set
 CMAKE_EXTRA_FLAGS ?=
-NVIM_PRG := $(MAKEFILE_DIR)/build/bin/nvim
+WGVIM_PRG := $(MAKEFILE_DIR)/build/bin/wgvim
 
 # CMAKE_INSTALL_PREFIX
 #   - May be passed directly or as part of CMAKE_EXTRA_FLAGS.
@@ -132,16 +132,16 @@ build/.ran-deps-cmake::
 oldtest: | nvim
 	$(SINGLE_MAKE) -C test/old/testdir clean
 ifeq ($(strip $(TEST_FILE)),)
-	$(SINGLE_MAKE) -C test/old/testdir NVIM_PRG=$(NVIM_PRG) $(MAKEOVERRIDES)
+	$(SINGLE_MAKE) -C test/old/testdir WGVIM_PRG=$(WGVIM_PRG) $(MAKEOVERRIDES)
 else
 	@# Handle TEST_FILE=test_foo{,.res,.vim}.
-	$(SINGLE_MAKE) -C test/old/testdir NVIM_PRG=$(NVIM_PRG) SCRIPTS= $(MAKEOVERRIDES) $(patsubst %.vim,%,$(patsubst %.res,%,$(TEST_FILE)))
+	$(SINGLE_MAKE) -C test/old/testdir WGVIM_PRG=$(WGVIM_PRG) SCRIPTS= $(MAKEOVERRIDES) $(patsubst %.vim,%,$(patsubst %.res,%,$(TEST_FILE)))
 endif
 
 # Build oldtest by specifying the relative .vim filename.
 .PHONY: phony_force
 test/old/testdir/%.vim: phony_force nvim
-	$(SINGLE_MAKE) -C test/old/testdir NVIM_PRG=$(NVIM_PRG) SCRIPTS= $(MAKEOVERRIDES) $(patsubst test/old/testdir/%.vim,%,$@)
+	$(SINGLE_MAKE) -C test/old/testdir WGVIM_PRG=$(WGVIM_PRG) SCRIPTS= $(MAKEOVERRIDES) $(patsubst test/old/testdir/%.vim,%,$@)
 
 functionaltest-lua: | nvim
 	$(CMAKE) --build build --target functionaltest

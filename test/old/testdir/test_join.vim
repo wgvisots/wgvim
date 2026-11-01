@@ -140,7 +140,7 @@ ert
   [DATA]
 
   call assert_equal(expected, getline(1, '$'))
-  throw 'skipped: Nvim does not support "set compatible" or "set cpoptions+=j"'
+  throw 'skipped: wgvim does not support "set compatible" or "set cpoptions+=j"'
 
   enew!
   call append(0, text)

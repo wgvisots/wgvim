@@ -412,7 +412,7 @@ endfunc
 
 func Test_sub_replace_6()
   set magic&
-  " Nvim: no "/" flag in 'cpoptions'.
+  " wgvim: no "/" flag in 'cpoptions'.
   " set cpo+=/
   call assert_equal('a', substitute('A', 'A', 'a', ''))
   call assert_equal('%', substitute('B', 'B', '%', ''))
@@ -652,7 +652,7 @@ endfunc
 " Test for *:s%* on :substitute.
 func Test_sub_cmd_6()
   set magic&
-  " Nvim: no "/" flag in 'cpoptions'.
+  " wgvim: no "/" flag in 'cpoptions'.
   " set cpo+=/
 
   " List entry format: [input, cmd, output]
@@ -909,7 +909,7 @@ func Test_sub_with_no_last_pat()
     call writefile(v:errors, 'Xresult')
     qall!
   [SCRIPT]
-  " Nvim: no "/" flag in 'cpoptions'.
+  " wgvim: no "/" flag in 'cpoptions'.
   " call writefile(lines, 'Xscript')
   " if RunVim([], [], '--clean -S Xscript')
   "   call assert_equal([], readfile('Xresult'))

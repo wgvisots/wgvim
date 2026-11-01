@@ -134,7 +134,7 @@ void os_icon_reset(void)
   }
 }
 
-/// Sets Nvim logo as Windows console icon.
+/// Sets wgvim logo as Windows console icon.
 ///
 /// Saves the original icon so it can be restored at exit.
 void os_icon_init(void)

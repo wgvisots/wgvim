@@ -394,10 +394,10 @@ self.onmessage = async (ev) => {
       m.FS.syncfs(true, (e) => (e ? rej(e) : res())),
     );
     try {
-      m.FS.mkdir("/home/user/.config/nvim");
+      m.FS.mkdir("/home/user/.config/wgvim");
     } catch (e) {}
     try {
-      m.FS.mkdir("/home/user/.local/share/nvim");
+      m.FS.mkdir("/home/user/.local/share/wgvim");
     } catch (e) {}
     try {
       m.FS.mkdir("/runtime/parser");
@@ -515,7 +515,7 @@ self.onmessage = async (ev) => {
     let ret;
 
     try {
-      safeStatus("Starting Neovim...");
+      safeStatus("Starting wgvim...");
 
       console.log("CALLING NVIM MAIN");
 
@@ -549,7 +549,7 @@ self.onmessage = async (ev) => {
 
       flushAll();
     if (e && e.name === 'ExitStatus') {
-        safeStatus(`Neovim exited cleanly, code=${e.status}`);
+        safeStatus(`wgvim exited cleanly, code=${e.status}`);
         ret = e.status;
     
     // Notify app.js so it can show a session ended state instead of

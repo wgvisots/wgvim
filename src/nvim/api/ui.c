@@ -482,7 +482,7 @@ static void ui_set_option(RemoteUI *ui, bool init, String name, Object value, Er
   });
 }
 
-/// Tell Nvim to resize a grid. Triggers a grid_resize event with the requested
+/// Tell wgvim to resize a grid. Triggers a grid_resize event with the requested
 /// grid size or the maximum size if it exceeds size limits.
 ///
 /// On invalid grid handle, fails with error.
@@ -507,7 +507,7 @@ void nvim_ui_try_resize_grid(uint64_t channel_id, Integer grid, Integer width, I
   }
 }
 
-/// Tells Nvim the number of elements displaying in the popupmenu, to decide
+/// Tells wgvim the number of elements displaying in the popupmenu, to decide
 /// [<PageUp>] and [<PageDown>] movement.
 ///
 /// @param channel_id
@@ -534,7 +534,7 @@ void nvim_ui_pum_set_height(uint64_t channel_id, Integer height, Error *err)
   ui->pum_nlines = (int)height;
 }
 
-/// Tells Nvim the geometry of the popupmenu, to align floating windows with an
+/// Tells wgvim the geometry of the popupmenu, to align floating windows with an
 /// external popup menu.
 ///
 /// Note that this method is not to be confused with |nvim_ui_pum_set_height()|,
@@ -967,7 +967,7 @@ static void ui_flush_buf(RemoteUI *ui, bool incomplete_event)
   ui->ncells_pending = 0;
 }
 
-/// An intentional flush (vsync) when Nvim is finished redrawing the screen
+/// An intentional flush (vsync) when wgvim is finished redrawing the screen
 ///
 /// Clients can know this happened by a final "flush" event at the end of the
 /// "redraw" batch.

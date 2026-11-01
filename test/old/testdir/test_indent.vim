@@ -329,7 +329,7 @@ func Test_indent_overflow_count()
 endfunc
 
 func Test_indent_overflow_count2()
-  throw 'skipped: Nvim does not support 64-bit number options'
+  throw 'skipped: wgvim does not support 64-bit number options'
   new
   " this only works, when long is 64bits
   try

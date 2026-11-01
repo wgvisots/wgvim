@@ -140,8 +140,8 @@ return {
     VimLeave = false, -- before exiting Vim
     VimLeavePre = false, -- before exiting Vim and writing ShaDa file
     VimResized = false, -- after Vim window was resized
-    VimResume = false, -- after Nvim is resumed
-    VimSuspend = false, -- before Nvim is suspended
+    VimResume = false, -- after wgvim is resumed
+    VimSuspend = false, -- before wgvim is suspended
     WinClosed = true, -- after closing a window
     WinEnter = true, -- after entering a window
     WinLeave = true, -- before leaving a window
@@ -160,7 +160,7 @@ return {
     FileEncoding = 'EncodingChanged',
   },
   --- @type table<string,true>
-  --- List of Nvim-specific events or aliases for generating syntax file.
+  --- List of wgvim-specific events or aliases for generating syntax file.
   nvim_specific = {
     DiagnosticChanged = true,
     LspAttach = true,

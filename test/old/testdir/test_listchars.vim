@@ -129,7 +129,7 @@ func Test_listchars()
 
   " Test lead and trail
   normal ggdG
-  set listchars=eol:$  " Accommodate Nvim default
+  set listchars=eol:$  " Accommodate wgvim default
   set listchars+=lead:>,trail:<,space:x
   set list
 
@@ -170,7 +170,7 @@ func Test_listchars()
 
   " Test multispace
   normal ggdG
-  set listchars=eol:$  " Accommodate Nvim default
+  set listchars=eol:$  " Accommodate wgvim default
   set listchars+=multispace:yYzZ
   set list
 
@@ -262,7 +262,7 @@ func Test_listchars()
 
   " Test leadmultispace only
   normal ggdG
-  set listchars=eol:$  " Accommodate Nvim default
+  set listchars=eol:$  " Accommodate wgvim default
   set listchars=leadmultispace:.-+*
   set list
 
@@ -295,7 +295,7 @@ func Test_listchars()
 
   " Test leadmultispace and lead and space
   normal ggdG
-  set listchars=eol:$  " Accommodate Nvim default
+  set listchars=eol:$  " Accommodate wgvim default
   set listchars+=lead:<,space:-
   set listchars+=leadmultispace:.-+*
   set list
@@ -327,7 +327,7 @@ func Test_listchars()
   call assert_equal(expected, split(execute("%list"), "\n"))
 
   " the last occurrence of 'multispace:' is used
-  set listchars=eol:$  " Accommodate Nvim default
+  set listchars=eol:$  " Accommodate wgvim default
   set listchars+=multispace:yYzZ
   set listchars+=space:x,multispace:XyY
 
@@ -554,7 +554,7 @@ func Test_listchars_invalid()
   enew!
   set ff=unix
 
-  set listchars=eol:$  " Accommodate Nvim default
+  set listchars=eol:$  " Accommodate wgvim default
   set list
   set ambiwidth=double
 
@@ -651,7 +651,7 @@ endfunc
 func Test_listchars_window_local()
   %bw!
   set list listchars&
-  let nvim_default = &listchars  " Accommodate Nvim default
+  let nvim_default = &listchars  " Accommodate wgvim default
   new
   " set a local value for 'listchars'
   setlocal listchars=tab:+-,eol:#
@@ -718,7 +718,7 @@ func Test_listchars_window_local()
   " using a local setting.
   split
   setlocal listchars=tab:<->,lead:_,space:.,trail:@,eol:#
-  setglobal listchars=eol:$  " Accommodate Nvim default
+  setglobal listchars=eol:$  " Accommodate wgvim default
   call assert_equal(['<------>__one..two@@#'], ScreenLines(1, virtcol('$')))
   close
   call assert_equal(['^I  one  two  $'], ScreenLines(1, virtcol('$')))
@@ -729,7 +729,7 @@ func Test_listchars_window_local()
   split
   setlocal listchars=tab:<->,lead:_,space:.,trail:@,eol:#
   call assert_equal(['<------>__one..two@@#'], ScreenLines(1, virtcol('$')))
-  setlocal listchars=eol:$  " Accommodate Nvim default
+  setlocal listchars=eol:$  " Accommodate wgvim default
   call assert_equal(['^I  one  two  $'], ScreenLines(1, virtcol('$')))
   close
   call assert_equal(['{......}--one==two##$'], ScreenLines(1, virtcol('$')))

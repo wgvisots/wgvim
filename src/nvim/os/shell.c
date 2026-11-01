@@ -1017,7 +1017,7 @@ static size_t system_data_cb(RStream *stream, const char *buf, size_t count, voi
 /// Vim does not need this hack because:
 ///   1. :! in terminal-Vim runs in cooked mode, so CTRL-C is caught by the
 ///      terminal and raises SIGINT out-of-band.
-///   2. :! in terminal-Vim uses a tty (Nvim uses pipes), so commands
+///   2. :! in terminal-Vim uses a tty (wgvim uses pipes), so commands
 ///      (e.g. `git grep`) may page themselves.
 ///
 /// @param size Length of data, used with internal state to decide whether

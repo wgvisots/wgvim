@@ -1,4 +1,4 @@
-*deprecated.txt*       Nvim
+*deprecated.txt*       wgvim
 
 
                              NVIM REFERENCE MANUAL
@@ -207,7 +207,7 @@ LUA
 
 OPTIONS
 • The "term_background" UI option |ui-ext-options| is deprecated and no longer
-  populated. Background color detection is now performed in Lua by the Nvim
+  populated. Background color detection is now performed in Lua by the wgvim
   core, not the TUI.
 
 TREESITTER
@@ -262,15 +262,15 @@ COMMANDS
 • *:wv* *:wviminfo*		Deprecated alias to |:wshada| command.
 
 ENVIRONMENT VARIABLES
-• *$NVIM_LISTEN_ADDRESS*
+• *$WGVIM_LISTEN_ADDRESS*
   • Deprecated way to:
     • set the server name (use |--listen| or |serverstart()| instead)
     • get the server name (use |v:servername| instead)
-    • detect a parent Nvim (use |$NVIM| instead)
+    • detect a parent wgvim (use |$WGVIM| instead)
   • Ignored if --listen is given.
   • Unset at startup (after |v:servername| is initialized). Can be explicitly
     provided to |terminal| and |jobstart()| by the "env" option. Example: >vim
-	call jobstart(['foo'], { 'env': { 'NVIM_LISTEN_ADDRESS': v:servername  } })
+	call jobstart(['foo'], { 'env': { 'WGVIM_LISTEN_ADDRESS': v:servername  } })
 <
 
 EVENTS
@@ -326,7 +326,7 @@ internally and are no longer exposed as part of the API. Instead, use
 LSP FUNCTIONS
 • *vim.lsp.buf.server_ready()*
   Use |LspAttach| instead, depending on your use-case. "Server ready" is not
-  part of the LSP spec, so the Nvim LSP client cannot meaningfully implement
+  part of the LSP spec, so the wgvim LSP client cannot meaningfully implement
   it. "Ready" is ambiguous because:
   • Language servers may finish analyzing the workspace, but edits can always
     re-trigger analysis/builds.
@@ -398,7 +398,7 @@ UI EXTENSIONS
 			• `["wildmenu_select", selected]`
 			• `["wildmenu_hide"]`
 • *term_background*	Unused. The terminal background color is now detected
-			by the Nvim core directly instead of the TUI.
+			by the wgvim core directly instead of the TUI.
 
 VIMSCRIPT
 • *<sfile>*		Use |<script>| or |<stack>| instead.

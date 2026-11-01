@@ -1,4 +1,4 @@
-*rileft.txt*    Nvim
+*rileft.txt*    wgvim
 
 
 	  VIM REFERENCE MANUAL  by Avner Lottem, updated by Nadim Shaikli

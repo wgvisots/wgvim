@@ -14,8 +14,8 @@ function M.clear_notrace()
   -- solution: don't look too closely for dragons
   clear {
     env = {
-      NVIM_LUA_NOTRACK = '1',
-      NVIM_APPNAME = 'nvim_lsp_test',
+      WGVIM_LUA_NOTRACK = '1',
+      WGVIM_APPNAME = 'nvim_lsp_test',
       VIMRUNTIME = os.getenv 'VIMRUNTIME',
     },
   }
@@ -146,9 +146,9 @@ local function fake_lsp_server_setup(test_name, timeout_ms, options, settings)
     _G.lsp = require('vim.lsp')
     _G.TEST_RPC_CLIENT_ID = _G.lsp.start_client {
       cmd_env = {
-        NVIM_LOG_FILE = fake_lsp_logfile,
-        NVIM_LUA_NOTRACK = '1',
-        NVIM_APPNAME = 'nvim_lsp_test',
+        WGVIM_LOG_FILE = fake_lsp_logfile,
+        WGVIM_LUA_NOTRACK = '1',
+        WGVIM_APPNAME = 'nvim_lsp_test',
       },
       cmd = {
         vim.v.progpath,

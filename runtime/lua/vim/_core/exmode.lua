@@ -142,7 +142,7 @@ function M.open()
       vim.cmd.stopinsert()
       if parsed.cmd ~= 'visual' and parsed.cmd ~= 'view' or #parsed.args > 0 then
         --- @type boolean, string?
-        local ok, err = pcall(vim.cmd --[[@as function]], line) -- May exit Nvim.
+        local ok, err = pcall(vim.cmd --[[@as function]], line) -- May exit wgvim.
         if not ok then
           util.echo_err(util.cmd_errmsg(tostring(err)))
         end

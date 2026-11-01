@@ -61,7 +61,7 @@
 ---plugin1 = require('plugin1')
 ---```
 ---
----- Restart Nvim (for example, with |:restart|). Plugins that were not yet
+---- Restart wgvim (for example, with |:restart|). Plugins that were not yet
 ---installed will be available on disk after `add()` call. Their revision is
 ---taken from |vim.pack-lockfile| (if present) or inferred from the `version`.
 ---
@@ -256,7 +256,7 @@
 ---```json
 ---{
 ---  "name": "best-plugin.nvim",
----  "description": "The best plugin for Neovim",
+---  "description": "The best plugin for wgvim",
 ---  "version": "1.0.0",
 ---  "engines": {
 ---      "nvim": ">=0.13.0",
@@ -575,7 +575,7 @@ local n_active_plugins = 0
 
 --- @class vim.pack.ManifestEngines
 --- @inlinedoc
---- @field nvim? string Version range for Nvim.
+--- @field nvim? string Version range for wgvim.
 --- @field vim? string Version range for Vim.
 
 --- @class vim.pack.ManifestScripts
@@ -1188,7 +1188,7 @@ end
 ---       to match `version` (via `git checkout`). Plugin will not be on disk if
 ---       any step resulted in an error.
 --- - For each plugin execute |:packadd| (or customizable `load` function) making
----   it reachable by Nvim.
+---   it reachable by wgvim.
 ---
 --- Notes:
 --- - Installation is done in parallel, but waits for all to finish before

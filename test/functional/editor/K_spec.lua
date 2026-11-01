@@ -37,7 +37,7 @@ describe('K', function()
       eq(1, eval('filereadable("' .. test_file .. '")'))
     end)
     eq({ 'fnord' }, eval("readfile('" .. test_file .. "')"))
-    -- Confirm that Neovim is still in terminal mode after K is pressed (#16692).
+    -- Confirm that wgvim is still in terminal mode after K is pressed (#16692).
     vim.uv.sleep(500)
     eq('t', eval('mode()'))
     feed('<space>') -- Any key, not just <space>, can be used here to escape.

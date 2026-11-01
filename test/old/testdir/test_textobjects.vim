@@ -106,7 +106,7 @@ endfunc
 " Tests for string and html text objects
 func Test_string_html_objects()
 
-  " Nvim only supports set encoding=utf-8
+  " wgvim only supports set encoding=utf-8
   " for e in ['utf-8', 'latin1', 'cp932']
   for e in ['utf-8']
     enew!

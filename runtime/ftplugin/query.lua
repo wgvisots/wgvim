@@ -1,4 +1,4 @@
--- Neovim filetype plugin file
+-- wgvim filetype plugin file
 -- Language:	Treesitter query
 
 if vim.b.did_ftplugin == 1 then

@@ -1750,7 +1750,7 @@ func Test_getcmdtype_getcmdprompt()
 endfunc
 
 func Test_getcmdwintype()
-  throw "Skipped: Nvim supports cmdwin freedom #40312"
+  throw "Skipped: wgvim supports cmdwin freedom #40312"
   call feedkeys("q/:let a = getcmdwintype()\<CR>:q\<CR>", 'x!')
   call assert_equal('/', a)
 
@@ -1767,7 +1767,7 @@ func Test_getcmdwintype()
 endfunc
 
 func Test_getcmdwin_autocmd()
-  throw "Skipped: Nvim supports cmdwin freedom #40312"
+  throw "Skipped: wgvim supports cmdwin freedom #40312"
   let s:seq = []
   augroup CmdWin
   au WinEnter * call add(s:seq, 'WinEnter ' .. win_getid())
@@ -1856,7 +1856,7 @@ func Test_setcmdpos()
 endfunc
 
 func Test_cmdline_overstrike()
-  " Nvim: only utf8 is supported.
+  " wgvim: only utf8 is supported.
   let encodings = ['utf8']
   let encoding_save = &encoding
 
@@ -1884,7 +1884,7 @@ func Test_cmdline_overstrike()
 endfunc
 
 func Test_cmdwin_bug()
-  throw 'Skipped: Nvim supports cmdwin freedom #40312'
+  throw 'Skipped: wgvim supports cmdwin freedom #40312'
   let winid = win_getid()
   sp
   try
@@ -1986,7 +1986,7 @@ func Test_buffers_lastused()
 endfunc
 
 func Test_cmdwin_feedkeys()
-  throw "Skipped: Nvim supports cmdwin freedom #40312"
+  throw "Skipped: wgvim supports cmdwin freedom #40312"
   " This should not generate E488
   call feedkeys("q:\<CR>", 'x')
   " Using feedkeys with q: only should automatically close the cmd window
@@ -1998,7 +1998,7 @@ endfunc
 " Tests for the issues fixed in 7.4.441.
 " When 'cedit' is set to Ctrl-C, opening the command window hangs Vim
 func Test_cmdwin_cedit()
-  throw 'Skipped: Nvim supports cmdwin freedom #40312'
+  throw 'Skipped: wgvim supports cmdwin freedom #40312'
   exe "set cedit=\<C-c>"
   normal! :
   call assert_equal(1, winnr('$'))
@@ -2077,7 +2077,7 @@ func Test_cmdline_expand_special()
 endfunc
 
 func Test_cmdwin_jump_to_win()
-  throw "Skipped: Nvim supports cmdwin freedom #40312"
+  throw "Skipped: wgvim supports cmdwin freedom #40312"
   call assert_fails('call feedkeys("q:\<C-W>\<C-W>\<CR>", "xt")', 'E11:')
   new
   set modified
@@ -2094,7 +2094,7 @@ func Test_cmdwin_jump_to_win()
 endfunc
 
 func Test_cmdwin_tabpage()
-  throw "Skipped: Nvim supports cmdwin freedom #40312"
+  throw "Skipped: wgvim supports cmdwin freedom #40312"
   tabedit
   call assert_fails("silent norm q/g	:I\<Esc>", 'E11:')
   tabclose!
@@ -2558,7 +2558,7 @@ endfunc
 " Test for 'imcmdline' and 'imsearch'
 " This test doesn't actually test the input method functionality.
 func Test_cmdline_inputmethod()
-  throw 'Skipped: Nvim does not allow setting the value of a hidden option'
+  throw 'Skipped: wgvim does not allow setting the value of a hidden option'
   new
   call setline(1, ['', 'abc', ''])
   set imcmdline
@@ -2616,7 +2616,7 @@ endfunc
 
 " Test for normal mode commands not supported in the cmd window
 func Test_cmdwin_blocked_commands()
-  throw 'Skipped: Nvim supports cmdwin freedom #40312'
+  throw 'Skipped: wgvim supports cmdwin freedom #40312'
   call assert_fails('call feedkeys("q:\<C-T>\<CR>", "xt")', 'E11:')
   call assert_fails('call feedkeys("q:\<C-]>\<CR>", "xt")', 'E11:')
   call assert_fails('call feedkeys("q:\<C-^>\<CR>", "xt")', 'E11:')
@@ -2648,7 +2648,7 @@ endfunc
 
 " Close the Cmd-line window in insert mode using CTRL-C
 func Test_cmdwin_insert_mode_close()
-  throw "Skipped: Nvim supports cmdwin freedom #40312"
+  throw "Skipped: wgvim supports cmdwin freedom #40312"
   %bw!
   let s = ''
   exe "normal q:a\<C-C>let s='Hello'\<CR>"
@@ -3708,7 +3708,7 @@ endfunc
 
 " :behave suboptions fuzzy completion
 func Test_fuzzy_completion_behave()
-  throw 'Skipped: Nvim removed :behave'
+  throw 'Skipped: wgvim removed :behave'
   set wildoptions&
   call feedkeys(":behave xm\<Tab>\<C-B>\"\<CR>", 'tx')
   call assert_equal('"behave xm', @:)
@@ -4058,7 +4058,7 @@ endfunc
 
 " :set <term_option>
 func Test_fuzzy_completion_term_option()
-  throw 'Skipped: Nvim does not support term options'
+  throw 'Skipped: wgvim does not support term options'
   set wildoptions&
   call feedkeys(":set t_E\<Tab>\<C-B>\"\<CR>", 'tx')
   call assert_equal('"set t_EC', @:)
@@ -5006,7 +5006,7 @@ endfunc
 
 " :set t_??
 func Test_term_option()
-  throw 'Skipped: Nvim does not support termcap options'
+  throw 'Skipped: wgvim does not support termcap options'
   set wildoptions&
   let _cpo = &cpo
   set cpo-=C
@@ -5108,7 +5108,7 @@ func Test_cmdcomplete_info()
           \ g:cmdcomplete_info)
     bw!
     " set wildoptions&
-    set wildoptions=  " Accommodate Nvim default
+    set wildoptions=  " Accommodate wgvim default
   endfor
 
   " wildtrigger() should not show matches when prefix is invalid

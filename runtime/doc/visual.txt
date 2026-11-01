@@ -1,4 +1,4 @@
-*visual.txt*    Nvim
+*visual.txt*    wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar

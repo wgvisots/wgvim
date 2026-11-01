@@ -32,7 +32,7 @@ struct Channel {
   } stream;
 
   bool is_rpc;
-  bool detach;  ///< Prevents self-exit on channel-close. Nvim self-exits when the last open
+  bool detach;  ///< Prevents self-exit on channel-close. wgvim self-exits when the last open
                 ///< detach=false RPC channel is closed. The stdio channel defaults to detach=false.
   RpcState rpc;
   Terminal *term;

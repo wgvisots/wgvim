@@ -56,7 +56,7 @@
 
 void env_init(void)
 {
-  nvim_testing = os_env_exists("NVIM_TEST", false);
+  nvim_testing = os_env_exists("WGVIM_TEST", false);
 }
 
 /// Checks that `name` can be an env var name: not empty, and (Windows) valid UTF-8, which libuv
@@ -339,7 +339,7 @@ char *os_getenvname_at_index(size_t index)
 #endif
 }
 
-/// Get the process ID of the Nvim process.
+/// Get the process ID of the wgvim process.
 ///
 /// @return the process ID.
 int64_t os_get_pid(void)
@@ -351,7 +351,7 @@ int64_t os_get_pid(void)
 #endif
 }
 
-/// Signals to the OS that Nvim is an application for "interactive work"
+/// Signals to the OS that wgvim is an application for "interactive work"
 /// which should be prioritized similar to a GUI app.
 void os_hint_priority(void)
 {
@@ -778,7 +778,7 @@ static char *vim_runtime_dir(const char *vimdir)
 /// If `dirname + "/"` precedes `pend` in the path, return the pointer to
 /// `dirname + "/" + pend`.  Otherwise return `pend`.
 ///
-/// Examples (path = /usr/local/share/nvim/runtime/doc/help.txt):
+/// Examples (path = /usr/local/share/wgvim/runtime/doc/help.txt):
 ///
 ///   pend    = help.txt
 ///   dirname = doc
@@ -886,7 +886,7 @@ void vim_get_prefix_from_exepath(char *exe_name)
 }
 
 /// Vim getenv() wrapper with special handling of $HOME, $VIM, $VIMRUNTIME,
-/// allowing the user to override the Nvim runtime directory at runtime.
+/// allowing the user to override the wgvim runtime directory at runtime.
 /// Result must be freed by the caller.
 ///
 /// @param name Environment variable to expand
@@ -949,10 +949,10 @@ char *vim_getenv(const char *name)
     }
 
     char exe_name[MAXPATHL];
-    // Find runtime path relative to the nvim binary: ../share/nvim/runtime
+    // Find runtime path relative to the nvim binary: ../share/wgvim/runtime
     if (vim_path == NULL) {
       vim_get_prefix_from_exepath(exe_name);
-      if (append_path(exe_name, "share/nvim/runtime/", MAXPATHL) == OK) {
+      if (append_path(exe_name, "share/wgvim/runtime/", MAXPATHL) == OK) {
         vim_path = exe_name;
       }
     }

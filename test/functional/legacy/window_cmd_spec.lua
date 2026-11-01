@@ -380,7 +380,7 @@ it("'winfixwidth/height' does not leave stray vseps/statuslines", function()
     {3:[No Name]                            }{2:[No Name]                             }|
                                                                                |
   ]])
-  -- Checks w_view_width in Nvim; especially important as the screen test may still pass if only
+  -- Checks w_view_width in wgvim; especially important as the screen test may still pass if only
   -- w_width changed to make room for the vsep.
   eq(36, fn.winwidth(1))
   eq(38, fn.winwidth(2))

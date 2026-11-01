@@ -28,13 +28,13 @@ if _G.arg[1] and vim.startswith(_G.arg[1], '-P') then
   local build_dir = string.sub(table.remove(_G.arg, 1), 3)
   _G.nvim_build_dir = build_dir
 
-  -- TMPDIR: for testutil.tmpname() and Nvim tempname().
+  -- TMPDIR: for testutil.tmpname() and wgvim tempname().
   vim.env.TMPDIR = build_dir .. '/Xtest_tmpdir'
   vim.fn.mkdir(vim.env.TMPDIR, 'p')
 end
 if _G.arg[1] and vim.startswith(_G.arg[1], '-X') then
   local xdg_dir = string.sub(table.remove(_G.arg, 1), 3)
-  vim.env.NVIM_RPLUGIN_MANIFEST = xdg_dir .. '/Xtest_rplugin_manifest'
+  vim.env.WGVIM_RPLUGIN_MANIFEST = xdg_dir .. '/Xtest_rplugin_manifest'
   vim.env.XDG_CONFIG_HOME = xdg_dir .. '/config'
   vim.env.XDG_DATA_HOME = xdg_dir .. '/share'
   vim.env.XDG_STATE_HOME = xdg_dir .. '/state'
@@ -52,7 +52,7 @@ local entries = { root .. '/src/?.lua', root .. '/runtime/lua/?.lua' }
 package.path = table.concat(entries, ';') .. ';' .. package.path
 vim.env.VIMRUNTIME = root .. '/runtime'
 
--- The harness is not an Nvim instance under test. If its startup server stays
+-- The harness is not an wgvim instance under test. If its startup server stays
 -- visible, serverlist({ peer = true }) can connect back to the runner and wait
 -- forever for an RPC response.
 if vim.v.servername ~= '' then

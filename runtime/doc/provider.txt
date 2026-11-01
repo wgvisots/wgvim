@@ -1,4 +1,4 @@
-*provider.txt*		Nvim
+*provider.txt*		wgvim
 
 
 		 NVIM REFERENCE MANUAL	  by Thiago de Arruda
@@ -7,7 +7,7 @@
 ==============================================================================
 Providers					*provider*
 
-Nvim delegates some features to dynamic "providers". This document describes
+wgvim delegates some features to dynamic "providers". This document describes
 the providers and how to install them.
 						*E319*
 Use of a feature requiring a missing provider is an error: >
@@ -21,18 +21,18 @@ Run the |:checkhealth| command, and review the sections below.
 ==============================================================================
 Python integration				*provider-python*
 
-Nvim supports Python |remote-plugin|s and the Vim legacy |python3| and
+wgvim supports Python |remote-plugin|s and the Vim legacy |python3| and
 |pythonx| interfaces (which are implemented as remote-plugins).
 
 Note: Only the Vim 7.3 legacy interface is supported, not later features such
-as |python-bindeval| (Vim 7.4); use the Nvim API instead. Python 2 is not
+as |python-bindeval| (Vim 7.4); use the wgvim API instead. Python 2 is not
 supported.
 
 
 PYTHON QUICKSTART ~
 
 To use Python plugins, you need the "pynvim" module. Run |:checkhealth| to see
-if you already have it (some package managers install the module with Nvim
+if you already have it (some package managers install the module with wgvim
 itself).
 
 For Python 3 plugins:
@@ -63,10 +63,10 @@ To disable Python 3 support: >vim
 
 PYTHON VIRTUALENVS ~
 						*python-virtualenv*
-Using pynvim 0.6.0+ installed via uv or pipx, Nvim will automatically detect
+Using pynvim 0.6.0+ installed via uv or pipx, wgvim will automatically detect
 pynvim even if other Python virtual environments are activated (technical
 note: via the "pynvim-python" global python tool).  For older pynvim (or older
-Neovim), where detection involved finding the first Python interpreter and
+wgvim), where detection involved finding the first Python interpreter and
 checking if it could import pynvim, automatic detection would fail when
 another virtual environment is active.  Upgrading to the latest pynvim is the
 recommended solution to this; but if that's not an option, then you can set
@@ -80,13 +80,13 @@ See also: https://github.com/zchee/deoplete-jedi/wiki/Setting-up-Python-for-Neov
 ==============================================================================
 Ruby integration			      *provider-ruby*
 
-Nvim supports Ruby |remote-plugin|s and the Vim legacy |ruby-vim| interface
-(which is itself implemented as a Nvim remote-plugin).
+wgvim supports Ruby |remote-plugin|s and the Vim legacy |ruby-vim| interface
+(which is itself implemented as a wgvim remote-plugin).
 
 
 RUBY QUICKSTART ~
 
-To use Ruby plugins with Nvim, install the latest "neovim" RubyGem: >bash
+To use Ruby plugins with wgvim, install the latest "neovim" RubyGem: >bash
     gem install neovim
 
 Run |:checkhealth| to see if your system is up-to-date.
@@ -111,18 +111,18 @@ To use the RVM "system" Ruby installation: >vim
 ==============================================================================
 Perl integration				*provider-perl*
 
-Nvim supports Perl |remote-plugin|s on Unix platforms. Support for polling STDIN
+wgvim supports Perl |remote-plugin|s on Unix platforms. Support for polling STDIN
 on MS-Windows is currently lacking from all known event loop implementations.
 The Vim legacy |perl-vim| interface is also supported (which is itself
-implemented as a Nvim remote-plugin).
+implemented as a wgvim remote-plugin).
 https://github.com/jacquesg/p5-Neovim-Ext
 
 Note: Only perl versions from 5.22 onward are supported.
 
 PERL QUICKSTART~
 
-To use perl remote-plugins with Nvim, install the "Neovim::Ext" cpan package: >bash
-    cpanm -n Neovim::Ext
+To use perl remote-plugins with wgvim, install the "wgvim::Ext" cpan package: >bash
+    cpanm -n wgvim::Ext
 
 Run |:checkhealth| to see if your system is up-to-date.
 
@@ -140,13 +140,13 @@ check for has("perl").  >vim
 ==============================================================================
 Node.js integration				*provider-nodejs*
 
-Nvim supports Node.js |remote-plugin|s.
+wgvim supports Node.js |remote-plugin|s.
 https://github.com/neovim/node-client/
 
 
 NODEJS QUICKSTART~
 
-To use javascript remote-plugins with Nvim, install the "neovim" npm package: >bash
+To use javascript remote-plugins with wgvim, install the "neovim" npm package: >bash
     npm install -g neovim
 
 Run |:checkhealth| to see if your system is up-to-date.
@@ -160,14 +160,14 @@ To disable Node.js support: >vim
 						*g:node_host_prog*
 Command to start the Node.js host. Setting this makes startup faster.
 
-By default, Nvim searches for "neovim-node-host" using "npm root -g", which
+By default, wgvim searches for "neovim-node-host" using "npm root -g", which
 can be slow. To avoid this, set g:node_host_prog to the host path: >vim
     let g:node_host_prog = '/usr/local/bin/neovim-node-host'
 <
 ==============================================================================
 Clipboard integration			      *provider-clipboard* *clipboard*
 
-Nvim has no direct connection to the system clipboard. Instead it depends on
+wgvim has no direct connection to the system clipboard. Instead it depends on
 a |provider| which transparently uses shell commands to communicate with the
 system clipboard or any other clipboard "backend".
 
@@ -179,7 +179,7 @@ See 'clipboard' for details and options.
 
 							      *clipboard-tool*
 The presence of a working clipboard tool implicitly enables the "+" and "*"
-registers. Nvim supports these clipboard tools, in order of priority:
+registers. wgvim supports these clipboard tools, in order of priority:
 
 - |g:clipboard| : User override (if set to a dict or any string "name" below;
   e.g. `g:clipboard="tmux"` forces tmux clipboard and skips auto-detection).
@@ -206,7 +206,7 @@ Note: Clipboard providers are initialized by calling `has('clipboard')`, which
 is best avoided before setting `g:clipboard`. See "G:CLIPBOARD SETTINGS ARE NOT
 USED" in |faq-runtime| for workarounds.
 
-If "cache_enabled" is |TRUE| then when a selection is copied Nvim will cache
+If "cache_enabled" is |TRUE| then when a selection is copied wgvim will cache
 the selection until the copy command process dies. When pasting, if the copy
 process has not died the cached selection is applied.
 
@@ -270,12 +270,12 @@ For Windows WSL, try this g:clipboard definition:
       \ }
 <
 							    *clipboard-osc52*
-Nvim bundles a clipboard provider that allows copying to the system clipboard
+wgvim bundles a clipboard provider that allows copying to the system clipboard
 using OSC 52, an "Operating System Command" control-sequence that causes the
 terminal emulator to write to or read from the system clipboard.
 
-When Nvim is running in the |TUI|, it automatically detects host terminal
-support for OSC 52. If successful, then Nvim will use OSC 52 for copying and
+When wgvim is running in the |TUI|, it automatically detects host terminal
+support for OSC 52. If successful, then wgvim will use OSC 52 for copying and
 pasting if no other |clipboard-tool| is found and when 'clipboard' is unset.
 NOTE: Using a terminal multiplexer (e.g. tmux) may inhibit automatic OSC 52
 support detection.
@@ -287,7 +287,7 @@ false early in your |config|. Example: >lua
 	termfeatures.osc52 = false
 	vim.g.termfeatures = termfeatures
 <
-To force Nvim to use the OSC 52 provider you can set |g:clipboard|: >lua
+To force wgvim to use the OSC 52 provider you can set |g:clipboard|: >lua
 
     vim.g.clipboard = 'osc52'
 
@@ -318,7 +318,7 @@ Paste							*provider-paste* *paste*
 text to the editor", whereas clipboard provides features like |quote+| to get
 and set the OS clipboard directly.  For example, middle-click or CTRL-SHIFT-v
 (macOS: CMD-v) in your terminal is "paste", not "clipboard": the terminal
-application (Nvim) just gets a stream of text, it does not interact with the
+application (wgvim) just gets a stream of text, it does not interact with the
 clipboard directly.
 
 							*bracketed-paste-mode*
@@ -363,7 +363,7 @@ CLIPBOARD is typically used in X11 applications for copy/paste operations
 (CTRL-c/CTRL-v), while PRIMARY is used for the last selected text, which is
 generally inserted with the middle mouse button.
 
-Nvim's X11 clipboard providers only use the PRIMARY and CLIPBOARD selections,
+wgvim's X11 clipboard providers only use the PRIMARY and CLIPBOARD selections,
 for the "*" and "+" registers, respectively.
 
  vim:tw=78:ts=8:noet:ft=help:norl:

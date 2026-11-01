@@ -197,7 +197,7 @@ static void early_init(mparm_T *paramp)
   cmdline_init();
   eval_init();          // init global variables
   set_vim_var_nr(VV_STARTTIME, (varnumber_T)os_realtime());
-  init_path(argv0 ? argv0 : "nvim");
+  init_path(argv0 ? argv0 : "wgvim");
   init_normal_cmds();   // Init the table of Normal mode commands.
   runtime_init();
   highlight_init();
@@ -259,7 +259,7 @@ int main(int argc, char **argv)
   TO_SLASH(argv0);
 
   if (!appname_is_valid()) {
-    fprintf(stderr, "$NVIM_APPNAME must be a name or relative path.\n");
+    fprintf(stderr, "$WGVIM_APPNAME must be a name or relative path.\n");
     exit(1);
   }
 
@@ -350,7 +350,7 @@ int main(int argc, char **argv)
     uint64_t rv = ui_client_start_server(get_vim_var_str(VV_PROGPATH),
                                          (size_t)params.argc, params.argv);
     if (!rv) {
-      fprintf(stderr, "Failed to start Nvim server!\n");
+      fprintf(stderr, "Failed to start wgvim server!\n");
       os_exit(1);
     }
     ui_client_channel_id = rv;
@@ -361,7 +361,7 @@ int main(int argc, char **argv)
     ui_client_run();  // NORETURN
   }
   assert(!ui_client_channel_id && !use_builtin_ui);
-  // Nvim server...
+  // wgvim server...
 
   if (!server_init(params.listen_addr)) {
 #ifdef MSWIN
@@ -422,11 +422,11 @@ int main(int argc, char **argv)
   // Set the break level after the terminal is initialized.
   debug_break_level = params.use_debug_break_level;
 
-  // Wait for UIs to set up Nvim or show early messages and prompts (--cmd, swapfile dialog, …).
+  // Wait for UIs to set up wgvim or show early messages and prompts (--cmd, swapfile dialog, …).
   bool use_remote_ui = (embedded_mode && !headless_mode);
   if (use_remote_ui) {
     if (!stdio_rpc) {
-      fprintf(stderr, "Nvim server (pid: %" PRId64 ") waiting for UI, listening on: \"%s\"\n",
+      fprintf(stderr, "wgvim server (pid: %" PRId64 ") waiting for UI, listening on: \"%s\"\n",
               os_get_pid(), get_vim_var_str(VV_SEND_SERVER));
     }
     TIME_MSG("waiting for UI");
@@ -749,7 +749,7 @@ void os_exit(int r)
     ml_close_all(true);  // remove all memfiles
   }
 
-  ILOG("Nvim exit: %d", r);
+  ILOG("wgvim exit: %d", r);
 
 #ifdef EXITFREE
   free_all_mem();
@@ -941,7 +941,7 @@ void preserve_exit(const char *errmsg)
   FOR_ALL_BUFFERS(buf) {
     if (buf->b_ml.ml_mfp != NULL && buf->b_ml.ml_mfp->mf_fname != NULL) {
       if (errmsg != NULL) {
-        fprintf(stderr, "Nvim: preserving files...\n");
+        fprintf(stderr, "wgvim: preserving files...\n");
       }
       ml_sync_all(false, false, true);  // preserve all swap files
       break;
@@ -951,7 +951,7 @@ void preserve_exit(const char *errmsg)
   ml_close_all(false);              // close all memfiles, without deleting
 
   if (errmsg != NULL) {
-    fprintf(stderr, "Nvim: Finished.\n");
+    fprintf(stderr, "wgvim: Finished.\n");
   }
 
   getout(1);
@@ -1023,9 +1023,9 @@ static void remote_request(mparm_T *params, int remote_args, char *server_addr, 
 #endif
       fprintf(stderr, "Remote ui failed to start: %s\n", connect_error);
       os_exit(1);
-    } else if (strequal(server_addr, os_getenv_noalloc("NVIM"))) {
+    } else if (strequal(server_addr, os_getenv_noalloc("WGVIM"))) {
       fprintf(stderr, "%s", "Cannot attach UI of :terminal child to its parent. ");
-      fprintf(stderr, "%s\n", "(Unset $NVIM to skip this check)");
+      fprintf(stderr, "%s\n", "(Unset $WGVIM to skip this check)");
       os_exit(1);
     }
     ui_client_channel_id = chan;
@@ -2071,7 +2071,7 @@ static void exe_commands(mparm_T *parmp)
 ///
 /// Does one of the following things, stops after whichever succeeds:
 ///
-/// 1. Source system vimrc file from $XDG_CONFIG_DIRS/$NVIM_APPNAME/sysinit.vim
+/// 1. Source system vimrc file from $XDG_CONFIG_DIRS/$WGVIM_APPNAME/sysinit.vim
 /// 2. Source system vimrc file from $VIM
 static void do_system_initialization(void)
 {
@@ -2121,8 +2121,8 @@ static void do_system_initialization(void)
 /// Does one of the following things, stops after whichever succeeds:
 ///
 /// 1. Execution of VIMINIT environment variable.
-/// 2. Sourcing user config file ($XDG_CONFIG_HOME/$NVIM_APPNAME/init.lua or init.vim).
-/// 3. Sourcing other config files ($XDG_CONFIG_DIRS[1]/$NVIM_APPNAME/init.lua or init.vim, …).
+/// 2. Sourcing user config file ($XDG_CONFIG_HOME/$WGVIM_APPNAME/init.lua or init.vim).
+/// 3. Sourcing other config files ($XDG_CONFIG_DIRS[1]/$WGVIM_APPNAME/init.lua or init.vim, …).
 /// 4. Execution of EXINIT environment variable.
 ///
 /// @return True if it is needed to attempt to source exrc file according to
@@ -2375,7 +2375,7 @@ static void usage(void)
   printf(_("  --headless            Don't start a user interface\n"));
   printf(_("  --listen <address>    Serve RPC API from this address\n"));
   printf(_("  --remote[-subcommand] Execute commands remotely on a server\n"));
-  printf(_("  --server <address>    Connect to this Nvim server\n"));
+  printf(_("  --server <address>    Connect to this wgvim server\n"));
   printf(_("  --startuptime <file>  Write startup timing messages to <file>\n"));
   printf(_("\nSee \":help startup-options\" for all options.\n"));
 }

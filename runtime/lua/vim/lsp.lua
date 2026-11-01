@@ -208,7 +208,7 @@ end
 --- Filename(s) (".git/", "package.json", …) used to decide the workspace root. Unused if `root_dir`
 --- is defined. The list order decides priority. To indicate "equal priority", specify names in
 --- a nested list `{ { 'a.txt', 'b.lua' }, ... }`.
---- - For each item, Nvim will search upwards (from the buffer file) for that marker, or list of
+--- - For each item, wgvim will search upwards (from the buffer file) for that marker, or list of
 ---   markers; search stops at the first directory containing that marker, and the directory is used
 ---   as the root dir (workspace folder).
 --- - Example: Find the first ancestor directory containing file or directory "stylua.toml"; if not
@@ -1172,7 +1172,7 @@ function lsp.get_clients(filter)
   return clients
 end
 
--- Minimum time before warning about LSP exit_timeout on Nvim exit.
+-- Minimum time before warning about LSP exit_timeout on wgvim exit.
 local min_warn_exit_timeout = 100
 
 nvim_on('VimLeavePre', nil, { desc = 'vim.lsp: exit handler' }, function()
@@ -1308,7 +1308,7 @@ end
 
 --- Sends a request to all server and waits for the response of all of them.
 ---
---- Calls |vim.lsp.buf_request_all()| but blocks Nvim while awaiting the result.
+--- Calls |vim.lsp.buf_request_all()| but blocks wgvim while awaiting the result.
 --- Parameters are the same as |vim.lsp.buf_request_all()| but the result is
 --- different. Waits a maximum of {timeout_ms}.
 ---
@@ -1571,7 +1571,7 @@ end
 --- invoke. Each key is a unique command name; each value is a function which is called when an LSP
 --- action (code action, code lenses, …) requests it by name.
 ---
---- If an LSP response requests a command not defined client-side, Nvim will forward it to the
+--- If an LSP response requests a command not defined client-side, wgvim will forward it to the
 --- server as `workspace/executeCommand`.
 ---
 --- - Argument 1 is the `Command`:

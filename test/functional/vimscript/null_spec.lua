@@ -178,7 +178,7 @@ describe('NULL', function()
     null_expr_test('does not crash setreg', 'setreg("x", L)', 0, 0)
     null_expr_test('does not crash systemlist()', 'systemlist("cat", L)', 0, {})
     null_test(
-      'does not make Neovim crash when v:oldfiles gets assigned to that',
+      'does not make wgvim crash when v:oldfiles gets assigned to that',
       ':let v:oldfiles = L|oldfiles',
       0
     )

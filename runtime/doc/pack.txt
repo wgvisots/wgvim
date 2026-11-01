@@ -1,9 +1,9 @@
-*pack.txt*                            Nvim
+*pack.txt*                            wgvim
 
                             NVIM REFERENCE MANUAL
 
 ==============================================================================
-Extending Nvim
+Extending wgvim
 
                                        Type |gO| to see the table of contents.
 
@@ -21,7 +21,7 @@ plugins, a package can...
   |:packadd| ("opt" packages, located in "pack/*/opt/*").
 
                                                         *runtime-search-path*
-Nvim searches for |:runtime| files in:
+wgvim searches for |:runtime| files in:
 - 1. all paths in 'runtimepath'
 - 2. all "pack/*/start/*" dirs
 
@@ -35,21 +35,21 @@ the runtime path. Example: >
 
 Using a package and loading automatically ~
 
-Let's assume your Nvim files are in "~/.local/share/nvim/site" and you want to
+Let's assume your wgvim files are in "~/.local/share/wgvim/site" and you want to
 add a package from a zip archive "/tmp/foopack.zip": >
-    % mkdir -p ~/.local/share/nvim/site/pack/foo
-    % cd ~/.local/share/nvim/site/pack/foo
+    % mkdir -p ~/.local/share/wgvim/site/pack/foo
+    % cd ~/.local/share/wgvim/site/pack/foo
     % unzip /tmp/foopack.zip
 
 The directory name "foo" is arbitrary, you can pick anything you like.
 
-You would now have these files under ~/.local/share/nvim/site: >
+You would now have these files under ~/.local/share/wgvim/site: >
     pack/foo/README.txt
     pack/foo/start/foobar/plugin/foo.vim
     pack/foo/start/foobar/syntax/some.vim
     pack/foo/opt/foodebug/plugin/debugger.vim
 
-On startup after processing your |config|, Nvim scans all directories in
+On startup after processing your |config|, wgvim scans all directories in
 'packpath' for plugins in "pack/*/start/*", then loads the plugins.
 
 To allow for calling into package functionality while parsing your |vimrc|,
@@ -57,14 +57,14 @@ To allow for calling into package functionality while parsing your |vimrc|,
 as well in addition to 'runtimepath'.  See the documentation for each for
 details.
 
-In the example Nvim will find "pack/foo/start/foobar/plugin/foo.vim" and load
+In the example wgvim will find "pack/foo/start/foobar/plugin/foo.vim" and load
 it.
 
-If the "foobar" plugin kicks in and sets the 'filetype' to "some", Nvim will
+If the "foobar" plugin kicks in and sets the 'filetype' to "some", wgvim will
 find the syntax/some.vim file, because its directory is in the runtime search
 path.
 
-Nvim will also load ftdetect files, if there are any.
+wgvim will also load ftdetect files, if there are any.
 
 Note that the files under "pack/foo/opt" are not loaded automatically, only
 the ones under "pack/foo/start".  See |pack-add| below for how the "opt"
@@ -86,8 +86,8 @@ Using a single plugin and loading it automatically ~
 
 If you don't have a package but a single plugin, you need to create the extra
 directory level: >
-    % mkdir -p ~/.local/share/nvim/site/pack/foo/start/foobar
-    % cd ~/.local/share/nvim/site/pack/foo/start/foobar
+    % mkdir -p ~/.local/share/wgvim/site/pack/foo/start/foobar
+    % cd ~/.local/share/wgvim/site/pack/foo/start/foobar
     % unzip /tmp/someplugin.zip
 
 You would now have these files: >
@@ -102,16 +102,16 @@ Optional plugins ~
 To load an optional plugin from a pack use the `:packadd` command: >
     :packadd foodebug
 This searches for "pack/*/opt/foodebug" in 'packpath' and will find
-~/.local/share/nvim/site/pack/foo/opt/foodebug/plugin/debugger.vim and source
+~/.local/share/wgvim/site/pack/foo/opt/foodebug/plugin/debugger.vim and source
 it.
 
 This could be done if some conditions are met.  For example, depending on
-whether Nvim supports a feature or a dependency is missing.
+whether wgvim supports a feature or a dependency is missing.
 
 You can also load an optional plugin at startup, by putting this command in
 your |config|: >
     :packadd! foodebug
-The extra "!" is so that the plugin isn't loaded if Nvim was started with
+The extra "!" is so that the plugin isn't loaded if wgvim was started with
 |--noplugin|.
 
 It is perfectly normal for a package to only have files in the "opt"
@@ -123,7 +123,7 @@ Where to put what ~
 Since color schemes, loaded with `:colorscheme`, are found below
 "pack/*/start" and "pack/*/opt", you could put them anywhere.  We recommend
 you put them below "pack/*/opt", for example
-"~/.config/nvim/pack/mycolors/opt/dark/colors/very_dark.vim".
+"~/.config/wgvim/pack/mycolors/opt/dark/colors/very_dark.vim".
 
 Filetype plugins should go under "pack/*/start", so that they are always
 found.  Unless you have more than one plugin for a file type and want to
@@ -166,8 +166,8 @@ Your directory layout would be like this: >
    opt/fooextra/doc/tags                " help tags
 <
 This allows for the user to do: >
-    mkdir ~/.local/share/nvim/site/pack
-    cd ~/.local/share/nvim/site/pack
+    mkdir ~/.local/share/wgvim/site/pack
+    cd ~/.local/share/wgvim/site/pack
     git clone https://github.com/you/foobar.git myfoobar
 
 Here "myfoobar" is a name that the user can choose, the only condition is that
@@ -266,7 +266,7 @@ Basic install and management ~
     -- Plugin's code can be used directly after `add()`
     plugin1 = require('plugin1')
 <
-• Restart Nvim (for example, with |:restart|). Plugins that were not yet
+• Restart wgvim (for example, with |:restart|). Plugins that were not yet
   installed will be available on disk after `add()` call. Their revision is
   taken from |vim.pack-lockfile| (if present) or inferred from the `version`.
 • To update all plugins with new changes:
@@ -446,7 +446,7 @@ Full specification see at https://packspec.org/. See also |vim.pack.Manifest|.
 A simple example: >json
     {
      "name": "best-plugin.nvim",
-     "description": "The best plugin for Neovim",
+     "description": "The best plugin for wgvim",
      "version": "1.0.0",
      "engines": {
          "nvim": ">=0.13.0",
@@ -496,7 +496,7 @@ vim.pack.Manifest                                          *vim.pack.Manifest*
       • {description}?   (`string`) Plugin description
       • {engines}?       (`table`) Supported engine versions. Values should be
                          |vim.version.range()| compatible specs.
-                         • {nvim}? (`string`) Version range for Nvim.
+                         • {nvim}? (`string`) Version range for wgvim.
                          • {vim}? (`string`) Version range for Vim.
       • {name}?          (`string`) Plugin name
       • {scripts}?       (`table`) Script locations (relative to plugin's
@@ -538,7 +538,7 @@ add({specs}, {opts})                                          *vim.pack.add()*
         match `version` (via `git checkout`). Plugin will not be on disk if
         any step resulted in an error.
     • For each plugin execute |:packadd| (or customizable `load` function)
-      making it reachable by Nvim.
+      making it reachable by wgvim.
 
     Notes:
     • Installation is done in parallel, but waits for all to finish before

@@ -4889,9 +4889,9 @@ static void ex_exmode(exarg_T *eap)
   nlua_call_typval("vim._core.exmode", "open", args, NULL);
 }
 
-/// ":restart": restart the Nvim server (using ":qall!").
-/// ":restart +cmd": restart the Nvim server using ":cmd".
-/// ":restart +cmd <command>": restart the Nvim server using ":cmd" and runs <command> in the new server.
+/// ":restart": restart the wgvim server (using ":qall!").
+/// ":restart +cmd": restart the wgvim server using ":cmd".
+/// ":restart +cmd <command>": restart the wgvim server using ":cmd" and runs <command> in the new server.
 static void ex_restart(exarg_T *eap)
 {
   if (!eap->forceit) {
@@ -5138,7 +5138,7 @@ fail_2:
   arena_mem_free(result_mem);
 #endif
 
-  // Kill the new Nvim server.
+  // Kill the new wgvim server.
   proc_stop(&channel->stream.proc);
   if (proc_wait(&channel->stream.proc, -1, NULL) < 0) {
     emsg("killing new nvim server failed");
@@ -5872,7 +5872,7 @@ static void ex_detach(exarg_T *eap)
   if (eap && eap->forceit) {
     chan->detach = true;
     channel_event(chan, EVENT_CHANINFO);
-    msg(_("Nvim will continue running if the UI disconnects"), 0);
+    msg(_("wgvim will continue running if the UI disconnects"), 0);
     return;
   }
 
@@ -6127,7 +6127,7 @@ void do_exedit(exarg_T *eap, win_T *old_curwin)
 /// ":gui" and ":gvim" when there is no GUI.
 static void ex_nogui(exarg_T *eap)
 {
-  eap->errmsg = _("E25: Nvim does not have a built-in GUI");
+  eap->errmsg = _("E25: wgvim does not have a built-in GUI");
 }
 
 static void ex_popup(exarg_T *eap)

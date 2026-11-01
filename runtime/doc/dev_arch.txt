@@ -1,11 +1,11 @@
-*dev_arch.txt*          Nvim
+*dev_arch.txt*          wgvim
 
 
                             NVIM REFERENCE MANUAL
 
 
 ==============================================================================
-How to develop Nvim, explanation of modules and subsystems          *dev-arch*
+How to develop wgvim, explanation of modules and subsystems          *dev-arch*
 
 Module-specific details are documented at the top of each module
 (`terminal.c`, `undo.c`, …). The top of each major module has (or should have)
@@ -25,7 +25,7 @@ Project layout: where things go                                   *dev-layout*
 
 C CODE
 
-- Nvim C code lives in `src/nvim/`.
+- wgvim C code lives in `src/nvim/`.
     - This includes third-party components which we have forked and fully
       "own", meaning we no longer track the upstream. In particular: `vterm/`
       and `tui/termkey/`.
@@ -74,11 +74,11 @@ Lua code lives in one of four places:
    "Core" modules, see below).
    - Examples: `vim.treesitter`, `vim.lpeg`.
 3. Core: `runtime/lua/vim/_core/`. Internal-only, compiled-in modules. May
-   directly interact with Nvim internals. Only available in main thread. See
+   directly interact with wgvim internals. Only available in main thread. See
    |dev-lua-builtin| below.
 4. "Shared" core: `runtime/lua/vim/_core/shared.lua`. Pure Lua functions which
    always are available. Used in the test runner, and worker threads/processes
-   launched from Nvim.
+   launched from wgvim.
 
 The top-level `vim.` namespace is for fundamental Lua and editor features. Use
 submodules (`vim.foo`) for everything else (but avoid excessive "nesting"), or
@@ -125,7 +125,7 @@ Add a new event (autocmd)                                      *dev-new-event*
 To add a new editor event (autocmd):
 
 1. Register the event name in `src/nvim/auevents.lua`. If the event is
-   Nvim-only (not in Vim), also update the `nvim_specific` table.
+   wgvim-only (not in Vim), also update the `nvim_specific` table.
 2. Fire the event, by one of these approaches:
    - From C, use `aucmd_defer()` to fire deferred (safe, predictable). See
      `do_markset_autocmd` for example.
@@ -164,7 +164,7 @@ Events                                                            *dev-events*
 
 The events historically called "autocmds", referred to here as "editor events"
 or simply "events", are high-level events for use by plugins, user config, and
-the Nvim editor. (There is an unrelated, low-level concept defined by the
+the wgvim editor. (There is an unrelated, low-level concept defined by the
 `event/defs.h#Event` struct, which is just a bag of data passed along the
 internal |event-loop|.)
 
@@ -236,7 +236,7 @@ a format or an in-memory sidecar. Eliminate context.c?
 
 LUA FUNCTIONS ACROSS PROCESSES
 
-The test harness transfers Lua closures between Nvim instances
+The test harness transfers Lua closures between wgvim instances
 (`test/functional/testnvim/exec_lua.lua`). This works ONLY between same-build
 instances (LuaJIT bytecode not portable across versions/builds) and only for
 trusted peers. Upvalues are limited to msgpack-able values (not
@@ -318,14 +318,14 @@ scheduling is deferred editor-events (autocmds). Another example is
 
 ASYNC EVENT SUPPORT
 
-One of the features Nvim added is the support for handling arbitrary
+One of the features wgvim added is the support for handling arbitrary
 asynchronous events, which can include:
 
 - RPC requests
 - job control callbacks
 - timers
 
-Nvim implements this functionality by entering another event loop while
+wgvim implements this functionality by entering another event loop while
 waiting for characters, so instead of: >py
 
   def state_enter(on_state, data):
@@ -333,7 +333,7 @@ waiting for characters, so instead of: >py
       key = readkey()           # Read a key from the user
     while on_state(data, key)   # Invoke callback for the current state
 
-the Nvim program loop is more like: >py
+the wgvim program loop is more like: >py
 
   def state_enter(on_state, data):
     do
@@ -342,9 +342,9 @@ the Nvim program loop is more like: >py
 
 where `event` is something the operating system delivers to us, including (but
 not limited to) user input. The `read_next_event()` part is internally
-implemented by libuv, the platform layer used by Nvim.
+implemented by libuv, the platform layer used by wgvim.
 
-Since Nvim inherited its code from Vim, the states are not prepared to receive
+Since wgvim inherited its code from Vim, the states are not prepared to receive
 "arbitrary events", so we use a special key to represent those (When a state
 receives an "arbitrary event", it normally doesn't do anything other than
 update the screen).
@@ -359,7 +359,7 @@ into one loop: >
     MultiQueue *thread_events;
     MultiQueue *fast_events;
 
-`loop_poll_events` checks `Loop.uv` and `Loop.fast_events` whenever Nvim is
+`loop_poll_events` checks `Loop.uv` and `Loop.fast_events` whenever wgvim is
 idle, and also at `os_breakcheck` intervals.
 
 MultiQueue is cool because you can attach throw-away "child queues" trivially.
@@ -373,7 +373,7 @@ automatically route events onto the `main_loop`: >
 
 NVIM LIFECYCLE
 
-How Nvim processes input.
+How wgvim processes input.
 
 Consider a typical Vim-like editing session:
 
@@ -480,7 +480,7 @@ that implements something like the workflow described above: >py
     return true
 <
 
-The above gives an idea of how Nvim is organized internally. Some states like
+The above gives an idea of how wgvim is organized internally. Some states like
 the `g_command_state` or `get_operator_count_state` do not have a dedicated
 `state_enter` callback, but are implicitly embedded into other states (this
 will change later as we continue the refactoring effort). To start reading the
@@ -518,9 +518,9 @@ All the global variables are declared in `globals.h`.
 
 THE MAIN EVENT-LOOP
 
-The main loop is implemented in state_enter. The basic idea is that Nvim waits
+The main loop is implemented in state_enter. The basic idea is that wgvim waits
 for the user to type a character and processes it until another character is
-needed.  Thus there are several places where Nvim waits for a character to be
+needed.  Thus there are several places where wgvim waits for a character to be
 typed.  The `vgetc()` function is used for this.  It also handles mapping.
 
 Internal logic "stuffs" keys (readahead) only for a consumer on the current
@@ -530,7 +530,7 @@ may stuff chars, and let the main loop deal with them at some arbitrary future
 point, thus requiring global flags checked at the right time, scattered
 throughout the codebase.)
 
-What we consider the "Nvim event loop" is actually a wrapper around `uv_run` to
+What we consider the "wgvim event loop" is actually a wrapper around `uv_run` to
 handle both the `fast_events` queue and possibly (a suitable subset of) deferred
 events. Therefore "raw" `vim.uv.run()` is often not enough to yield from Lua;
 instead call `vim.wait(0)` and check its result.

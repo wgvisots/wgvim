@@ -112,7 +112,7 @@ func Test_checktime_fast()
   exec 'e' fname
   let fl = readfile(fname)
   let fl[0] .= ' - checktime'
-  sleep 10m  " make test less flaky in Nvim
+  sleep 10m  " make test less flaky in wgvim
   call writefile(fl, fname)
   checktime
   call assert_equal(fl[0], getline(1))

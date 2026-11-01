@@ -23,10 +23,10 @@ func Test_equal()
   call assert_false([base.method] == [instance.other])
 
   call assert_fails('echo base.method > instance.method', 'E694: Invalid operation for Funcrefs')
-  " Nvim doesn't have null functions
+  " wgvim doesn't have null functions
   " call assert_equal(0, test_null_function() == function('min'))
   " call assert_equal(1, test_null_function() == test_null_function())
-  " Nvim doesn't have test_unknown()
+  " wgvim doesn't have test_unknown()
   " call assert_fails('eval 10 == test_unknown()', 'E685:')
 endfunc
 
@@ -99,9 +99,9 @@ func Test_op_falsy()
       call assert_equal(456, v:_null_blob ?? 456)
       call assert_equal(456, v:_null_list ?? 456)
       call assert_equal(456, v:_null_dict ?? 456)
-      #" Nvim doesn't have null functions
+      #" wgvim doesn't have null functions
       #" call assert_equal(456, test_null_function() ?? 456)
-      #" Nvim doesn't have null partials
+      #" wgvim doesn't have null partials
       #" call assert_equal(456, test_null_partial() ?? 456)
       if has('job')
         call assert_equal(456, test_null_job() ?? 456)

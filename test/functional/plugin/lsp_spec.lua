@@ -121,8 +121,8 @@ describe('LSP', function()
         function _G.test__start_client()
           return vim.lsp.start({
             cmd_env = {
-              NVIM_LOG_FILE = fake_lsp_logfile,
-              NVIM_APPNAME = 'nvim_lsp_test',
+              WGVIM_LOG_FILE = fake_lsp_logfile,
+              WGVIM_APPNAME = 'nvim_lsp_test',
             },
             cmd = {
               vim.v.progpath,

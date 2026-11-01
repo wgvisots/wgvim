@@ -11,7 +11,7 @@ local write_file = t.write_file
 
 describe(':log', function()
   local xstate = 'Xstate'
-  local name = (is_os('win') and 'nvim-data' or 'nvim')
+  local name = (is_os('win') and 'wgvim-data' or 'nvim')
 
   before_each(function()
     clear { env = { XDG_STATE_HOME = xstate } }
@@ -46,8 +46,8 @@ describe(':log', function()
     )
   end)
 
-  it('nvim works with non-default $NVIM_LOG_FILE', function()
-    clear { env = { XDG_STATE_HOME = xstate, NVIM_LOG_FILE = 'Xfoo.log' } }
+  it('nvim works with non-default $WGVIM_LOG_FILE', function()
+    clear { env = { XDG_STATE_HOME = xstate, WGVIM_LOG_FILE = 'Xfoo.log' } }
     write_file('Xfoo.log', [[nvim log]])
     eq(
       'Xfoo.log',

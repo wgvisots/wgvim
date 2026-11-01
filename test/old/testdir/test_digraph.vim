@@ -491,7 +491,7 @@ func Test_show_digraph()
 endfunc
 
 func Test_show_digraph_cp1251()
-  throw 'skipped: Nvim supports ''utf8'' encoding only'
+  throw 'skipped: wgvim supports ''utf8'' encoding only'
   new
   set encoding=cp1251
   call Put_Dig("='")
@@ -575,7 +575,7 @@ func Test_digraph_get_function()
 endfunc
 
 func Test_digraph_get_function_encode()
-  throw 'Skipped: Nvim does not support setting encoding=japan'
+  throw 'Skipped: wgvim does not support setting encoding=japan'
   CheckFeature iconv
 
   let testcases = {

@@ -194,9 +194,9 @@ func Test_partial_string()
   call assert_equal("function('MyFunc', {'one': 1})", string(F))
   let F = function('MyFunc', ['foo'], d)
   call assert_equal("function('MyFunc', ['foo'], {'one': 1})", string(F))
-  " Nvim doesn't have null functions
+  " wgvim doesn't have null functions
   " call assert_equal("function('')", string(test_null_function()))
-  " Nvim doesn't have null partials
+  " wgvim doesn't have null partials
   " call assert_equal("function('')", string(test_null_partial()))
 endfunc
 
@@ -391,7 +391,7 @@ func Test_compare_partials()
   call assert_true(d1.f1 isnot# d1.f1)  " handle_subscript creates new partial each time
 
   " compare two null partials
-  " Nvim doesn't have null partials
+  " wgvim doesn't have null partials
   " let N1 = test_null_partial()
   let N1 = function('min')
   let N2 = N1

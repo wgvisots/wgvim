@@ -136,7 +136,7 @@ local function lint_match(buf, match, query, lang_context, diagnostics)
         add_lint_for_node(diagnostics, range, 'Syntax error: ' .. node_text)
       end
 
-      -- other checks rely on Neovim parser introspection
+      -- other checks rely on wgvim parser introspection
       if lang and parser_info and cap_id == 'toplevel' then
         local err = parse(node, buf, lang)
         if err then

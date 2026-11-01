@@ -1928,7 +1928,7 @@ describe('API', function()
       api.nvim_exec_lua('vim.api.nvim_set_option_value("equalalways", true, {})', {})
       status, rv = pcall(command_output, 'verbose set equalalways?')
       eq(true, status)
-      eq('  equalalways\n\tLast set from Lua (run Nvim with -V1 for more details)', rv)
+      eq('  equalalways\n\tLast set from Lua (run wgvim with -V1 for more details)', rv)
     end)
 
     it('updates whether the option has ever been set #25025', function()
@@ -2224,7 +2224,7 @@ describe('API', function()
       exec [[
         autocmd FileType * ++once let g:dummy_buf = bufnr() | split
 
-        " Autocommands should be blocked while Nvim attempts to wipe the buffer.
+        " Autocommands should be blocked while wgvim attempts to wipe the buffer.
         let g:wipe_events = []
         autocmd WinClosed * if winbufnr(expand('<amatch>')) == g:dummy_buf
                          \| let g:wipe_events += ['WinClosed']
@@ -2253,7 +2253,7 @@ describe('API', function()
     end)
 
     it('does not crash if dummy buffer wiped after autocommands', function()
-      -- Autocommands are blocked while Nvim attempts to wipe the buffer, but check something like
+      -- Autocommands are blocked while wgvim attempts to wipe the buffer, but check something like
       -- &bufhidden = "wipe" causing a premature wipe doesn't crash.
       command('autocmd FileType * ++once setlocal bufhidden=wipe | split')
       api.nvim_get_option_value('formatexpr', { filetype = 'lua' })
@@ -3923,7 +3923,7 @@ describe('API', function()
     local function hl(group, str, shift)
       return function(next_col)
         local col = next_col + (shift or 0)
-        return (('%s:%u:%u:%s'):format('Nvim' .. group, 0, col, str)), (col + #str)
+        return (('%s:%u:%u:%s'):format('wgvim' .. group, 0, col, str)), (col + #str)
       end
     end
     local function fmtn(typ, args, rest)

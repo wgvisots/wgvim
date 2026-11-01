@@ -1,9 +1,9 @@
-*help.txt*	Nvim
+*help.txt*	wgvim
 
 ==============================================================================
-Nvim documentation
+wgvim documentation
 
-If you are new to Nvim, see |nvim-intro|. (To go to a help link, move the
+If you are new to wgvim, see |nvim-intro|. (To go to a help link, move the
 cursor to it and hit CTRL-], or right-click with mouse. Try it here: |bars|.)
 
 This documentation is available online:
@@ -11,12 +11,12 @@ This documentation is available online:
 - PDF: https://neovim.io/doc/user/nvim-help.pdf
 
 ------------------------------------------------------------------------------
-About Nvim						*reference_toc* *Q_ct*
+About wgvim						*reference_toc* *Q_ct*
 
 - |news|		News since the previous release
-- |nvim|		Getting started with Nvim
+- |nvim|		Getting started with wgvim
 - |tutor|		30-minute interactive course for beginners
-- |vim-differences|	Nvim compared to Vim
+- |vim-differences|	wgvim compared to Vim
 - |faq|			Frequently Asked Questions
 - |tips|		Various tips
 - |bugs|		Where to send bug reports
@@ -67,18 +67,18 @@ Advanced editing
 ------------------------------------------------------------------------------
 API (extensibility/scripting/plugins)
 
-- |api|			Nvim API via RPC, Lua and Vimscript
-- |ui|			Nvim UI protocol
-- |lua-guide|		Nvim Lua guide
+- |api|			wgvim API via RPC, Lua and Vimscript
+- |ui|			wgvim UI protocol
+- |lua-guide|		wgvim Lua guide
 - |lua|			Lua API
 - |luaref|		Lua reference manual
 - |luvref|		Luv (|vim.uv|) reference manual
 - |autocmd|		Event handlers
 - |job-control|		Spawn and control multiple processes
-- |channel|		Nvim asynchronous IO
+- |channel|		wgvim asynchronous IO
 - |vimscript|		Vimscript reference
 - |vimscript-functions|	Vimscript functions
-- |remote-plugin|	Nvim remote plugins
+- |remote-plugin|	wgvim remote plugins
 - |health|		Health checking
 
 ------------------------------------------------------------------------------
@@ -129,12 +129,12 @@ Versions
 ------------------------------------------------------------------------------
 Developing nvim
 
-- |dev|			Development of Nvim
+- |dev|			Development of wgvim
 - |dev-arch|		Internal architecture, modules, data structures
 - |dev-style|		Development style guidelines
 - |dev-test|		Writing and running tests
 - |dev-theme|		Design guidelines (colorschemes etc.)
-- |dev-tools|		Tools and techniques for developing Nvim
+- |dev-tools|		Tools and techniques for developing wgvim
 - |dev-vimpatch|	Merging patches from Vim
 
 Standard plugins ~
@@ -153,7 +153,7 @@ CTRL-T, CTRL-O, g<RightMouse>, or <C-RightMouse> to go back to where you were.
 Note that tags are within | characters, but when highlighting is enabled these
 characters are hidden (for aesthetics).
 
-You can use CTRL-] on any word (even if it is not within "|") and Nvim will
+You can use CTRL-] on any word (even if it is not within "|") and wgvim will
 try to find help for it.  Especially for options in single quotes, e.g.
 'hlsearch'.
 

@@ -1481,7 +1481,7 @@ describe('lua: nvim_buf_attach on_bytes', function()
     it(
       'no buffer update event is emitted while editing substitute command, only after confirmation',
       function()
-        api.nvim_buf_set_lines(0, 0, -1, true, { 'Hello world', 'Hello Neovim' })
+        api.nvim_buf_set_lines(0, 0, -1, true, { 'Hello world', 'Hello wgvim' })
 
         exec_lua(function()
           _G.num_buffer_updates = 0
@@ -1505,7 +1505,7 @@ describe('lua: nvim_buf_attach on_bytes', function()
         eq(2, exec_lua('return _G.num_buffer_updates'))
 
         -- Verify the buffer was actually modified.
-        eq({ 'Hey world', 'Hey Neovim' }, api.nvim_buf_get_lines(0, 0, -1, true))
+        eq({ 'Hey world', 'Hey wgvim' }, api.nvim_buf_get_lines(0, 0, -1, true))
       end
     )
 

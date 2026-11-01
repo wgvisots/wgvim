@@ -279,7 +279,7 @@ endfunc
 func Test_break_undo()
   set whichwrap=<,>,[,]
   call feedkeys("G4o2k", "xt")
-  " Nvim: "." re-executes the whole insert session, including the (wrapping)
+  " wgvim: "." re-executes the whole insert session, including the (wrapping)
   " CTRL-G U <Right>, instead of only the text typed after it.
   exe ":norm! iTest3: text with a (parenthesis here\<C-G>U\<Right>new line here\<esc>\<up>\<up>."
   call assert_equal('Test3: text with a (parenthesis here', getline(line('$') - 3))
@@ -746,7 +746,7 @@ endfunc
 
 " Test for <special> key mapping
 func Test_map_special()
-  throw 'skipped: Nvim does not support cpoptions flag "<"'
+  throw 'skipped: wgvim does not support cpoptions flag "<"'
   new
   let old_cpo = &cpo
   set cpo+=<
@@ -1044,7 +1044,7 @@ func Test_map_cpo_special_keycode()
   call feedkeys(":imap x\<C-A>\<C-B>\"\<CR>", 'tx')
   call assert_equal('"imap x\k', @:)
   iunmap x<Bslash>k
-  " Nvim: no "<" flag in 'cpoptions'.
+  " wgvim: no "<" flag in 'cpoptions'.
   " set cpo+=<
   " imap x<Bslash>k Test
   " let d = maparg('x<Bslash>k', 'i', 0, 1)

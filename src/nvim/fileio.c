@@ -161,7 +161,7 @@ void filemess_bufwrite(buf_T *buf, char *name, const char *msg_id)
 /// If a file read/write is slower than this, emit a progress-message.
 uint64_t slow_io_ns(void)
 {
-  // XXX: combine v:testing + $NVIM_TEST. this is a shitty hack but i dont want another gd flag.
+  // XXX: combine v:testing + $WGVIM_TEST. this is a shitty hack but i dont want another gd flag.
   return nvim_testing && get_vim_var_nr(VV_TESTING) ? 0 : NS_PER_SEC / 2;
 }
 
@@ -3372,13 +3372,13 @@ void write_lnum_adjust(linenr_T offset)
   }
 }
 
-/// Path to Nvim's own temp dir. Ends in a slash.
+/// Path to wgvim's own temp dir. Ends in a slash.
 static char *vim_tempdir = NULL;
 #ifdef HAVE_DIRFD_AND_FLOCK
 static DIR *vim_tempdir_dp = NULL;  ///< File descriptor of temp dir
 #endif
 
-/// Creates a directory for private use by this instance of Nvim, trying each of
+/// Creates a directory for private use by this instance of wgvim, trying each of
 /// `TEMP_DIR_NAMES` until one succeeds.
 ///
 /// Only done once, the same directory is used for all temp files.
@@ -3607,7 +3607,7 @@ void vim_deltempdir(void)
   XFREE_CLEAR(vim_tempdir);
 }
 
-/// Gets path to Nvim's own temp dir (ending with slash).
+/// Gets path to wgvim's own temp dir (ending with slash).
 ///
 /// Creates the directory on the first call.
 char *vim_gettempdir(void)
@@ -3629,7 +3629,7 @@ char *vim_gettempdir(void)
   return vim_tempdir;
 }
 
-/// Sets Nvim's own temporary directory name to `tempdir`. This directory must
+/// Sets wgvim's own temporary directory name to `tempdir`. This directory must
 /// already exist. Expands the name to a full path and put it in `vim_tempdir`.
 /// This avoids that using `:cd` would confuse us.
 ///
@@ -3668,7 +3668,7 @@ static bool vim_settempdir(char *tempdir)
 ///
 /// @note The temp file is NOT created.
 ///
-/// @return  pointer to the temp file name or NULL if Nvim can't create
+/// @return  pointer to the temp file name or NULL if wgvim can't create
 ///          temporary directory for its own temporary files.
 char *vim_tempname(void)
 {

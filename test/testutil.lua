@@ -170,11 +170,11 @@ end
 --- Retries for 1 second in case of filesystem delay.
 ---
 ---@param pat (string) Lua pattern to match text in the log file
----@param logfile? (string) Full path to log file (default=$NVIM_LOG_FILE)
+---@param logfile? (string) Full path to log file (default=$WGVIM_LOG_FILE)
 ---@param nrlines? (number) Search up to this many log lines (default 10)
 ---@param inverse? (boolean) Assert that the pattern does NOT match.
 function M.assert_log(pat, logfile, nrlines, inverse)
-  logfile = logfile or os.getenv('NVIM_LOG_FILE') or 'nvim.log'
+  logfile = logfile or os.getenv('WGVIM_LOG_FILE') or 'nvim.log'
   assert(logfile ~= nil, 'no logfile')
   nrlines = nrlines or 10
 
@@ -200,7 +200,7 @@ end
 ---
 --- @see assert_log
 --- @param pat (string) Lua pattern to match lines in the log file
---- @param logfile? (string) Full path to log file (default=$NVIM_LOG_FILE)
+--- @param logfile? (string) Full path to log file (default=$WGVIM_LOG_FILE)
 --- @param nrlines? (number) Search up to this many log lines
 function M.assert_nolog(pat, logfile, nrlines)
   return M.assert_log(pat, logfile, nrlines, true)
@@ -510,7 +510,7 @@ function M.check_cores(app, force) -- luacheck: ignore
   if true then
     return
   end
-  app = app or 'build/bin/nvim' -- luacheck: ignore
+  app = app or 'build/bin/wgvim' -- luacheck: ignore
   --- @type string, string?, string[]
   local initial_path, re, exc_re
   local gdb_db_cmd =
@@ -854,9 +854,9 @@ function M.is_ci(name)
 end
 
 -- Gets the (tail) contents of `logfile`.
--- Also moves the file to "${NVIM_LOG_FILE}.displayed" on CI environments.
+-- Also moves the file to "${WGVIM_LOG_FILE}.displayed" on CI environments.
 function M.read_nvim_log(logfile, ci_rename)
-  logfile = logfile or os.getenv('NVIM_LOG_FILE') or 'nvim.log'
+  logfile = logfile or os.getenv('WGVIM_LOG_FILE') or 'nvim.log'
   local log = harness.read_nvim_log(logfile, ci_rename)
   assert(log, ('logfile not found: %q'):format(logfile))
   return log
@@ -924,7 +924,7 @@ end
 --- Sorts timing `samples` and prints + returns min/q25/median/q75/max/mean.
 ---
 --- Shared reporter for `test/benchmark/`. Pair it with `M.bench()` (in-process) or `n.bench()`
---- (Nvim-under-test), or call it directly with samples you collected yourself.
+--- (wgvim-under-test), or call it directly with samples you collected yourself.
 ---
 --- @param samples number[]  Per-iteration durations, in nanoseconds. Sorted in place.
 --- @param opts? { label?: string, unit?: 'ms'|'us' }
@@ -973,7 +973,7 @@ end
 
 --- Benchmarks `fn` in the test-runner process: runs it `opts.n` times, timing each run, then reports.
 ---
---- Note: see `testnvim.bench()` to run in the Nvim-under-test.
+--- Note: see `testnvim.bench()` to run in the wgvim-under-test.
 ---
 --- @param fn fun()
 --- @param opts { n: integer, label?: string, unit?: 'ms'|'us', warmup?: integer }

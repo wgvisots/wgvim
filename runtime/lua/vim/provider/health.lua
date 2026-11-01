@@ -196,13 +196,13 @@ local function node()
   local ok, node_v = cli_version({ 'node', '-v' })
   health.info('Node.js: ' .. tostring(node_v))
   if not ok or vim.version.lt(assert(node_v), '6.0.0') then
-    health.warn('Nvim node.js host does not support Node ' .. node_v)
+    health.warn('wgvim node.js host does not support Node ' .. node_v)
     -- Skip further checks, they are nonsense if nodejs is too old.
     return
   end
   if vim.fn['provider#node#can_inspect']() == 0 then
     health.warn(
-      'node.js on this system does not support --inspect-brk so $NVIM_NODE_HOST_DEBUG is ignored.'
+      'node.js on this system does not support --inspect-brk so $WGVIM_NODE_HOST_DEBUG is ignored.'
     )
   end
 
@@ -218,7 +218,7 @@ local function node()
     })
     return
   end
-  health.info('Nvim node.js host: ' .. host)
+  health.info('wgvim node.js host: ' .. host)
 
   -- only npm/pnpm query the registry here: `yarn info` errors outside a
   -- project on yarn 2+ (#20924), and bun isn't used for this check.
@@ -313,7 +313,7 @@ local function perl()
     perl_exec,
     '-MApp::cpanminus::fatscript',
     '-e',
-    'my $app = App::cpanminus::script->new; $app->parse_options ("--info", "-q", "Neovim::Ext"); exit $app->doit',
+    'my $app = App::cpanminus::script->new; $app->parse_options ("--info", "-q", "wgvim::Ext"); exit $app->doit',
   }
   local latest_cpan
   ok, latest_cpan = cmd_ok(latest_cpan_cmd)
@@ -345,7 +345,7 @@ local function perl()
     return
   end
 
-  local current_cpan_cmd = { perl_exec, '-W', '-MNeovim::Ext', '-e', 'print $Neovim::Ext::VERSION' }
+  local current_cpan_cmd = { perl_exec, '-W', '-MNeovim::Ext', '-e', 'print $wgvim::Ext::VERSION' }
   local current_cpan
   ok, current_cpan = cmd_ok(current_cpan_cmd)
   if not ok then
@@ -357,13 +357,13 @@ local function perl()
   end
 
   if vim.version.lt(current_cpan, latest_cpan) then
-    local message = 'Module "Neovim::Ext" is out-of-date. Installed: '
+    local message = 'Module "wgvim::Ext" is out-of-date. Installed: '
       .. current_cpan
       .. ', latest: '
       .. latest_cpan
-    health.warn(message, 'Run in shell: cpanm -n Neovim::Ext')
+    health.warn(message, 'Run in shell: cpanm -n wgvim::Ext')
   else
-    health.ok('Latest "Neovim::Ext" cpan module is installed: ' .. current_cpan)
+    health.ok('Latest "wgvim::Ext" cpan module is installed: ' .. current_cpan)
   end
 end
 
@@ -495,7 +495,7 @@ print(response.read().decode('utf8'))
   return message
 end
 
---- Get the latest Nvim Python client (pynvim) version from PyPI.
+--- Get the latest wgvim Python client (pynvim) version from PyPI.
 local function latest_pypi_version()
   local pypi_version = 'unable to get pypi response'
   local pypi_response = download('https://pypi.org/pypi/pynvim/json')
@@ -522,7 +522,7 @@ end
 
 --- Get version information using the specified interpreter.  The interpreter is
 --- used directly in case breaking changes were introduced since the last time
---- Nvim's Python client was updated.
+--- wgvim's Python client was updated.
 ---
 --- @param python string
 ---
@@ -713,7 +713,7 @@ local function python()
       and vim.startswith(vim.fn.resolve(python_exe), pyenv_root .. '/')
     then
       local advice = string.format(
-        'Create a virtualenv specifically for Nvim using pyenv, and set `g:%s`.  This will avoid the need to install the pynvim module in each version/virtualenv.',
+        'Create a virtualenv specifically for wgvim using pyenv, and set `g:%s`.  This will avoid the need to install the pynvim module in each version/virtualenv.',
         host_prog_var
       )
       health.warn('pyenv is not set up optimally.', advice)
@@ -722,7 +722,7 @@ local function python()
 
       if vim.startswith(vim.fn.resolve(python_exe), venv_root .. '/') then
         local advice = string.format(
-          'Create a virtualenv specifically for Nvim and use `g:%s`.  This will avoid the need to install the pynvim module in each virtualenv.',
+          'Create a virtualenv specifically for wgvim and use `g:%s`.  This will avoid the need to install the pynvim module in each virtualenv.',
           host_prog_var
         )
         health.warn('Your virtualenv is not set up optimally.', advice)
@@ -806,8 +806,8 @@ local function python()
   -- Keep hints as dict keys in order to discard duplicates.
   local hints = {} ---@type table<string, boolean>
   -- The virtualenv should contain some Python executables, and those
-  -- executables should be first both on Nvim's $PATH and the $PATH of
-  -- subshells launched from Nvim.
+  -- executables should be first both on wgvim's $PATH and the $PATH of
+  -- subshells launched from wgvim.
   local bin_dir = iswin and 'Scripts' or 'bin'
   local venv_bins = vim.fn.glob(string.format('%s/%s/python*', virtual_env, bin_dir), true, true)
   --- @param v string
@@ -826,9 +826,9 @@ local function python()
           ['nvim'] = {
             ['path'] = nvim_py_bin,
             ['hint'] = '$PATH ambiguities arise if the virtualenv is not '
-              .. 'properly activated prior to launching Nvim. Close Nvim, activate the virtualenv, '
+              .. 'properly activated prior to launching wgvim. Close wgvim, activate the virtualenv, '
               .. 'check that invoking Python from the command line launches the correct one, '
-              .. 'then relaunch Nvim.',
+              .. 'then relaunch wgvim.',
           },
           ['subshell'] = {
             ['path'] = subshell_py_bin,

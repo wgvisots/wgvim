@@ -349,19 +349,19 @@ describe('tmpdir', function()
   end
 
   it('failure modes', function()
-    clear({ env = { NVIM_LOG_FILE = testlog, TMPDIR = os_tmpdir } })
+    clear({ env = { WGVIM_LOG_FILE = testlog, TMPDIR = os_tmpdir } })
     assert_nolog('tempdir is not a directory', testlog)
     assert_nolog('tempdir has invalid permissions', testlog)
 
     local tmproot = get_tmproot()
 
-    -- Test how Nvim handles invalid tmpdir root (by hostile users or accidents).
+    -- Test how wgvim handles invalid tmpdir root (by hostile users or accidents).
     --
     -- "…/nvim.<user>/" is not a directory:
     expect_exit(command, ':qall!')
     rmdir(tmproot)
     write_file(tmproot, '') -- Not a directory, vim_mktempdir() should skip it.
-    clear({ env = { NVIM_LOG_FILE = testlog, TMPDIR = os_tmpdir } })
+    clear({ env = { WGVIM_LOG_FILE = testlog, TMPDIR = os_tmpdir } })
     matches(tmproot_pat, fn.stdpath('run')) -- Tickle vim_mktempdir().
     -- Assert that broken tmpdir root was handled.
     assert_log('tempdir root not a directory', testlog, 100)
@@ -372,7 +372,7 @@ describe('tmpdir', function()
     os.remove(tmproot)
     mkdir(tmproot)
     fn.setfperm(tmproot, 'rwxr--r--') -- Invalid permissions, vim_mktempdir() should skip it.
-    clear({ env = { NVIM_LOG_FILE = testlog, TMPDIR = os_tmpdir } })
+    clear({ env = { WGVIM_LOG_FILE = testlog, TMPDIR = os_tmpdir } })
     matches(tmproot_pat, fn.stdpath('run')) -- Tickle vim_mktempdir().
     -- Assert that broken tmpdir root was handled.
     assert_log('tempdir root has invalid permissions', testlog, 100)
@@ -381,14 +381,14 @@ describe('tmpdir', function()
   it('too long', function()
     local bigname = ('%s/%s'):format(os_tmpdir, ('x'):rep(666))
     mkdir(bigname)
-    clear({ env = { NVIM_LOG_FILE = testlog, TMPDIR = bigname } })
+    clear({ env = { WGVIM_LOG_FILE = testlog, TMPDIR = bigname } })
     matches(tmproot_pat, fn.stdpath('run')) -- Tickle vim_mktempdir().
     local len = (fn.tempname()):len()
     ok(len > 4 and len < 256, '4 < len < 256', tostring(len))
   end)
 
   it('disappeared #1432', function()
-    clear({ env = { NVIM_LOG_FILE = testlog, TMPDIR = os_tmpdir } })
+    clear({ env = { WGVIM_LOG_FILE = testlog, TMPDIR = os_tmpdir } })
     assert_nolog('tempdir disappeared', testlog)
 
     local function rm_tmpdir()

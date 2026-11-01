@@ -56,7 +56,7 @@ local http_methods = {
 ---   function (err, res)
 ---     if err then return end
 ---     local stars = vim.json.decode(res.body).stargazers_count
----     vim.print(('Neovim currently has %d stars'):format(stars))
+---     vim.print(('wgvim currently has %d stars'):format(stars))
 ---   end
 --- )
 ---

@@ -1,7 +1,7 @@
 #!/usr/bin/env nvim -l
 ---@diagnostic disable: no-unknown
 
--- Lints C files in the Neovim source tree.
+-- Lints C files in the wgvim source tree.
 -- Based on Google "cpplint", modified for Neovim.
 --
 -- Test coverage: `test/functional/script/clint_spec.lua`
@@ -501,7 +501,7 @@ Syntax: clint.lua [--verbose=#] [--output=vs7] [--filter=-x,+y,...]
     https://neovim.io/doc/user/dev_style.html#dev-style
 
   Note: This is Google's https://github.com/cpplint/cpplint modified for use
-  with the Neovim project.
+  with the wgvim project.
 
   Every problem is given a confidence score from 1-5, with 5 meaning we are
   certain of the problem, and 1 meaning it could be a legitimate construct.

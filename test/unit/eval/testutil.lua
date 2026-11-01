@@ -454,7 +454,7 @@ local alloc_logging_t = {
     return { func = 'free', args = { type(p) == 'table' and p or void(p) } }
   end,
 
-  -- lua_…: allocated by this file, not by some Neovim function
+  -- lua_…: allocated by this file, not by some wgvim function
   lua_pt = function(pt)
     return { func = 'calloc', args = { 1, ffi.sizeof('partial_T') }, ret = void(pt) }
   end,

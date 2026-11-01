@@ -24,7 +24,7 @@ describe('tempfile related functions', function()
   end
 
   describe('vim_gettempdir', function()
-    itp('returns path to Nvim own temp directory', function()
+    itp('returns path to wgvim own temp directory', function()
       local dir = vim_gettempdir()
       t.ok(dir ~= nil and dir:len() > 0)
       -- os_file_is_writable returns 2 for a directory which we have rights
@@ -55,7 +55,7 @@ describe('tempfile related functions', function()
       neq(vim_tempname(), vim_tempname())
     end)
 
-    itp('generate file name in Nvim own temp directory', function()
+    itp('generate file name in wgvim own temp directory', function()
       local dir = vim_gettempdir()
       local file = vim_tempname()
       eq(dir, string.sub(file, 1, string.len(dir)))

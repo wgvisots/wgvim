@@ -1,13 +1,13 @@
-*vim_diff.txt*    Nvim
+*vim_diff.txt*    wgvim
 
 
                             NVIM REFERENCE MANUAL
 
 
 ==============================================================================
-Differences between Nvim and Vim                               *vim-differences*
+Differences between wgvim and Vim                               *vim-differences*
 
-Nvim differs from Vim in many ways, although editor and Vimscript (not
+wgvim differs from Vim in many ways, although editor and Vimscript (not
 Vim9script) features are mostly identical.  This document is a complete and
 centralized reference of the differences.
 
@@ -17,11 +17,11 @@ centralized reference of the differences.
 Configuration                                               *nvim-config*
 
 User configuration and data files are found in standard |base-directories|
-(see also |$NVIM_APPNAME|).  Note in particular:
+(see also |$WGVIM_APPNAME|).  Note in particular:
 
-- Use `$XDG_CONFIG_HOME/nvim/init.vim` instead of `.vimrc` for your |config|.
-- Use `$XDG_CONFIG_HOME/nvim` instead of `.vim` to store configuration files.
-- Use `$XDG_STATE_HOME/nvim/shada/main.shada` instead of `.viminfo` for persistent
+- Use `$XDG_CONFIG_HOME/wgvim/init.vim` instead of `.vimrc` for your |config|.
+- Use `$XDG_CONFIG_HOME/wgvim` instead of `.vim` to store configuration files.
+- Use `$XDG_STATE_HOME/wgvim/shada/main.shada` instead of `.viminfo` for persistent
   session information.  |shada|
 
 ==============================================================================
@@ -41,7 +41,7 @@ Defaults                                            *defaults* *nvim-defaults*
 - 'autoindent' is enabled
 - 'autoread' is enabled (works in all UIs, including terminal)
 - 'background' defaults to "dark" (unless set automatically by the terminal/UI)
-- 'backupdir' defaults to .,~/.local/state/nvim/backup// (|xdg|), auto-created
+- 'backupdir' defaults to .,~/.local/state/wgvim/backup// (|xdg|), auto-created
 - 'belloff' defaults to "all"
 - 'comments' includes "fb:•"
 - 'commentstring' defaults to ""
@@ -50,7 +50,7 @@ Defaults                                            *defaults* *nvim-defaults*
 - 'completeopt' defaults to "menu,popup"
 - 'define' defaults to "". The C ftplugin sets it to "^\\s*#\\s*define"
 - 'diffopt' includes "linematch:40"
-- 'directory' defaults to ~/.local/state/nvim/swap// (|xdg|), auto-created
+- 'directory' defaults to ~/.local/state/wgvim/swap// (|xdg|), auto-created
 - 'display' defaults to "lastline"
 - 'encoding' is UTF-8 (cf. 'fileencoding' for file-content encoding)
 - 'fillchars' defaults (in effect) to "vert:│,fold:·,foldsep:│"
@@ -85,14 +85,14 @@ Defaults                                            *defaults* *nvim-defaults*
 - 'switchbuf' defaults to "uselast"
 - 'tabpagemax' defaults to 50
 - 'tags' defaults to "./tags;,tags"
-- 'termguicolors' is enabled by default if Nvim can detect support from the
+- 'termguicolors' is enabled by default if wgvim can detect support from the
   host terminal
 - 'ttimeout' is enabled
 - 'ttimeoutlen' defaults to 50
 - 'ttyfast' is set by default, but it can be unset during startup by setting
-  the environment variable `NVIM_NOTTYFAST` to adjust the startup sequence for
+  the environment variable `WGVIM_NOTTYFAST` to adjust the startup sequence for
   slow environments (such as ssh).
-- 'undodir' defaults to ~/.local/state/nvim/undo// (|xdg|), auto-created
+- 'undodir' defaults to ~/.local/state/wgvim/undo// (|xdg|), auto-created
 - 'viewoptions' includes "unix,slash", excludes "options"
 - 'viminfo' includes "!"
 - 'wildoptions' defaults to "pum,tagfile"
@@ -141,7 +141,7 @@ To remove only the "How-to disable mouse" menu item (and its separator): >vim
 
 DEFAULT MAPPINGS
                                                         *default-mappings*
-Nvim creates the following default mappings at |startup|. You can disable any
+wgvim creates the following default mappings at |startup|. You can disable any
 of these in your config by simply removing the mapping, e.g. ":unmap Y". If
 you never want any default mappings, call |:mapclear| early in your config.
 
@@ -187,12 +187,12 @@ nvim.terminal:
   'shell') and which exits with no error is closed automatically.
 - TermClose: Displays the "[Process exited]" virtual text.
 - TermRequest: The terminal emulator responds to OSC background and foreground
-  requests, indicating (1) a black background and white foreground when Nvim
+  requests, indicating (1) a black background and white foreground when wgvim
   option 'background' is "dark" or (2) a white background and black foreground
   when 'background' is "light". While this may not reflect the actual
   foreground/background color, it permits 'background' to be retained for a
-  nested Nvim instance running in the terminal emulator.
-- TermRequest: Nvim will create extmarks for shells which
+  nested wgvim instance running in the terminal emulator.
+- TermRequest: wgvim will create extmarks for shells which
   annotate their prompts with OSC 133 escape sequences, enabling users to
   quickly navigate between prompts using |[[| and |]]|.
 - TermOpen: Sets default options and mappings for |terminal| buffers:
@@ -214,7 +214,7 @@ nvim.cmdwin:
 
 nvim.swapfile:
 - |SwapExists|: Skips the swapfile prompt (sets |v:swapchoice| to "e") when the
-  swapfile is owned by a running Nvim process. Shows |W325| "Ignoring
+  swapfile is owned by a running wgvim process. Shows |W325| "Ignoring
   swapfile…" message.
 
 nvim.exrc:
@@ -253,21 +253,21 @@ MAJOR COMPONENTS
 
 USER EXPERIENCE
 
-Working intuitively and consistently is a major goal of Nvim.
+Working intuitively and consistently is a major goal of wgvim.
 
                                                         *feature-compile*
-- Nvim always includes ALL features, in contrast to Vim (which ships various
+- wgvim always includes ALL features, in contrast to Vim (which ships various
   combinations of 100+ optional features).  |feature-compile| Think of it as
   a leaner version of Vim's "HUGE" build. This reduces surface area for bugs,
   and removes a common source of confusion and friction for users.
 
-- Nvim avoids features that cannot be provided on all platforms; instead that
+- wgvim avoids features that cannot be provided on all platforms; instead that
   is delegated to external plugins/extensions. E.g. the `-X` platform-specific
   option is "sometimes" available in Vim (with potential surprises:
   https://stackoverflow.com/q/14635295).
 
 - Vim's internal test functions (test_autochdir(), test_settime(), etc.) are
-  not exposed (nor implemented); instead Nvim has a robust API.
+  not exposed (nor implemented); instead wgvim has a robust API.
 
 - Behaviors, options, documentation are removed if they cost users more time
   than they save.
@@ -285,18 +285,18 @@ Some features are built in that otherwise required external plugins:
 
 ARCHITECTURE
 
-The Nvim UI is "decoupled" from the core editor: all UIs, including the
-builtin |TUI| are just plugins that connect to a Nvim server (via |--server|
+The wgvim UI is "decoupled" from the core editor: all UIs, including the
+builtin |TUI| are just plugins that connect to a wgvim server (via |--server|
 or |--embed|). Multiple UI clients can |:connect| to the same editor server.
 
 External plugins run in separate processes. |remote-plugin| This improves
 stability and allows those plugins to work without blocking the editor. Even
 "legacy" Python and Ruby plugins which use the old Vim interfaces (|if_pyth|,
-|if_ruby|) run out-of-process, so they cannot crash Nvim.
+|if_ruby|) run out-of-process, so they cannot crash wgvim.
 
-Platform and I/O facilities are built upon libuv. Nvim benefits from libuv
+Platform and I/O facilities are built upon libuv. wgvim benefits from libuv
 features and bug fixes, and other projects benefit from improvements to libuv
-by Nvim developers. This enables features such as |vim.wait()| and |vim.uv|.
+by wgvim developers. This enables features such as |vim.wait()| and |vim.uv|.
 
 FEATURES
 
@@ -377,14 +377,14 @@ Functions:
 - |stdpath()|
 - |system()|, |systemlist()| can run {cmd} directly (without 'shell')
 - |matchadd()| can be called before highlight group is defined
-- |tempname()| tries to recover if the Nvim |tempdir| disappears.
+- |tempname()| tries to recover if the wgvim |tempdir| disappears.
 - |writefile()| with "p" flag creates parent directories.
 - |prompt_getinput()|
 - |prompt_appendbuf()|
 
 Highlight groups:
 - |highlight-blend| controls blend level for a highlight group
-- |expr-highlight| highlight groups (prefixed with "Nvim")
+- |expr-highlight| highlight groups (prefixed with "wgvim")
 - |hl-NormalFloat| highlights floating window
 - |hl-FloatBorder| highlights border of a floating window
 - |hl-FloatTitle| highlights title of a floating window
@@ -468,7 +468,7 @@ Options:
   cmdline
 
 Performance:
-- Signs are implemented using Nvim's internal "marktree" (btree) structure.
+- Signs are implemented using wgvim's internal "marktree" (btree) structure.
 - Folds are not updated during insert-mode.
 
 Providers:
@@ -479,7 +479,7 @@ Shell:
 - Shell output (|:!|, |:make|, …) is always routed through the UI, so it
   cannot "mess up" the screen. (You can still use "chansend(v:stderr,…)" if
   you want to mess up the screen :)
-- Nvim throttles (skips) messages from shell commands (|:!|, |:grep|, |:make|)
+- wgvim throttles (skips) messages from shell commands (|:!|, |:grep|, |:make|)
   if there is too much output. No data is lost, this only affects display and
   improves performance. |:terminal| output is never throttled.
 - |:!| does not support "interactive" commands. Use |:terminal| instead.
@@ -508,7 +508,7 @@ Startup:
 
 TUI:
                         *:set-termcap*
-- Start Nvim with 'verbose' level 3 to show terminal capabilities: >
+- Start wgvim with 'verbose' level 3 to show terminal capabilities: >
         nvim -V3
 <
 
@@ -516,16 +516,16 @@ TUI:
 - 'term' reflects the terminal type derived from |$TERM| and other environment
   checks.  Use `:echo &term` to get its value. For debugging only; not
   reliable during startup.
-  - Note: If you want to detect when Nvim is running in a terminal, use
+  - Note: If you want to detect when wgvim is running in a terminal, use
     `has('gui_running')` |has()| or see |nvim_list_uis()| for an example of
     how to inspect the UI channel.
-- Nvim might optionally be compiled with unibilium, in which case the terminfo
+- wgvim might optionally be compiled with unibilium, in which case the terminfo
   database will be used. Otherwise, or if the terminal was not found in
   the database, a table of builtin terminal definitions will be used.
-- Nvim will use 256-colour capability on Linux virtual terminals.  Vim uses
+- wgvim will use 256-colour capability on Linux virtual terminals.  Vim uses
   only 8 colours plus bright foreground on Linux VTs.
 - Vim combines what is in its |builtin-terms| with what it reads from terminfo,
-  and has a 'ttybuiltin' setting to control how that combination works.  Nvim
+  and has a 'ttybuiltin' setting to control how that combination works.  wgvim
   uses one or the other, it does not attempt to merge the two.
 
 UI/Display:
@@ -548,7 +548,7 @@ Vimscript:
 ==============================================================================
 Upstreamed features                                      *nvim-upstreamed*
 
-These Nvim features were later integrated into Vim.
+These wgvim features were later integrated into Vim.
 
 - 'diffopt' "linematch" feature
 - 'fillchars' flags: "eob"
@@ -597,7 +597,7 @@ This section documents various low-level behavior changes.
 - 5. Stringifyed infinite and NaN values now use |str2float()| and can be
      evaled back.
 - 6. (internal) Trying to print or stringify VAR_UNKNOWN in Vim results in
-     nothing, E908, in Nvim it is internal error.
+     nothing, E908, in wgvim it is internal error.
 
 |json_decode()| behaviour changed:
 - 1. It may output |msgpack-special-dict|.
@@ -643,7 +643,7 @@ Lua interface (|lua.txt|):
 - `:lua error('TEST')` emits the error: >
   E5108: Lua: [string "<Vimscript compiled string>"]:1: TEST
 <  whereas Vim emits only "TEST".
-- Lua has direct access to Nvim |API| via `vim.api`.
+- Lua has direct access to wgvim |API| via `vim.api`.
 
 Commands:
 - |:doautocmd| does not warn about "No matching autocommands".
@@ -701,7 +701,7 @@ Motion:
 - The |jumplist| avoids useless/phantom jumps.
 
 Syntax highlighting:
-- syncolor.vim has been removed. Nvim now sets up default highlighting groups
+- syncolor.vim has been removed. wgvim now sets up default highlighting groups
   automatically for both light and dark backgrounds, regardless of whether or
   not syntax highlighting is enabled. This means that |:syntax-on| and
   |:syntax-enable| are now identical. Users who previously used an
@@ -714,7 +714,7 @@ Vimscript compatibility:
 - `shell_error` does not alias to |v:shell_error|
 - `this_session` does not alias to |v:this_session|
 
-Working directory (Vim implemented some of these after Nvim):
+Working directory (Vim implemented some of these after wgvim):
 - |DirChanged| and |DirChangedPre| can be triggered when switching to another
   window or tab.
 - |getcwd()| and |haslocaldir()| may throw errors if the tabpage, window, or
@@ -727,7 +727,7 @@ Working directory (Vim implemented some of these after Nvim):
 Options:
 - 'titlestring' uses printf-style '%' items (see: 'statusline') to implement
   the default behaviour. The implementation is equivalent to setting
-  'titlestring' to `%t%(\ %M%)%(\ \(%{expand(\"%:~:h\")}\)%)%a\ -\ Nvim`.
+  'titlestring' to `%t%(\ %M%)%(\ \(%{expand(\"%:~:h\")}\)%)%a\ -\ wgvim`.
 
 |packages|:
 - "start" packages are not explicitly reported in 'runtimepath' (though they
@@ -749,7 +749,7 @@ These legacy Vim features are not yet implemented:
 ==============================================================================
 Removed legacy features                                  *nvim-removed*
 
-These Vim features were intentionally removed from Nvim.
+These Vim features were intentionally removed from wgvim.
 
 Aliases:
 - ex        (alias for "nvim -e")
@@ -823,14 +823,14 @@ Options:
 - 'backspace' no longer supports number values. Instead:
     - for `backspace=0` set `backspace=` (empty)
     - for `backspace=1` set `backspace=indent,eol`
-    - for `backspace=2` set `backspace=indent,eol,start` (default behavior in Nvim)
+    - for `backspace=2` set `backspace=indent,eol,start` (default behavior in wgvim)
     - for `backspace=3` set `backspace=indent,eol,nostop`
 - *'balloondelay'* *'bdlay'*
 - *'ballooneval'* *'beval'* *'noballooneval'* *'nobeval'*
 - *'balloonexpr'* *'bexpr'*
 - bioskey (MS-DOS)
 - conskey (MS-DOS)
-- *'cp'* *'nocompatible'* *'nocp'* *'compatible'* (Nvim is always "nocompatible".)
+- *'cp'* *'nocompatible'* *'nocp'* *'compatible'* (wgvim is always "nocompatible".)
 - 'cpoptions' (gjpkHw<*- and all POSIX flags were removed)
 - *'cryptmethod'* *'cm'* *'key'* (Vim encryption implementation)
 - cscopepathcomp
@@ -845,7 +845,7 @@ Options:
 - esckeys
 - 'guioptions' "t" flag was removed
 - *'guifontset'* *'gfs'* (Use 'guifont' instead.)
-- *'guipty'* (Nvim uses pipes and PTYs consistently on all platforms.)
+- *'guipty'* (wgvim uses pipes and PTYs consistently on all platforms.)
 - 'highlight' (Names of builtin |highlight-groups| cannot be changed.)
 - *'hkmap'* *'hk'* use `set keymap=hebrew` instead.
 - *'hkmapp'* *'hkp'* use `set keymap=hebrewp` instead.
@@ -885,15 +885,15 @@ Options:
       end)
     EOF
 - *'macatsui'*
-- *'maxcombine'* *'mco'* : Nvim counts maximum character sizes in bytes, not
+- *'maxcombine'* *'mco'* : wgvim counts maximum character sizes in bytes, not
   codepoints. This is guaranteed to be big enough to always fit all chars
   properly displayed in vim with 'maxcombine' set to 6.
   - You can still edit text with larger characters than fits in the screen
     buffer, you just can't see them. Use |g8| or |ga|. See |mbyte-combining|.
   - NOTE: the rexexp engine still has a hard-coded limit of considering
     6 composing chars only.
-- *'maxmem'* Nvim delegates memory-management to the OS.
-- *'maxmemtot'* Nvim delegates memory-management to the OS.
+- *'maxmem'* wgvim delegates memory-management to the OS.
+- *'maxmemtot'* wgvim delegates memory-management to the OS.
 - *'opendevice'* *'odev'* *'noopendevice'* *'noodev'*
 - printoptions
 - *'printdevice'*
@@ -935,7 +935,7 @@ Plugins:
 - HelpToc: Use |gO| instead.
 
 Providers:
-- *if_lua* : Nvim |Lua| API is not compatible with Vim's "if_lua".
+- *if_lua* : wgvim |Lua| API is not compatible with Vim's "if_lua".
 - *if_mzscheme*
 - |if_pyth|: *python-bindeval* *python-Function* are not supported.
 - *if_tcl*
@@ -976,20 +976,20 @@ Test functions:
 
 TUI:
                           *t_xx* *termcap-options* *t_AB* *t_Sb* *t_vb* *t_SI*
-- Nvim does not have special `t_XX` options nor <t_XX> keycodes to configure
-  terminal capabilities. Instead Nvim treats the terminal as any other UI,
+- wgvim does not have special `t_XX` options nor <t_XX> keycodes to configure
+  terminal capabilities. Instead wgvim treats the terminal as any other UI,
   e.g. 'guicursor' sets the terminal cursor style if possible. You can use
-  |$NVIM_TERMDEFS| if you still need to override the builtin definitions.
+  |$WGVIM_TERMDEFS| if you still need to override the builtin definitions.
 
                           *termcap*
-- Nvim never uses the termcap database, only |terminfo| and |builtin-terms|.
+- wgvim never uses the termcap database, only |terminfo| and |builtin-terms|.
 
                           *xterm-8bit* *xterm-8-bit*
 - Xterm can be run in a mode where it uses true 8-bit CSI.  Supporting this
   requires autodetection of whether the terminal is in UTF-8 mode or non-UTF-8
   mode, as the 8-bit CSI character has to be written differently in each case.
   Vim issues a "request version" sequence to the terminal at startup and looks
-  at how the terminal is sending CSI.  Nvim does not issue such a sequence and
+  at how the terminal is sending CSI.  wgvim does not issue such a sequence and
   always uses 7-bit control sequences.
 
  vim:tw=78:ts=8:sw=2:et:ft=help:norl:

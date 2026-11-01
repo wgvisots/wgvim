@@ -112,7 +112,7 @@ describe('autocmd TermClose', function()
     end)
     uv.update_time()
     local duration = uv.now() - start
-    -- Nvim begins SIGTERM after KILL_TIMEOUT_MS.
+    -- wgvim begins SIGTERM after KILL_TIMEOUT_MS.
     ok(duration >= 2000)
     ok(duration <= 4000) -- Epsilon for slow CI
   end)
@@ -139,7 +139,7 @@ describe('autocmd TermClose', function()
     end)
     uv.update_time()
     local duration = uv.now() - start
-    -- Nvim begins SIGKILL after (2 * KILL_TIMEOUT_MS).
+    -- wgvim begins SIGKILL after (2 * KILL_TIMEOUT_MS).
     ok(duration >= 4000)
     ok(duration <= 7000) -- Epsilon for slow CI
   end)

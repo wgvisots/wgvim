@@ -1,4 +1,4 @@
-*usr_22.txt*	Nvim
+*usr_22.txt*	wgvim
 
 
 		     VIM USER MANUAL	by Bram Moolenaar
@@ -25,7 +25,7 @@ Table of contents: |usr_toc.txt|
 ==============================================================================
 *22.1*	The file browser
 
-Nvim can edit a directory.  Try this: >
+wgvim can edit a directory.  Try this: >
 
 	:edit .
 

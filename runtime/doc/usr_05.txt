@@ -1,4 +1,4 @@
-*usr_05.txt*	Nvim
+*usr_05.txt*	wgvim
 
 
 		     VIM USER MANUAL	by Bram Moolenaar
@@ -43,8 +43,8 @@ create a vimrc file.
 
 This file is always used and is recommended:
 
-	~/.config/nvim/init.vim         (Unix and OSX) ~
-	~/AppData/Local/nvim/init.vim   (Windows) ~
+	~/.config/wgvim/init.vim         (Unix and OSX) ~
+	~/AppData/Local/wgvim/init.vim   (Windows) ~
 
 The vimrc file can contain all the commands that you type after a colon.  The
 simplest ones are for setting options.  For example, if you want Vim to always
@@ -228,16 +228,16 @@ packages: optional and automatically loaded on startup.
 You can find packages on the Internet in various places.  It usually comes as
 an archive or as a repository.  For an archive you can follow these steps:
 	1. create the package directory: >
-		mkdir -p ~/.local/share/nvim/site/pack/fancy
+		mkdir -p ~/.local/share/wgvim/site/pack/fancy
 <	   "fancy" can be any name of your liking.  Use one that describes the
 	   package.
 	2. unpack the archive in that directory.  This assumes the top
 	   directory in the archive is "start": >
-		cd ~/.local/share/nvim/site/pack/fancy
+		cd ~/.local/share/wgvim/site/pack/fancy
 		unzip /tmp/fancy.zip
 <	   If the archive layout is different make sure that you end up with a
 	   path like this: >
-		~/.local/share/nvim/site/pack/fancy/start/fancytext/plugin/fancy.vim
+		~/.local/share/wgvim/site/pack/fancy/start/fancytext/plugin/fancy.vim
 <	   Here "fancytext" is the name of the package, it can be anything
 	   else.
 
@@ -309,18 +309,18 @@ First read the text in the plugin itself to check for any special conditions.
 Then copy the file to your plugin directory:
 
 	system		plugin directory ~
-	Unix		~/.local/share/nvim/site/plugin
+	Unix		~/.local/share/wgvim/site/plugin
 
 Example for Unix (assuming you didn't have a plugin directory yet): >
 
-	mkdir -p ~/.local/share/nvim/site/plugin
-	cp /tmp/yourplugin.vim ~/.local/share/nvim/site/plugin
+	mkdir -p ~/.local/share/wgvim/site/plugin
+	cp /tmp/yourplugin.vim ~/.local/share/wgvim/site/plugin
 
 That's all!  Now you can use the commands defined in this plugin.
 
 Instead of putting plugins directly into the plugin/ directory, you may
 better organize them by putting them into subdirectories under plugin/.
-As an example, consider using "~/.local/share/nvim/site/plugin/perl/*.vim" for
+As an example, consider using "~/.local/share/wgvim/site/plugin/perl/*.vim" for
 all your Perl plugins.
 
 
@@ -355,14 +355,14 @@ plugins, but the last part is "ftplugin".  Suppose you have found a plugin for
 the "stuff" filetype, and you are on Unix.  Then you can move this file to the
 ftplugin directory: >
 
-	mkdir -p ~/.local/share/nvim/site/ftplugin
-	mv thefile ~/.local/share/nvim/site/ftplugin/stuff.vim
+	mkdir -p ~/.local/share/wgvim/site/ftplugin
+	mv thefile ~/.local/share/wgvim/site/ftplugin/stuff.vim
 
 If that file already exists you already have a plugin for "stuff".  You might
 want to check if the existing plugin doesn't conflict with the one you are
 adding.  If it's OK, you can give the new one another name: >
 
-	mv thefile ~/.local/share/nvim/site/ftplugin/stuff_too.vim
+	mv thefile ~/.local/share/wgvim/site/ftplugin/stuff_too.vim
 
 The underscore is used to separate the name of the filetype from the rest,
 which can be anything.  If you use "otherstuff.vim" it wouldn't work, it would
@@ -377,9 +377,9 @@ The generic names for the filetype plugins are: >
 Here "<name>" can be any name that you prefer.
 Examples for the "stuff" filetype on Unix: >
 
-	~/.local/share/nvim/site/ftplugin/stuff.vim
-	~/.local/share/nvim/site/ftplugin/stuff_def.vim
-	~/.local/share/nvim/site/ftplugin/stuff/header.vim
+	~/.local/share/wgvim/site/ftplugin/stuff.vim
+	~/.local/share/wgvim/site/ftplugin/stuff_def.vim
+	~/.local/share/wgvim/site/ftplugin/stuff/header.vim
 
 The <filetype> part is the name of the filetype the plugin is to be used for.
 Only files of this filetype will use the settings from the plugin.  The <name>
@@ -409,16 +409,16 @@ non-standard place (it usually resides in a sub-folder called `doc/`).
 
 First, create a "doc" directory in one of the directories in 'runtimepath': >
 
-	:!mkdir -p ~/.local/share/nvim/site/doc
+	:!mkdir -p ~/.local/share/wgvim/site/doc
 
 Now, copy the help file to the "doc" directory: >
 
-	:!cp my-plugin/my-plugin-doc.txt ~/.local/share/nvim/site/doc
+	:!cp my-plugin/my-plugin-doc.txt ~/.local/share/wgvim/site/doc
 
 Here comes the trick, which allows you to jump to the subjects in the new help
 file. Generate the local tags file with the |:helptags| command: >
 
-	:helptags ~/.local/share/nvim/site/doc
+	:helptags ~/.local/share/wgvim/site/doc
 
 You can see an entry for the local help file when you do: >
 

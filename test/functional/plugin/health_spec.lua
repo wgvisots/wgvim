@@ -203,7 +203,7 @@ describe(':checkhealth', function()
     eq(true, report:find('- bad_ft:', 1, true) ~= nil)
   end)
 
-  it('renders report when Nvim starts with -M', function()
+  it('renders report when wgvim starts with -M', function()
     clear { args = { '-M' } }
     command('checkhealth lsp')
     eq(true, curbuf_contents() ~= '')

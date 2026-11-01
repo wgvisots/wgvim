@@ -1,4 +1,4 @@
-/// Nvim's own UI client, which attaches to a child or remote Nvim server.
+/// wgvim's own UI client, which attaches to a child or remote wgvim server.
 
 #include <assert.h>
 #include <stdbool.h>

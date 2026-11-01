@@ -6,7 +6,7 @@ error('Cannot require a meta file')
 
 --- @brief <pre>help
 --- vim.api.{func}({...})                                                    *vim.api*
----     Invokes Nvim |API| function {func} with arguments {...}.
+---     Invokes wgvim |API| function {func} with arguments {...}.
 ---     Example: call the "nvim_get_current_line()" API function: >lua
 ---         print(tostring(vim.api.nvim_get_current_line()))
 ---
@@ -71,17 +71,17 @@ vim.NIL = ...
 
 --- Returns true if the code is executing as part of a "fast" event handler,
 --- where most of the API is disabled. These are low-level events (e.g.
---- |lua-loop-callbacks|) which can be invoked whenever Nvim polls for input.
+--- |lua-loop-callbacks|) which can be invoked whenever wgvim polls for input.
 --- When this is `false` most API functions are callable (but may be subject
 --- to other restrictions such as |textlock|).
 function vim.in_fast_event() end
 
---- Creates a special empty table (marked with a metatable), which Nvim
+--- Creates a special empty table (marked with a metatable), which wgvim
 --- converts to an empty dictionary when translating Lua values to Vimscript
---- or API types. Nvim by default converts an empty table `{}` without this
+--- or API types. wgvim by default converts an empty table `{}` without this
 --- metatable to an list/array.
 ---
---- Note: If numeric keys are present in the table, Nvim ignores the metatable
+--- Note: If numeric keys are present in the table, wgvim ignores the metatable
 --- marker and converts the dict to a list/array anyway.
 --- @return table
 function vim.empty_dict() end
@@ -260,7 +260,7 @@ function vim._core.keyparse(keys) end
 ---             - {set_cmdheight}? (`boolean`) If false, avoid setting
 ---               'cmdheight' to 0 when `ext_messages` is enabled.
 --- @param callback fun(event: string, ...): any Function called for each UI event.
----                 A truthy return value signals to Nvim that the event is handled,
+---                 A truthy return value signals to wgvim that the event is handled,
 ---                 in which case it is not propagated to remote UIs.
 function vim.ui_attach(ns, opts, callback) end
 

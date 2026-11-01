@@ -1,11 +1,11 @@
-*news-0.12.txt*    Nvim
+*news-0.12.txt*    wgvim
 
 
                             NVIM REFERENCE MANUAL
 
 
 ==============================================================================
-Notable changes since Nvim 0.11                                 *news-0.12*
+Notable changes since wgvim 0.11                                 *news-0.12*
 
 For changes in the previous release, see |news-0.11|.
 
@@ -24,10 +24,10 @@ API
 DIAGNOSTICS
 
 • |diagnostic-signs| can no longer be configured with |:sign-define| or
-  |sign_define()| (deprecated in Nvim 0.10 |deprecated-0.10|).
+  |sign_define()| (deprecated in wgvim 0.10 |deprecated-0.10|).
 • Removed vim.diagnostic.disable() and vim.diagnostic.is_disabled()
-  (deprecated in Nvim 0.10 |deprecated-0.10|).
-• The legacy signature of |vim.diagnostic.enable()| (deprecated in Nvim 0.10
+  (deprecated in wgvim 0.10 |deprecated-0.10|).
+• The legacy signature of |vim.diagnostic.enable()| (deprecated in wgvim 0.10
   |deprecated-0.10|) is no longer supported.
 
 EDITOR
@@ -37,7 +37,7 @@ EDITOR
   formatting. To get the old behavior you can use `<C-R>=@x`.
 • Parsing of URI-like buffer names more closely follows RFC3986, so for example
   "svn+ssh:", "ed2k:", and "iris.xpc:" are recognized as URI schemes.
-• Security: Nvim on Windows no longer searches the current directory for
+• Security: wgvim on Windows no longer searches the current directory for
   external command executables; prefix a relative or absolute path if you
   want the old behavior |$NoDefaultCurrentDirectoryInExePath|.
 
@@ -85,7 +85,7 @@ TREESITTER
   `metadata[capture_id].offset`. The offset will be applied in
   |vim.treesitter.get_range()|, which should be preferred over reading
   metadata directly for retrieving node ranges.
-• The "all" option to |Query:iter_matches()|, which was introduced in Nvim
+• The "all" option to |Query:iter_matches()|, which was introduced in wgvim
   0.11 to aid in transitioning to the new behavior, has been removed.
 
 ==============================================================================
@@ -103,7 +103,7 @@ API
   it would return `nil`, thus impossible to tell if the directory was actually
   trusted.
 • |nvim_ui_send()| writes arbitrary data to a UI's stdout. Use this to write
-  escape sequences to the terminal when Nvim is running in the |TUI|.
+  escape sequences to the terminal when wgvim is running in the |TUI|.
 • |nvim_echo()| can set the |ui-messages| kind with which to emit the message.
 • |nvim_echo()| can create |Progress| messages
 • |nvim_get_commands()| returns `preview` and `callback` as Lua functions if
@@ -113,7 +113,7 @@ API
   `style='minimal'` or `:setlocal statusline=` to hide the statusline.
 • |nvim_win_set_config()| can move |floating-windows| to other tabpages.
 • EXPERIMENTAL: |nvim__exec_lua_fast()| allows remote API clients to execute
-  Lua while Nvim is blocking for input. |api-fast|
+  Lua while wgvim is blocking for input. |api-fast|
 • Decoration provider gained an `on_range` callback (deprecates `on_line`).
 • |vim.secure.trust()| accepts `path` for the `allow` action.
 • |nvim_get_chan_info()| includes `exitcode` field for :terminal buffers.
@@ -124,7 +124,7 @@ BUILD
 • EXPERIMENTAL: Zig-based build is available as an alternative to CMake. It is
   currently limited in functionality, and CMake remains the recommended option
   for the time being.
-• Nvim can be built without Unibilium (terminfo implementation), in which case
+• wgvim can be built without Unibilium (terminfo implementation), in which case
   the user's terminfo database won't be loaded and only internal definitions
   for the most common terminals are used: >
   make distclean && make CMAKE_EXTRA_FLAGS="-DENABLE_UNIBILIUM=0" DEPS_CMAKE_FLAGS="-DUSE_BUNDLED_UNIBILIUM=0"
@@ -271,7 +271,7 @@ LSP
 • The filter option of |vim.lsp.buf.code_action()| now receives the client ID as an argument.
 • |vim.lsp.ClientConfig| `exit_timeout` decides the time waited before "stop"
   escalates to "force-stop" for |vim.lsp.enable()|, |Client:stop()|, and
-  during Nvim shutdown.
+  during wgvim shutdown.
   • `exit_timeout` graduated from "experimental" `flags.exit_timeout`
     to a top-level field. Defaults to `false`.
 • |Client:stop()| accepts `force` as an integer, which is treated as the time
@@ -357,7 +357,7 @@ PLUGINS
 • Customize :checkhealth by handling a `FileType checkhealth` event.
   |health-usage|
 • Simplify Python provider setup to a single step: `uv tool install pynvim`
-  Nvim will detect the plugin's location without user configuration, even if
+  wgvim will detect the plugin's location without user configuration, even if
   unrelated Python virtual environments are activated.
   |provider-python|
 • |:checkhealth| now checks for an available |vim.ui.open()| handler.
@@ -366,7 +366,7 @@ PLUGINS
 STARTUP
 
 • |v:argf| provides file arguments given at startup.
-• Nvim shows a warning if the log file path is inaccessible.
+• wgvim shows a warning if the log file path is inaccessible.
 
 TERMINAL
 
@@ -405,7 +405,7 @@ UI
   • Highlights the cmdline as you type.
   • Provides the |pager| as a buffer + window.
   • Currently experimental. To enable it: `require('vim._core.ui2').enable()`
-• |:restart| restarts Nvim and reattaches all UIs.
+• |:restart| restarts wgvim and reattaches all UIs.
 • |:connect| dynamically connects the current UI to the server at the given
   address.
 • |:checkhealth| shows a summary in the header for every healthcheck.
@@ -416,7 +416,7 @@ UI
 • 'busy' status is shown in default statusline with symbol ◐
 • Cursor shape indicates when it is behind an unfocused floating window.
 • Improved LSP signature help rendering.
-• Multigrid UIs can call nvim_input_mouse with grid 0 to let Nvim decide the grid.
+• Multigrid UIs can call nvim_input_mouse with grid 0 to let wgvim decide the grid.
 • |vim.ui.progress_status()| returns a status description of currently running
   |progress-message|s.
 

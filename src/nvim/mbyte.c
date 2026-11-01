@@ -1,7 +1,7 @@
 /// mbyte.c: Code specifically for handling multi-byte characters.
 /// Multibyte extensions partly by Sung-Hoon Baek
 ///
-/// Strings internal to Nvim are always encoded as UTF-8 (thus the legacy
+/// Strings internal to wgvim are always encoded as UTF-8 (thus the legacy
 /// 'encoding' option is always "utf-8").
 ///
 /// The cell width on the display needs to be determined from the character
@@ -13,7 +13,7 @@
 /// be one character.
 ///
 /// UTF-8 is used everywhere in the core. This is in registers, text
-/// manipulation, buffers, etc. Nvim core communicates with external plugins
+/// manipulation, buffers, etc. wgvim core communicates with external plugins
 /// and GUIs in this encoding.
 ///
 /// The encoding of a file is specified with 'fileencoding'.  Conversion
