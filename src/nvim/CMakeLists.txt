@@ -55,7 +55,6 @@ if(ENABLE_WASMTIME)
   target_compile_definitions(nvim_bin PRIVATE HAVE_WASMTIME)
 endif()
 
-# The unit test lib requires LuaJIT; it will be skipped if LuaJIT is missing.
 option(PREFER_LUA "Prefer Lua over LuaJIT in the nvim executable." OFF)
 if(PREFER_LUA)
   find_package(Lua 5.1 EXACT REQUIRED)
@@ -107,6 +106,56 @@ if(NOT MINGW AND NOT CMAKE_SYSTEM_NAME STREQUAL "Haiku")
       target_link_libraries(main_lib INTERFACE -fstack-protector --param ssp-buffer-size=4)
     endif()
   endif()
+endif()
+
+# wgvim: compiler and linker hardening (see SECURITY-AUDIT.md). Each flag is used only if the
+# toolchain accepts it, so older compilers (e.g. GCC 11 on RHEL 9) still build.
+option(WGVIM_HARDENING "Enable compiler and linker hardening flags" ON)
+if(WGVIM_HARDENING AND NOT MSVC AND NOT MINGW AND NOT CMAKE_SYSTEM_NAME STREQUAL "Haiku")
+  include(CheckCSourceCompiles)
+
+  # Position-independent executable (ASLR for the main binary).
+  include(CheckPIESupported)
+  check_pie_supported(OUTPUT_VARIABLE WGVIM_PIE_OUTPUT LANGUAGES C)
+  set_property(TARGET nvim_bin PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+  # Compile-time and run-time buffer overflow checks. Needs optimization, so not in Debug.
+  # _FORTIFY_SOURCE=3 needs GCC 12+ / Clang 9+ (__builtin_dynamic_object_size); else use 2.
+  check_c_source_compiles("
+    #include <stddef.h>
+    int main(void) { char b[4]; return (int)__builtin_dynamic_object_size(b, 0); }"
+    HAS_BUILTIN_DYNAMIC_OBJECT_SIZE)
+  if(HAS_BUILTIN_DYNAMIC_OBJECT_SIZE)
+    set(WGVIM_FORTIFY_LEVEL 3)
+  else()
+    set(WGVIM_FORTIFY_LEVEL 2)
+  endif()
+  target_compile_options(main_lib INTERFACE
+    "$<$<NOT:$<CONFIG:Debug>>:-U_FORTIFY_SOURCE;-D_FORTIFY_SOURCE=${WGVIM_FORTIFY_LEVEL}>")
+
+  foreach(flag
+      -fstack-clash-protection        # guard pages cannot be jumped over by large allocations
+      -fcf-protection=full            # Intel CET (x86-64): indirect branch / return tracking
+      -mbranch-protection=standard    # ARM64: BTI + pointer authentication
+      -ftrivial-auto-var-init=zero    # uninitialized stack variables start as zero
+      -fno-strict-overflow)           # signed overflow wraps instead of being "impossible"
+    string(MAKE_C_IDENTIFIER "HAS${flag}" var)
+    check_c_compiler_flag(${flag} ${var})
+    if(${var})
+      target_compile_options(main_lib INTERFACE ${flag})
+    endif()
+  endforeach()
+
+  # Linker: full RELRO (GOT read-only after startup), non-executable stack.
+  foreach(lflag -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -Wl,-z,separate-code)
+    string(MAKE_C_IDENTIFIER "HAS_LINK${lflag}" var)
+    set(CMAKE_REQUIRED_LINK_OPTIONS ${lflag})
+    check_c_source_compiles("int main(void) { return 0; }" ${var})
+    unset(CMAKE_REQUIRED_LINK_OPTIONS)
+    if(${var})
+      target_link_options(main_lib INTERFACE ${lflag})
+    endif()
+  endforeach()
 endif()
 
 # Compiler specific options
@@ -756,13 +805,8 @@ foreach(hfile ${NVIM_GENERATED_FOR_HEADERS})
   endif()
 endforeach()
 
-if(PREFER_LUA)
-  message(STATUS "luajit not used, skipping unit tests")
-else()
-  file(GLOB UNIT_TEST_FIXTURES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/test/unit/fixtures/*.c)
-  target_sources(nvim_bin PRIVATE ${UNIT_TEST_FIXTURES})
-  target_compile_definitions(nvim_bin PRIVATE UNIT_TESTING)
-endif()
+# wgvim: the unit tests are removed, so the binary no longer compiles in their C fixtures or
+# UNIT_TESTING code (which included writable malloc/free function pointers in memory.c).
 
 target_sources(main_lib INTERFACE
   ${NVIM_GENERATED_FOR_SOURCES}

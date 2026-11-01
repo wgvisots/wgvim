@@ -10,18 +10,8 @@ set(TEST_OPTIONS
       -D TEST_DIR=${TEST_DIR}
       -D ROOT_DIR=${PROJECT_SOURCE_DIR})
 
-check_lua_module(${LUA_PRG} "ffi" LUA_HAS_FFI)
-if(LUA_HAS_FFI)
-  add_custom_target(unittest
-    COMMAND ${CMAKE_COMMAND}
-      -D TEST_TYPE=unit
-      ${TEST_OPTIONS}
-      -P ${PROJECT_SOURCE_DIR}/cmake/RunTests.cmake
-    USES_TERMINAL)
-  add_dependencies(unittest nvim)
-else()
-  message(WARNING "disabling unit tests: no Luajit FFI in ${LUA_PRG}")
-endif()
+# wgvim: unit tests removed (they needed LuaJIT ffi inside the editor, which is disabled);
+# coverage comes from the functional tests instead (cmake -D ENABLE_GCOV=ON).
 
 configure_file(
   ${CMAKE_SOURCE_DIR}/test/cmakeconfig/paths.lua.in

@@ -3952,7 +3952,7 @@ describe('API', function()
       assert_alive()
     end)
 
-    require('test.unit.viml.expressions.parser_tests')(it, _check_parsing, hl, fmtn)
+    require('test.functional.api.expression_parser_tests')(it, _check_parsing, hl, fmtn)
   end)
 
   describe('nvim_create_namespace', function()
