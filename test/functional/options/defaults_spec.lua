@@ -816,7 +816,9 @@ describe('stdpath()', function()
     t.matches(vim.pesc(tmpdir), fn.tempname())
     t.assert_nolog('tempdir', testlog, 100)
     t.assert_nolog('TMPDIR', testlog, 100)
-    t.matches([[/relative%-appname.%d+]], api.nvim_get_vvar('servername'))
+    -- wgvim: no automatic server; the generated address still uses the appname.
+    eq('', api.nvim_get_vvar('servername'))
+    t.matches([[/relative%-appname.%d+]], fn.serverstart())
   end)
 
   describe('returns a String', function()

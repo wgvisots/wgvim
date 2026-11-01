@@ -4153,21 +4153,19 @@ describe('API', function()
       eq({}, api.nvim_get_runtime_file('bork.borkbork', true))
       eq(1, #api.nvim_get_runtime_file('autoload/msgpack.vim', false))
       eq(1, #api.nvim_get_runtime_file('autoload/msgpack.vim', true))
-      local val = api.nvim_get_runtime_file('autoload/remote/*.vim', true)
+      -- wgvim: autoload/remote/ (remote plugins) is removed; use two other runtime files.
+      local val = api.nvim_get_runtime_file('autoload/xml/xs*.vim', true)
       eq(2, #val)
-      if endswith(val[1], 'define.vim') then
-        ok(endswith(val[1], 'autoload/remote/define.vim'))
-        ok(endswith(val[2], 'autoload/remote/host.vim'))
+      if endswith(val[1], 'xsd.vim') then
+        ok(endswith(val[1], 'autoload/xml/xsd.vim'))
+        ok(endswith(val[2], 'autoload/xml/xsl.vim'))
       else
-        ok(endswith(val[1], 'autoload/remote/host.vim'))
-        ok(endswith(val[2], 'autoload/remote/define.vim'))
+        ok(endswith(val[1], 'autoload/xml/xsl.vim'))
+        ok(endswith(val[2], 'autoload/xml/xsd.vim'))
       end
-      val = api.nvim_get_runtime_file('autoload/remote/*.vim', false)
+      val = api.nvim_get_runtime_file('autoload/xml/xs*.vim', false)
       eq(1, #val)
-      ok(
-        endswith(val[1], 'autoload/remote/define.vim')
-          or endswith(val[1], 'autoload/remote/host.vim')
-      )
+      ok(endswith(val[1], 'autoload/xml/xsd.vim') or endswith(val[1], 'autoload/xml/xsl.vim'))
 
       val = api.nvim_get_runtime_file('lua', true)
       eq(1, #val)

@@ -192,16 +192,16 @@ describe('nlua_expand_pat', function()
     end)
     it('does not suggest "#" items', function()
       exec_lua [[
-        -- ensure remote#host#... functions exist
+        -- ensure msgpack#... functions exist
         vim.cmd [=[
-          runtime! autoload/remote/host.vim
+          runtime! autoload/msgpack.vim
         ]=]
-        -- make a dummy call to ensure vim.fn contains an entry: remote#host#...
-        vim.fn['remote#host#IsRunning']('python3')
+        -- make a dummy call to ensure vim.fn contains an entry: msgpack#...
+        vim.fn['msgpack#is_int'](1)
       ]]
-      local actual = get_completions('vim.fn.remo')
+      local actual = get_completions('vim.fn.msgpack')
       local expected = {
-        { 'remove' }, -- there should be no completion "remote#host#..."
+        { 'msgpackdump', 'msgpackparse' }, -- there should be no completion "msgpack#..."
         #'vim.fn.',
       }
       eq(expected, actual)
