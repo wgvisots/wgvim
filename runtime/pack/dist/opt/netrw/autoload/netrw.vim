@@ -1146,6 +1146,9 @@ endfunction
 
 " netrw#Nread: save position, call netrw#NetRead(), and restore position {{{2
 function netrw#Nread(mode,fname)
+    " wgvim: no remote access
+    call netrw#msg#Notify('ERROR', 'wgvim: remote file access (netrw) is disabled')
+    return
   let svpos= winsaveview()
   call netrw#NetRead(a:mode,a:fname)
   call winrestview(svpos)
@@ -1473,6 +1476,9 @@ endfunction
 "         =2 replace with remote file
 "         =3 obtain file, but leave in temporary format
 function netrw#NetRead(mode,...)
+    " wgvim: no remote access
+    call netrw#msg#Notify('ERROR', 'wgvim: remote file access (netrw) is disabled')
+    return
 
     " NetRead: save options {{{3
     call s:NetrwOptionsSave("w:")
@@ -1835,6 +1841,9 @@ endfunction
 
 " netrw#NetWrite: responsible for writing a file over the net {{{2
 function netrw#NetWrite(...) range
+    " wgvim: no remote access
+    call netrw#msg#Notify('ERROR', 'wgvim: remote file access (netrw) is disabled')
+    return
 
     " NetWrite: option handling {{{3
     let mod= 0
@@ -2171,6 +2180,9 @@ endfunction
 "              then sources that file,
 "              then removes that file.
 function netrw#NetSource(...)
+    " wgvim: no remote access
+    call netrw#msg#Notify('ERROR', 'wgvim: remote file access (netrw) is disabled')
+    return
     if a:0 > 0 && a:1 == '?'
         " give help
         echomsg 'NetSource Usage:'
@@ -2370,6 +2382,10 @@ endfunction
 "  g:netrw_port   = optional port number (for ftp)
 "  g:netrw_choice = copy of input url (choice)
 function s:NetrwMethod(choice)
+    " wgvim: no remote access
+    call netrw#msg#Notify('ERROR', 'wgvim: remote file access (netrw) is disabled')
+    let b:netrw_method = -1
+    return
 
     " sanity check: choice should have at least three slashes in it
     if strlen(substitute(a:choice,'[^/]','','g')) < 3
@@ -3037,6 +3053,11 @@ endfunction
 "  with the requested remote hostname first.
 "    Often called via:  Explore/e dirname/etc -> netrw#LocalBrowseCheck() -> s:NetrwBrowse()
 function s:NetrwBrowse(islocal,dirname)
+    " wgvim: only local directories can be browsed
+    if !a:islocal
+        call netrw#msg#Notify('ERROR', 'wgvim: remote file access (netrw) is disabled')
+        return
+    endif
     if !exists("w:netrw_liststyle")|let w:netrw_liststyle= g:netrw_liststyle|endif
 
     " save alternate-file's filename if w:netrw_rexlocal doesn't exist
@@ -7803,6 +7824,9 @@ endfunction
 "  and reverse sorts will be requested of the server but not otherwise
 "  enforced here.
 function s:NetrwRemoteFtpCmd(path,listcmd)
+    " wgvim: no remote access
+    call netrw#msg#Notify('ERROR', 'wgvim: remote file access (netrw) is disabled')
+    return
     " sanity check: {{{3
     if !exists("w:netrw_method")
         if exists("b:netrw_method")
@@ -7927,6 +7951,9 @@ endfunction
 
 " s:NetrwRemoteListing: {{{2
 function s:NetrwRemoteListing()
+    " wgvim: no remote access
+    call netrw#msg#Notify('ERROR', 'wgvim: remote file access (netrw) is disabled')
+    return
 
     if !exists("w:netrw_bannercnt") && exists("s:bannercnt")
         let w:netrw_bannercnt= s:bannercnt
@@ -8091,6 +8118,9 @@ endfunction
 
 " s:NetrwRemoteRm: remove/delete a remote file or directory {{{2
 function s:NetrwRemoteRm(usrhost,path) range
+    " wgvim: no remote access
+    call netrw#msg#Notify('ERROR', 'wgvim: remote file access (netrw) is disabled')
+    return
     let svpos= winsaveview()
 
     let all= 0
