@@ -29,6 +29,7 @@ local sleep = vim.uv.sleep
 local startswith = vim.startswith
 local write_file = t.write_file
 local api = n.api
+local pcall_err = t.pcall_err
 local is_os = t.is_os
 local dedent = t.dedent
 local tbl_map = vim.tbl_map
@@ -1477,175 +1478,27 @@ describe('user config init', function()
     eq(fn.fnamemodify(init_lua_path, ':p'), eval('$MYVIMRC'))
   end)
 
-  describe('loads existing', function()
-    local exrc_path = '.exrc'
-    local xstate = 'Xstate'
-    local xstateenv = { XDG_CONFIG_HOME = xconfig, XDG_DATA_HOME = xdata, XDG_STATE_HOME = xstate }
-
-    local function setup_exrc_file(filename)
-      exrc_path = filename
-
-      if string.find(exrc_path, '%.lua$') then
-        write_file(
-          exrc_path,
-          string.format(
-            [[
-              vim.g.exrc_file = "%s"
-              vim.g.exrc_path = debug.getinfo(1, 'S').source:gsub('^@', '')
-              vim.g.exrc_count = (vim.g.exrc_count or 0) + 1
-            ]],
-            exrc_path
-          )
-        )
-      else
-        write_file(
-          exrc_path,
-          string.format(
-            [[
-              let g:exrc_file = "%s"
-              " let g:exrc_path = ??
-              let g:exrc_count = get(g:, 'exrc_count', 0) + 1
-            ]],
-            exrc_path
-          )
-        )
-      end
-    end
-
-    before_each(function()
-      for _, file in ipairs({ '.exrc', '.nvimrc', '.nvim.lua' }) do
-        os.remove('../' .. file)
-        os.remove(file)
-      end
-      write_file(
-        init_lua_path,
-        [[
-          vim.o.exrc = true
-          vim.g.exrc_file = '---'
-        ]]
-      )
-      mkdir_p(('%s/%s'):format(xstate, is_os('win') and 'wgvim-data' or 'wgvim'))
-    end)
-
+  describe('exrc (disabled in wgvim)', function()
     after_each(function()
-      for _, file in ipairs({ '.exrc', '.nvimrc', '.nvim.lua' }) do
-        os.remove('../' .. file)
-        os.remove(file)
-      end
-      rmdir(xstate)
+      os.remove('.nvim.lua')
+      os.remove('.nvimrc')
+      os.remove('.exrc')
     end)
 
-    for _, filename in ipairs({ '.exrc', '.nvimrc', '.nvim.lua', '../.nvim.lua', '../.nvimrc' }) do
-      it(filename .. ' from cwd', function()
-        setup_exrc_file(filename)
+    it('cannot be enabled', function()
+      clear()
+      eq(false, api.nvim_get_option_value('exrc', {}))
+      eq('Vim(set):E519: Option not supported: exrc', pcall_err(command, 'set exrc'))
+      eq(false, api.nvim_get_option_value('exrc', {}))
+      command('set noexrc') -- setting the existing value is allowed
+    end)
 
-        clear { args_rm = { '-u' }, env = xstateenv }
-        -- The 'exrc' file is not trusted, and the prompt is skipped because there is no UI.
-        eq('---', eval('g:exrc_file'))
-
-        local screen = Screen.new(50, 8)
-        screen._default_attr_ids = nil
-        fn.jobstart({ nvim_prog }, {
-          term = true,
-          env = {
-            VIMRUNTIME = os.getenv('VIMRUNTIME'),
-          },
-        })
-        screen:expect({ any = pesc('[i]gnore, (v)iew, (d)eny:') })
-        -- `i` to enter Terminal mode, `v` to view then `:trust`
-        feed('iv')
-        feed(':trust<CR>')
-        feed(':q<CR>')
-        screen:expect([[
-          ^                                                  |
-          ~                                                 |*4
-          [No Name]                       0,0-1          All|
-                                                            |
-          -- TERMINAL --                                    |
-        ]])
-        feed(':echo g:exrc_file<CR>')
-        screen:expect(string.format(
-          [[
-          ^                                                  |
-          ~                                                 |*4
-          [No Name]                       0,0-1          All|
-          %s%s|
-          -- TERMINAL --                                    |
-        ]],
-          '---',
-          string.rep(' ', 50 - #'---')
-        ))
-
-        clear { args_rm = { '-u' }, env = xstateenv }
-        if string.find(exrc_path, '%.lua$') then
-          eq(
-            vim.fs.normalize(vim.fs.abspath(filename)),
-            vim.fs.normalize(vim.fs.abspath(eval('g:exrc_path')))
-          )
-        end
-        -- The 'exrc' file is now trusted.
-        eq(filename, eval('g:exrc_file'))
-      end)
-    end
-
-    it('exrc from parent directories', function()
-      setup_exrc_file('.nvim.lua')
-      setup_exrc_file('../.exrc')
-      clear { args_rm = { '-u' }, env = xstateenv }
-      -- use a screen wide width to avoid wrapping the word `.exrc`, `.nvim.lua` below.
-      local screen = Screen.new(500, 8)
-      screen._default_attr_ids = nil
-      fn.jobstart({ nvim_prog }, {
-        term = true,
-        env = {
-          VIMRUNTIME = os.getenv('VIMRUNTIME'),
-        },
-      })
-      -- current directory exrc is found first
-      screen:expect({ any = '.nvim.lua' })
-      screen:expect({ any = pesc('[i]gnore, (v)iew, (d)eny:'), unchanged = true })
-      feed('iv')
-
-      -- after that the exrc in the parent directory
-      screen:expect({ any = '.exrc', unchanged = true })
-      screen:expect({ any = pesc('[i]gnore, (v)iew, (d)eny:'), unchanged = true })
-      feed('v')
-
-      -- trust .exrc
-      feed(':trust<CR>')
-      screen:expect({ any = 'Allowed in trust database: ".*/%.exrc"' })
-      feed(':q<CR>')
-      -- trust .nvim.lua
-      feed(':trust<CR>')
-      screen:expect({ any = 'Allowed in trust database: ".*/%.nvim%.lua"' })
-      feed(':q<CR>')
-      -- no exrc file is executed
-      feed(':echo g:exrc_count<CR>')
-      screen:expect({ any = 'E121: Undefined variable: g:exrc_count' })
-
-      -- restart nvim
-      feed(':restart<CR>')
-      screen:expect([[
-        ^{MATCH: +}|
-        ~{MATCH: +}|*4
-        [No Name]{MATCH: +}0,0-1{MATCH: +}All|
-        {MATCH: +}|
-        -- TERMINAL --{MATCH: +}|
-      ]])
-
-      -- a total of 2 exrc files are executed
-      feed(':echo g:exrc_count<CR>')
-      screen:expect([[
-        ^{MATCH: +}|
-        ~{MATCH: +}|*4
-        [No Name]{MATCH: +}0,0-1{MATCH: +}All|
-        2{MATCH: +}|
-        -- TERMINAL --{MATCH: +}|
-      ]])
-
-      -- The server is now detached and needs to be quit explicitly.
-      feed(':qall!<CR>')
-      screen:expect({ any = vim.pesc('[Process exited 0]') })
+    it('never sources project-local files, even if the user config tries to enable exrc', function()
+      write_file('.nvim.lua', 'vim.g.exrc_lua = 1')
+      write_file('.nvimrc', 'let g:exrc_nvimrc = 1')
+      write_file('.exrc', 'let g:exrc_exrc = 1')
+      clear { args = { '--cmd', 'silent! set exrc' } }
+      eq(0, eval('exists("g:exrc_lua") + exists("g:exrc_nvimrc") + exists("g:exrc_exrc")'))
     end)
   end)
 

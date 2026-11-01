@@ -32,6 +32,8 @@ in `NOTICE`. How each DONE row was tested is in the commit message.
 | 13 | Telemetry / update checks / phone-home | whole tree | n/a | **None found** in the editor. (LSP protocol constants mention `telemetry/event`; that is for servers, which are out of scope.) |
 | 14 | LuaJIT `ffi`: Lua can call libc directly, including `socket()`/`connect()` | built into LuaJIT; nothing in `runtime/` or `src/` uses it | No | **DONE** (`nlua_disable_ffi` in `src/nvim/lua/executor.c`): removed from the main state and from worker-thread states; `require('ffi')` raises "wgvim: the LuaJIT 'ffi' library is disabled …" every time and the attempt is written to the log (WRN). Third-party plugins that use `ffi` will fail with that message |
 
+| 15 | `'exrc'`: runs `.nvim.lua` / `.nvimrc` / `.exrc` from the current and parent directories (gated by the `:trust` prompt, but a trusted file can add the project to `runtimepath` and load further unchecked code) | `src/nvim/main.c`, `runtime/lua/vim/_core/exrc.lua` | Yes (`'exrc'`, without trust) | **DONE**: `'exrc'` is `immutable` (setting it gives E519), the startup code that sourced the files is removed, and `vim/_core/exrc.lua` is deleted. `:trust` / `vim.secure` remain for plugins that use them |
+
 ## Limits of what the editor can enforce
 
 Removing the network API closes the *ordinary* routes, but Lua code running inside
@@ -60,6 +62,6 @@ at the OS level (network namespace, container without a network, or firewall rul
 
 ## Not yet audited
 
-Shell and process execution paths, modelines and `exrc`/secure mode, temp-file
+Shell and process execution paths, modelines and secure mode, temp-file
 handling, the msgpack-RPC API surface, vendored dependency versions against known
 CVEs, and compiler hardening flags. Test suites have not been run on the renamed tree.

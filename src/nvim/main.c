@@ -2125,15 +2125,12 @@ static void do_system_initialization(void)
 /// 3. Sourcing other config files ($XDG_CONFIG_DIRS[1]/$WGVIM_APPNAME/init.lua or init.vim, …).
 /// 4. Execution of EXINIT environment variable.
 ///
-/// @return True if it is needed to attempt to source exrc file according to
-///         'exrc' option definition.
-static bool do_user_initialization(void)
-  FUNC_ATTR_WARN_UNUSED_RESULT
+/// wgvim: project-local 'exrc' files (.nvim.lua, .nvimrc, .exrc) are never sourced;
+/// 'exrc' is immutable (see options.lua and SECURITY-AUDIT.md).
+static void do_user_initialization(void)
 {
-  bool do_exrc = p_exrc;
   if (execute_env("VIMINIT") == OK) {
-    do_exrc = p_exrc;
-    return do_exrc;
+    return;
   }
 
   char *init_lua_path = stdpaths_user_conf_subpath("init.lua");
@@ -2148,19 +2145,14 @@ static bool do_user_initialization(void)
 
     xfree(user_vimrc);
     xfree(init_lua_path);
-    do_exrc = p_exrc;
-    return do_exrc;
+    return;
   }
   xfree(init_lua_path);
 
   // init.vim
   if (do_source(user_vimrc, true, DOSO_VIMRC, NULL) != FAIL) {
-    do_exrc = p_exrc;
-    if (do_exrc) {
-      do_exrc = !path_equal(VIMRC_FILE, user_vimrc, kPathCmpExpand);
-    }
     xfree(user_vimrc);
-    return do_exrc;
+    return;
   }
   xfree(user_vimrc);
 
@@ -2205,46 +2197,21 @@ static bool do_user_initialization(void)
         xfree(init_vim);
         xfree(init_lua);
         xfree(config_dirs);
-        do_exrc = p_exrc;
-        return do_exrc;
+        return;
       }
       xfree(init_lua);
 
       if (do_source(init_vim, true, DOSO_VIMRC, NULL) != FAIL) {
-        do_exrc = p_exrc;
-        if (do_exrc) {
-          do_exrc = !path_equal(VIMRC_FILE, init_vim, kPathCmpExpand);
-        }
         xfree(init_vim);
         xfree(config_dirs);
-        return do_exrc;
+        return;
       }
       xfree(init_vim);
     } while (iter != NULL);
     xfree(config_dirs);
   }
 
-  if (execute_env("EXINIT") == OK) {
-    do_exrc = p_exrc;
-    return do_exrc;
-  }
-  return do_exrc;
-}
-
-// Read initialization commands from ".nvim.lua", ".nvimrc", or ".exrc" in
-// current directory and all parent directories.  This is only done if the 'exrc'
-// option is set. Only do this if VIMRC_FILE is not the same as vimrc file
-// sourced in do_user_initialization.
-static void do_exrc_initialization(void)
-{
-  lua_State *const L = get_global_lstate();
-  assert(L);
-
-  lua_getglobal(L, "require");
-  lua_pushstring(L, "vim._core.exrc");
-  if (nlua_pcall(L, 1, 0)) {
-    fprintf(stderr, "%s\n", lua_tostring(L, -1));
-  }
+  (void)execute_env("EXINIT");
 }
 
 /// Source startup scripts
@@ -2263,9 +2230,7 @@ static void source_startup_scripts(const mparm_T *const parmp)
   } else if (!silent_mode) {
     do_system_initialization();
 
-    if (do_user_initialization()) {
-      do_exrc_initialization();
-    }
+    do_user_initialization();
   }
   TIME_MSG("sourcing vimrc file(s)");
 }
