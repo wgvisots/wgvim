@@ -62,6 +62,10 @@ at the OS level (network namespace, container without a network, or firewall rul
 - Dead `ZIG_BUILD` branches remain in `cmake.config/versiondef.h.in` and
   `src/nvim/os/lang.c`; docs still describe removed scripts (`MAINTAIN.md`,
   `runtime/doc/dev_vimpatch.txt`).
+- `:help` pages still describe removed features: `provider.txt` and `remote_plugin.txt`
+  (providers), `pack.txt` (`vim.pack`), the `vim.net` and spell-file download sections,
+  `'exrc'`, automatic `v:servername`, and `lsp/*.lua` lookup on 'runtimepath'.
+- The per-user temp directory is still named `nvim.<user>` (cosmetic).
 
 ## Reviewed, no change needed
 
