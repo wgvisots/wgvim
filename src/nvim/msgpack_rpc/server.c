@@ -184,9 +184,6 @@ int server_start(const char *addr)
   for (int i = 0; i < watchers.ga_len; i++) {
     if (!strcmp(watcher->addr, ((SocketWatcher **)watchers.ga_data)[i]->addr)) {
       ELOG("Already listening on %s", watcher->addr);
-      if (watcher->stream->type == UV_TCP) {
-        uv_freeaddrinfo(watcher->uv.tcp.addrinfo);
-      }
       socket_watcher_close(watcher, free_server);
       return 2;
     }
