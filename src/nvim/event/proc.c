@@ -30,7 +30,9 @@
 
 /// Externally defined with gcov.
 #ifdef USE_GCOV
-void __gcov_flush(void);
+// GCC 11 removed __gcov_flush(); __gcov_dump() + __gcov_reset() is the equivalent.
+void __gcov_dump(void);
+void __gcov_reset(void);
 #endif
 
 static bool proc_is_tearing_down = false;
@@ -65,7 +67,8 @@ int proc_spawn(Proc *proc, bool in, bool out, bool err)
 
 #ifdef USE_GCOV
   // Flush coverage data before forking, to avoid "Merge mismatch" errors.
-  __gcov_flush();
+  __gcov_dump();
+  __gcov_reset();
 #endif
 
   int status;
