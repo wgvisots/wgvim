@@ -30,6 +30,7 @@ endif()
 set(BUILDCMD_UNIX ${MAKE_PRG} -j CFLAGS=-fPIC
                               CFLAGS+=-DLUA_USE_APICHECK
                               CFLAGS+=-funwind-tables
+                              ${WGVIM_LUAJIT_HARDENING_CFLAGS}
                               ${NO_STACK_CHECK}
                               ${AMD64_ABI}
                               CCDEBUG+=-g

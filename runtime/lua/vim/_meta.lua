@@ -46,4 +46,3 @@ vim.uri_from_bufnr = uri.uri_from_bufnr
 vim.uri_to_fname = uri.uri_to_fname
 vim.uri_to_bufnr = uri.uri_to_bufnr
 
-vim.provider = require('vim.provider')

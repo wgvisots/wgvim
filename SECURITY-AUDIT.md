@@ -34,6 +34,11 @@ in `NOTICE`. How each DONE row was tested is in the commit message.
 | 15 | `'exrc'`: runs `.nvim.lua` / `.nvimrc` / `.exrc` from the current and parent directories (gated by the `:trust` prompt, but a trusted file can add the project to `runtimepath` and load further unchecked code) | `src/nvim/main.c`, `runtime/lua/vim/_core/exrc.lua` | Yes (`'exrc'`, without trust) | **DONE**: `'exrc'` is `immutable` (setting it gives E519), the startup code that sourced the files is removed, and `vim/_core/exrc.lua` is deleted. `:trust` / `vim.secure` remain for plugins that use them |
 | 16 | Tree-sitter parsers: any `parser/<lang>.so` on `runtimepath`, or any path passed to `vim.treesitter.language.add()`, was `dlopen()`ed (native code runs immediately, bypassing rows 6 and 14) | `runtime/lua/vim/treesitter/language.lua`, `src/nvim/lua/treesitter.c` | No | **DONE**: only `<libdir>/parser/*.so` is searched; the C loader resolves symlinks, refuses anything outside that directory, refuses names not bundled at build time, and checks the SHA256 against hashes compiled into the binary (`cmake/GenerateParserHashes.cmake`). Residual: the file is hashed, then opened by path, so the install directory must be writable only by root. WASM parsers are not compiled in (`ENABLE_WASMTIME=OFF`) |
 | 17 | Native Lua modules: `package.loadlib()`, `package.cpath`, and `require` of `lua/*.so` from `runtimepath` | LuaJIT, `runtime/lua/vim/_init_packages.lua`, `vim/loader.lua` | No | **DONE** (`nlua_disable_native_modules` in `executor.c`, main and thread states): `package.loadlib` raises an error and logs WRN, `package.cpath` is empty, the C searchers are removed. Built-in modules (luv, lpeg, mpack, …) are linked in and unaffected; plugins that ship compiled `.so` helpers will not load |
+| 18 | RPC server started automatically at `$XDG_RUNTIME_DIR/wgvim.<pid>.0`; any process of the same user could connect and run Lua (`nvim_exec_lua`) | `src/nvim/msgpack_rpc/server.c` | No (Vim 8.2 `+clientserver` is X11 and off in your build) | **DONE**: no server unless `--listen` or `serverstart()`; `v:servername` is empty by default. `--remote-ui`, `serverlist({peer=true})` and nested-editor features need an explicit `--listen` |
+| 19 | Language providers (Python 3, Ruby, Node.js, Perl) and remote plugins: start external interpreters that load code from outside the editor; the provider health check could also fetch `https://pypi.org` with `curl`/`python` | `runtime/autoload/provider/*`, `runtime/autoload/remote/*`, `runtime/plugin/rplugin.vim`, `runtime/lua/vim/provider*` | Partly (Vim has built-in `+python3` etc.; off in your build) | **DONE**: removed; `has('python3')` etc. are 0, `:python3`/`:ruby`/`:perl` report a missing provider (C side accepts only the clipboard provider), `:checkhealth` checks only the clipboard. The clipboard provider (`xclip`, `wl-copy`, …) stays |
+| 20 | LSP server configs: any `lsp/<name>.lua` on `runtimepath` could define the command `vim.lsp.enable()` runs | `runtime/lua/vim/lsp.lua` | No | **DONE**: `lsp/*.lua` is read only from `stdpath('config')` (incl. `after/`) and `$VIMRUNTIME`. Configs set with `vim.lsp.config()` in Lua (your clangd setup) are unaffected |
+| 21 | Compiler/linker hardening came from the build host's compiler defaults (e.g. Ubuntu), not from the build system; a plain RHEL 9 `gcc` build would lack most of it | `src/nvim/CMakeLists.txt`, `cmake.deps/CMakeLists.txt` | n/a | **DONE** (option `WGVIM_HARDENING`, default ON; each flag only if supported): editor gets PIE, `_FORTIFY_SOURCE=3` (2 on GCC < 12), `-fstack-protector-strong`, `-fstack-clash-protection`, `-fcf-protection=full`, `-ftrivial-auto-var-init=zero`, `-fno-strict-overflow`, `-z relro -z now -z noexecstack -z separate-code`. Dependencies and parsers get stack protector, stack-clash, CET, `_FORTIFY_SOURCE=2`, full RELRO. Verified with `readelf`: PIE, BIND_NOW, RELRO, non-executable stack, x86 SHSTK. IBT is not marked on the final binary because LuaJIT's hand-written assembly VM (`lj_vm.o`) has no IBT markers; parsers have both IBT and SHSTK. Side effect: `-z now` exposed a latent bug in the cpp parser build (C99 made `static_assert` an undefined function call); parsers are now built as C11 |
+| 22 | Unit-test code compiled into the shipped binary (`UNIT_TESTING`: writable global `malloc`/`free` function pointers in `memory.c`, plus test fixtures) | `src/nvim/CMakeLists.txt` | n/a | **DONE**: unit tests removed (they required ffi inside the editor, row 14); the fixtures and `UNIT_TESTING` are no longer built into `wgvim`. Coverage now comes from the functional tests (`-D ENABLE_GCOV=ON`) |
 
 ## Limits of what the editor can enforce
 
@@ -58,8 +63,45 @@ at the OS level (network namespace, container without a network, or firewall rul
   `src/nvim/os/lang.c`; docs still describe removed scripts (`MAINTAIN.md`,
   `runtime/doc/dev_vimpatch.txt`).
 
+## Reviewed, no change needed
+
+- Temp files: the per-user temp directory is created 0700 and its owner and mode are
+  checked before use (`vim_mktempdir()` in `src/nvim/fileio.c`).
+- `:terminal` escape sequences: only OSC 8 (hyperlinks), OSC 10/11 (colour queries, answered
+  from 'background') and OSC 133 (prompt marks) are handled; terminal programs cannot set
+  the clipboard (no OSC 52 handling in `:terminal`).
+- `'modelineexpr'` is off by default and options that take expressions or function names
+  (including `'complete'`) are marked as needing it; this covers Vim CVE-2026-34982.
+
 ## Not yet audited
 
-Shell and process execution paths, modelines and secure mode, temp-file
-handling, the msgpack-RPC API surface, vendored dependency versions against known
-CVEs, and compiler hardening flags. Test suites have not been run on the renamed tree.
+Shell and process execution paths, modelines in general, and the msgpack-RPC API surface
+(now only reachable with `--listen`). Dependency CVEs: see the section below.
+
+## Dependency and upstream CVEs (checked 2026-11-01)
+
+Method: web search of NVD/OSV/vendor advisories for each component that is compiled into
+`wgvim` or shipped with it, then a check of this tree (version, patch list in
+`src/nvim/version.c`, or the code itself). "Not affected" means the fix is in this tree or the
+code path is not built. Re-check when updating `deps/`.
+
+| Component (version in this tree) | Known CVEs | Status here |
+|---|---|---|
+| libuv 1.52.1 | CVE-2024-24806 (`uv_getaddrinfo` hostname truncation, fixed in 1.48.0); CVE-2014-9748 (Windows XP rwlock, fixed 1.7.4) | Not affected (newer version; `getaddrinfo` is also removed from Lua, row 6) |
+| LuaJIT (commit `ea9eb7e`, 2026-10-30) | CVE-2024-25176, -25177, -25178 (fixed upstream early 2024); CVE-2020-24372, CVE-2020-15890 (2.1.0-beta3); CVE-2019-19391 (`debug.getinfo`, disputed by upstream) | Not affected by the fixed ones (commit is from 2026). CVE-2019-19391 is in the `debug` library, which Lua code can always reach; it needs code already running in the editor |
+| luv 1.52.1-0 | None found | — |
+| lua-compat-5.3 0.13 | None found | — |
+| tree-sitter 0.27.1 | Distribution advisories in 2026 concern Wasmtime (CVE-2026-34971 sandbox escape on aarch64, CVE-2026-27204 WASI DoS) | Not affected: Wasmtime is not built (`ENABLE_WASMTIME=OFF`) |
+| tree-sitter parsers (c 0.24.2, cpp 0.23.4, lua, vim, vimdoc, query, diff, markdown) | None found | Hash-pinned (row 16) |
+| utf8proc 2.12.0 | Old buffer overrun / recursion bugs fixed in 2.1.0 (no CVE IDs) | Not affected |
+| unibilium 2.1.4 | None found (ncurses terminfo CVEs such as CVE-2023-29491 are in ncurses, not unibilium) | — |
+| libvterm (in-tree, `src/vterm`) | None found for libvterm itself | — |
+| xxd (in-tree, "2025-11-26") | CVE-2025-9390 (buffer overflow in `main`, fixed by Vim 9.1.1616) | Not affected (xxd is newer; 9.1.1616 is in the patch list) |
+| Neovim code (snapshot `d299306`) | CVE-2026-11487 (`vim.secure.read` command injection via file name, Neovim ≤ 0.12.2, fix PR #39918); CVE-2019-12735 (modeline `:source!`, fixed 0.3.6); GHSA-6f9m-hj8h-xjgj (tree-sitter injections, 2023) | Not affected: the CVE-2026-11487 fix and its regression test (`secure_spec`, "#39914") are present |
+| Vim code shared with Neovim | CVE-2026-45130 (spell file `read_compound`, 9.2.0450), CVE-2026-25749 (`get_tagfname`, 9.1.2132), CVE-2026-28418/28419 (Emacs tags, 9.2.0074/75), CVE-2026-28420 (terminal combining chars, 9.2.0076), CVE-2026-32249 (NFA regex, 9.2.0137), CVE-2025-22134 (9.1.1003), CVE-2024-43374 (9.1.0678), CVE-2026-28417 (netrw `scp://` injection, 9.2.0073) | All these patches are in the included-patch list; netrw remote access is also removed (row 9) |
+| Vim-only features | CVE-2026-34714 (`tabpanel` `%{}` in modeline, 9.2.0272), CVE-2026-26269 (NetBeans), CVE-2026-34982 (modeline sandbox bypass via `'complete'`, `guitabtooltip`, `printheader`) | Not applicable: no `tabpanel`, NetBeans, GUI or printing in this tree; `'complete'` is already protected (`modelineexpr`) |
+| Not built (vendored only) | Lua 5.1.5, gettext 0.20.1, libiconv 1.19, Wasmtime 48.0.1, uncrustify 0.83.0, win32yank | Not part of the binary on Linux; not checked |
+
+Also checked: CVE-2026-33412 (Vim `glob()` newline command injection, fixed in 9.2.0202) — the
+patch is in the included list. The search covered public advisories only; there is no automated
+SBOM scan.

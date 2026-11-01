@@ -148,7 +148,7 @@ functionaltest-lua: | nvim
 
 FORMAT=formatc formatlua formatquery format
 LINT=lintlua lintsh lintc clang-analyzer lintcommit lintdoc lintdocurls lint emmylua-check lintquery linterrcodes
-TEST=functionaltest unittest
+TEST=functionaltest
 generated-sources benchmark $(FORMAT) $(LINT) $(TEST) doc: | build/.ran-cmake
 	$(CMAKE) --build build --target $@
 

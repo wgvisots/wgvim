@@ -1,4 +1,32 @@
 local api = vim.api
+
+--- wgvim: `lsp/*.lua` server configs are read only from the user's config directory
+--- (stdpath('config'), including its after/) and the bundled runtime ($VIMRUNTIME), not from
+--- every 'runtimepath' entry, so a config dropped into a plugin or data directory cannot start a
+--- program. Configs set with vim.lsp.config() in Lua are unaffected. See SECURITY-AUDIT.md.
+--- @param pattern string
+--- @return string[]
+local function trusted_lsp_config_files(pattern)
+  local roots = {} --- @type string[]
+  for _, dir in ipairs({ vim.fn.stdpath('config'), vim.env.VIMRUNTIME }) do
+    local real = type(dir) == 'string' and dir ~= '' and vim.uv.fs_realpath(dir)
+    if real then
+      roots[#roots + 1] = real
+    end
+  end
+  return vim.tbl_filter(function(file)
+    local real = vim.uv.fs_realpath(file)
+    if not real then
+      return false
+    end
+    for _, root in ipairs(roots) do
+      if vim.startswith(real, root .. '/') then
+        return true
+      end
+    end
+    return false
+  end, api.nvim_get_runtime_file(pattern, true))
+end
 local validate = vim.validate
 local nvim_on = require('vim._core.util').nvim_on
 
@@ -344,7 +372,7 @@ lsp.config = setmetatable({ _configs = {} }, {
       -- Resolve configs from lsp/*.lua
       -- Calls to vim.lsp.config in lsp/* have a lower precedence than calls from other sites.
       local rtp_config --- @type vim.lsp.Config?
-      for _, v in ipairs(api.nvim_get_runtime_file(('lsp/%s.lua'):format(name), true)) do
+      for _, v in ipairs(trusted_lsp_config_files(('lsp/%s.lua'):format(name))) do
         local chunk, err = loadfile(v)
         local config = assert(chunk, err)() ---@type any?
         if type(config) == 'table' then
@@ -397,7 +425,7 @@ lsp.config = setmetatable({ _configs = {} }, {
 --- @return string[]
 local function get_config_names()
   local config_names = vim
-    .iter(api.nvim_get_runtime_file('lsp/*.lua', true))
+    .iter(trusted_lsp_config_files('lsp/*.lua'))
     :map(function(path)
       local file_name = assert(path:match('[^/]*.lua$'))
       return file_name:sub(0, #file_name - 4)

@@ -88,6 +88,36 @@ endif()
 
 set(DEPS_INCLUDE_FLAGS "-I\"${DEPS_INSTALL_DIR}/include\" -I\"${DEPS_INSTALL_DIR}/include/luajit-2.1\"")
 
+# wgvim: build the dependencies with the same hardening as the editor (see
+# src/nvim/CMakeLists.txt and SECURITY-AUDIT.md). CET (-fcf-protection) only takes effect in the
+# final binary if every linked object has it, so the static deps need it too.
+set(WGVIM_DEPS_HARDENING_CFLAGS "")
+set(WGVIM_DEPS_HARDENING_LDFLAGS "")
+if(NOT MSVC AND NOT MINGW)
+  foreach(flag -fstack-protector-strong -fstack-clash-protection -fcf-protection=full
+               -mbranch-protection=standard)
+    string(MAKE_C_IDENTIFIER "DEPS_HAS${flag}" var)
+    check_c_compiler_flag(${flag} ${var})
+    if(${var})
+      list(APPEND WGVIM_DEPS_HARDENING_CFLAGS ${flag})
+    endif()
+  endforeach()
+  # Dependencies are built optimized, which _FORTIFY_SOURCE requires.
+  list(APPEND WGVIM_DEPS_HARDENING_CFLAGS -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2)
+  set(WGVIM_DEPS_HARDENING_LDFLAGS -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack)
+endif()
+string(REPLACE ";" " " WGVIM_DEPS_HARDENING_CFLAGS_STR "${WGVIM_DEPS_HARDENING_CFLAGS}")
+string(REPLACE ";" " " WGVIM_DEPS_HARDENING_LDFLAGS_STR "${WGVIM_DEPS_HARDENING_LDFLAGS}")
+list(APPEND DEPS_CMAKE_ARGS
+  "-DCMAKE_C_FLAGS_INIT=${WGVIM_DEPS_HARDENING_CFLAGS_STR}"
+  "-DCMAKE_SHARED_LINKER_FLAGS_INIT=${WGVIM_DEPS_HARDENING_LDFLAGS_STR}"
+  "-DCMAKE_MODULE_LINKER_FLAGS_INIT=${WGVIM_DEPS_HARDENING_LDFLAGS_STR}"
+  "-DCMAKE_EXE_LINKER_FLAGS_INIT=${WGVIM_DEPS_HARDENING_LDFLAGS_STR}")
+set(WGVIM_LUAJIT_HARDENING_CFLAGS)
+foreach(flag ${WGVIM_DEPS_HARDENING_CFLAGS})
+  list(APPEND WGVIM_LUAJIT_HARDENING_CFLAGS "CFLAGS+=${flag}")
+endforeach()
+
 # If the macOS deployment target is not set manually (via $MACOSX_DEPLOYMENT_TARGET),
 # fall back to local system version. Needs to be done here and in top-level CMakeLists.txt.
 if(APPLE)
