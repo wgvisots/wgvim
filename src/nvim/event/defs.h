@@ -80,7 +80,6 @@ struct stream {
   bool closed;
   union {
     uv_pipe_t pipe;
-    uv_tcp_t tcp;
     uv_idle_t idle;
 #ifdef MSWIN
     uv_tty_t tty;
@@ -122,14 +121,10 @@ typedef void (*socket_cb)(SocketWatcher *watcher, int result, void *data);
 typedef void (*socket_close_cb)(SocketWatcher *watcher, void *data);
 
 struct socket_watcher {
-  // Pipe/socket path, or TCP address string
+  // Pipe/socket path (wgvim: TCP addresses are not supported)
   char addr[ADDRESS_MAX_SIZE];
-  // TCP server or unix socket (named pipe on Windows)
+  // Unix socket (named pipe on Windows)
   union {
-    struct {
-      uv_tcp_t handle;
-      struct addrinfo *addrinfo;
-    } tcp;
     struct {
       uv_pipe_t handle;
     } pipe;
