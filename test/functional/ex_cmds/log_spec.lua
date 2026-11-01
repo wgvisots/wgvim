@@ -11,7 +11,7 @@ local write_file = t.write_file
 
 describe(':log', function()
   local xstate = 'Xstate'
-  local name = (is_os('win') and 'wgvim-data' or 'nvim')
+  local name = (is_os('win') and 'wgvim-data' or 'wgvim')
 
   before_each(function()
     clear { env = { XDG_STATE_HOME = xstate } }

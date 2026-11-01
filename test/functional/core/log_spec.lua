@@ -56,7 +56,7 @@ describe('log', function()
 
     -- Without $WGVIM parent.
     setup({
-      NVIM = '',
+      WGVIM = '',
       WGVIM_LISTEN_ADDRESS = '',
       WGVIM_LOG_FILE = testlog,
       __WGVIM_TEST_LOG = '1',

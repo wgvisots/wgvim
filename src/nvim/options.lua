@@ -3041,32 +3041,17 @@ local options = {
       abbreviation = 'ex',
       defaults = false,
       desc = [=[
-        Enables project-local configuration. wgvim will execute any .nvim.lua,
-        .nvimrc, or .exrc file found in the |current-directory| and all parent
-        directories (ordered upwards), if the files are in the |trust| list.
-        Use |:trust| to manage trusted files. See also |vim.secure.read()|.
-
-        Unset 'exrc' to stop further searching of 'exrc' files in parent
-        directories, similar to |editorconfig.root|.
-
-        To get its own location, a Lua exrc file can use |debug.getinfo()|.
-        See |lua-script-location|.
-
-        Compare 'exrc' to |editorconfig|:
-        - 'exrc' can execute any code; editorconfig only specifies settings.
-        - 'exrc' is wgvim-specific; editorconfig works in other editors.
-
-        To achieve project-local LSP configuration:
-        1. Enable 'exrc'.
-        2. Place LSP configs at ".nvim/lsp/*.lua" in your project root.
-        3. Create ".nvim.lua" in your project root directory with this line: >lua
-            vim.cmd[[set runtimepath+=.nvim]]
-        <
+        DISABLED in wgvim. This option cannot be set (E519). wgvim never
+        executes project-local .nvim.lua, .nvimrc or .exrc files, because a
+        trusted file can extend 'runtimepath' and load further unchecked code
+        from the project. Put project settings in your own config instead, or
+        use |editorconfig| for settings that cannot run code.
       ]=],
       full_name = 'exrc',
       scope = { 'global' },
       secure = true,
-      short_desc = N_('read project-local configuration in parent directories'),
+      immutable = true,
+      short_desc = N_('disabled in wgvim (project-local config files)'),
       tags = { 'project-config', 'workspace-config' },
       type = 'boolean',
       varname = 'p_exrc',

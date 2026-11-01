@@ -841,7 +841,7 @@ describe('jobs', function()
     -- $WGVIM is _not_ defined in the top-level wgvim process.
     eq('', eval('$WGVIM'))
     -- jobstart() shares its v:servername with the child via $WGVIM.
-    eq('NVIM=' .. addr, get_child_env('NVIM'))
+    eq('WGVIM=' .. addr, get_child_env('WGVIM'))
     -- $WGVIM_LISTEN_ADDRESS is unset by server_init in the child.
     eq('WGVIM_LISTEN_ADDRESS=v:null', get_child_env('WGVIM_LISTEN_ADDRESS'))
     eq(
