@@ -1,9 +1,9 @@
-*lua-guide.txt*                        Nvim
+*lua-guide.txt*                        wgvim
 
                             NVIM REFERENCE MANUAL
 
 ==============================================================================
-Using Lua in Nvim
+Using Lua in wgvim
 
 
                                        Type |gO| to see the table of contents.
@@ -12,13 +12,13 @@ Using Lua in Nvim
 Introduction                                                         *lua-guide*
 
 This guide introduces the basics of everyday Lua usage for configuring and
-controlling Nvim. It assumes some familiarity with the (non-Lua) basics of
-Nvim (commands, options, mappings, autocommands), which are covered in the
+controlling wgvim. It assumes some familiarity with the (non-Lua) basics of
+wgvim (commands, options, mappings, autocommands), which are covered in the
 |user-manual|.
 
 This is not a comprehensive encyclopedia of all available features. Think of
 it as a survival kit: the bare minimum needed to comfortably get started on
-using Lua in Nvim.
+using Lua in wgvim.
 
 - See |lua-plugin| for guidance on developing Lua plugins.
 - See |luaref| and |lua-concepts| for details on the Lua programming language.
@@ -27,21 +27,21 @@ using Lua in Nvim.
 About the API                                                  *lua-guide-api*
 
 The purpose of this guide is to introduce the different ways of interacting
-with Nvim through Lua (the "API"). This API consists of three different
+with wgvim through Lua (the "API"). This API consists of three different
 layers:
 
 1. The "Vim API" inherited from Vim: |Ex-command|s and |vimscript-functions|
    as well as |user-function|s in Vimscript. These are accessed through
    |vim.cmd()| and |vim.fn| respectively, which are discussed under
    |lua-guide-vimscript| below.
-2. The "Nvim API" written in C for use in remote plugins and GUIs; see |api|.
+2. The "wgvim API" written in C for use in remote plugins and GUIs; see |api|.
    These functions are accessed through |vim.api|.
 3. The "Lua API" written in and specifically for Lua. These are any other
    functions accessible through `vim.*` not mentioned already; see
    |lua-stdlib|.
 
 This distinction is important, as API functions inherit behavior from their
-original layer: For example, Nvim API functions always need all arguments to
+original layer: For example, wgvim API functions always need all arguments to
 be specified even if Lua itself allows omitting arguments (which are then
 passed as `nil`); and Vim API functions can use 0-based indexing even if Lua
 arrays are 1-indexed by default.
@@ -57,7 +57,7 @@ convenient to use from Lua.
 ==============================================================================
 Using Lua                                                  *lua-guide-using-Lua*
 
-To run Lua code from the Nvim command line, use the |:lua| command:
+To run Lua code from the wgvim command line, use the |:lua| command:
 >vim
     :lua print("Hello!")
 <
@@ -90,7 +90,7 @@ Finally, you can include Lua code in a Vimscript file by putting it inside a
 <
                                                        *lua-guide-interrupt*
 Lua cannot normally be interrupted by |CTRL-C| (Lua does not implicitly
-"yield" to Nvim). To allow the user to interrupt potentially slow loops,
+"yield" to wgvim). To allow the user to interrupt potentially slow loops,
 periodically call |vim.wait()|. Passing `interval=0` skips the dummy timer
 setup, minimizing per-call overhead in a tight loop: >lua
 
@@ -107,7 +107,7 @@ See also: https://github.com/neovim/neovim/issues/6800
 ------------------------------------------------------------------------------
 Using Lua files on startup                                    *lua-guide-config*
 
-Nvim supports using `init.vim` or `init.lua` as the configuration file, but
+wgvim supports using `init.vim` or `init.lua` as the configuration file, but
 not both at the same time. This should be placed in your |config| directory
 (run `:echo stdpath('config')` to see where it is). Note that you can also use
 Lua in `init.vim` and Vimscript in `init.lua`, which will be covered below.
@@ -124,7 +124,7 @@ Lua equivalent of Vimscript's |autoload| mechanism.)
 
 Let's assume you have the following directory structure:
 >
-    ~/.config/nvim
+    ~/.config/wgvim
     |-- after/
     |-- ftplugin/
     |-- lua/
@@ -496,7 +496,7 @@ Autocommands                                            *lua-guide-autocommands*
 An |autocommand| is a Vim command or a Lua function that is automatically
 executed whenever one or more |events| are triggered, e.g., when a file is
 read or written, or when a window is created. These are accessible from Lua
-through the Nvim API.
+through the wgvim API.
 
 ------------------------------------------------------------------------------
 Creating autocommands                             *lua-guide-autocommand-create*
@@ -537,7 +537,7 @@ Examples:
       callback = function() print("My Plugin Works!") end,
     })
 <
-Nvim will always call a Lua function with a single table containing information
+wgvim will always call a Lua function with a single table containing information
 about the triggered autocommand. The most useful keys are
 • `match`: a string that matched the `pattern` (see |<amatch>|)
 • `buf`:   the number of the buffer the event was triggered in (see |<abuf>|)

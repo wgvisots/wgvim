@@ -98,7 +98,7 @@ void test_threading()
   asctime(localtime(&t));      // Should trigger runtime/threadsafe_fn
 }
 
-// runtime/deprecated: (This might be Neovim-specific)
+// runtime/deprecated: (This might be wgvim-specific)
 
 // whitespace/comments: Missing space after //
 void test_comments()

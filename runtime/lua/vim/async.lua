@@ -7,7 +7,7 @@ local F = vim.F
 --- Structured async API for Lua code that waits on event-loop work.
 ---
 --- `vim.async` lets Lua code wait for timers, callbacks, and other tasks
---- without blocking Nvim's event loop. Async work runs inside tasks, which can
+--- without blocking wgvim's event loop. Async work runs inside tasks, which can
 --- pause at checkpoints and manage child tasks created while they are running.
 ---
 --- Start async work with [vim.async.run()]. Inside a task, use
@@ -17,7 +17,7 @@ local F = vim.F
 ---
 --- Examples in this help use `local async = vim.async` for brevity.
 ---
---- Example: run async work without blocking Nvim:
+--- Example: run async work without blocking wgvim:
 ---
 --- ```lua
 --- local async = vim.async

@@ -30,7 +30,7 @@
 --- (Vimscript: `let g:editorconfig = v:false`). It can also be disabled
 --- per-buffer by setting the [b:editorconfig] buffer-local variable to `false`.
 ---
---- Nvim stores the applied properties in [b:editorconfig] if it is not `false`.
+--- wgvim stores the applied properties in [b:editorconfig] if it is not `false`.
 
 --- @brief [editorconfig-custom-properties]()
 ---

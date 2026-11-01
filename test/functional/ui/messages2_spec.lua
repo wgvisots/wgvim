@@ -30,7 +30,7 @@ describe('messages2', function()
     end)
   end)
   after_each(function()
-    -- Since ui2 module lasts until Nvim exits, there may be unfinished timers.
+    -- Since ui2 module lasts until wgvim exits, there may be unfinished timers.
     -- Close unfinished timers to avoid 2s delay on exit with ASAN or TSAN.
     exec_lua(function()
       vim.uv.walk(function(handle)

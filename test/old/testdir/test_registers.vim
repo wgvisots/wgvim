@@ -187,7 +187,7 @@ func Test_recording_status_in_ex_line()
   call assert_equal('recording @x', Screenline(&lines))
   set shortmess=q
   redraw!
-  call assert_equal('', Screenline(&lines)) " Nvim: shm+=q fully hides message
+  call assert_equal('', Screenline(&lines)) " wgvim: shm+=q fully hides message
   set shortmess&
   norm q
   redraw!
@@ -198,7 +198,7 @@ func Test_recording_status_in_ex_line()
   call assert_match('recording @x\s*0,0-1\s*All', Screenline(&lines))
   set shortmess=q
   redraw!
-  call assert_match('\s*0,0-1\s*All', Screenline(&lines)) " Nvim: shm+=q fully hides
+  call assert_match('\s*0,0-1\s*All', Screenline(&lines)) " wgvim: shm+=q fully hides
   set shortmess&
   norm q
   redraw!
@@ -388,7 +388,7 @@ func Test_get_register()
 
   " Test for inserting a multi-line register in the command line
   call feedkeys(":\<C-R>r\<Esc>", 'xt')
-  " Nvim: no trailing CR because of #6137
+  " wgvim: no trailing CR because of #6137
   " call assert_equal("a\rb\r", histget(':', -1))
   call assert_equal("a\rb", histget(':', -1))
 

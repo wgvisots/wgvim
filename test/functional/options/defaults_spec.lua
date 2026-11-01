@@ -32,8 +32,8 @@ local is_os = t.is_os
 local testlog = 'Xtest-defaults-log'
 
 describe('startup defaults', function()
-  it("NVIM_NOTTYFAST=1 unsets 'ttyfast'", function()
-    clear { env = { NVIM_NOTTYFAST = '1' } }
+  it("WGVIM_NOTTYFAST=1 unsets 'ttyfast'", function()
+    clear { env = { WGVIM_NOTTYFAST = '1' } }
     eq(0, n.eval('&ttyfast'))
   end)
 
@@ -244,9 +244,9 @@ describe('startup defaults', function()
     eq(eval("fnamemodify(v:progpath, ':p')"), eval('v:progpath'))
   end)
 
-  describe('$NVIM_LOG_FILE', function()
+  describe('$WGVIM_LOG_FILE', function()
     local xdgdir = 'Xtest-startup-xdg-logpath'
-    local xdgstatedir = is_os('win') and xdgdir .. '/nvim-data' or xdgdir .. '/nvim'
+    local xdgstatedir = is_os('win') and xdgdir .. '/wgvim-data' or xdgdir .. '/nvim'
     after_each(function()
       os.remove('Xtest-logpath')
       rmdir(xdgdir)
@@ -254,9 +254,9 @@ describe('startup defaults', function()
 
     it('is used if expansion succeeds', function()
       clear({ env = {
-        NVIM_LOG_FILE = 'Xtest-logpath',
+        WGVIM_LOG_FILE = 'Xtest-logpath',
       } })
-      eq('Xtest-logpath', eval('$NVIM_LOG_FILE'))
+      eq('Xtest-logpath', eval('$WGVIM_LOG_FILE'))
     end)
 
     it('defaults to stdpath("log")/nvim.log if empty', function()
@@ -264,10 +264,10 @@ describe('startup defaults', function()
       clear({
         env = {
           XDG_STATE_HOME = xdgdir,
-          NVIM_LOG_FILE = '', -- Empty is invalid.
+          WGVIM_LOG_FILE = '', -- Empty is invalid.
         },
       })
-      eq(('%s/logs/nvim.log'):format(xdgstatedir), eval('$NVIM_LOG_FILE'))
+      eq(('%s/logs/nvim.log'):format(xdgstatedir), eval('$WGVIM_LOG_FILE'))
     end)
 
     it('defaults to stdpath("log")/nvim.log if invalid', function()
@@ -275,11 +275,11 @@ describe('startup defaults', function()
       clear({
         env = {
           XDG_STATE_HOME = xdgdir,
-          NVIM_LOG_FILE = '.', -- Any directory is invalid.
+          WGVIM_LOG_FILE = '.', -- Any directory is invalid.
         },
       })
-      eq(('%s/logs/nvim.log'):format(xdgstatedir), eval('$NVIM_LOG_FILE'))
-      -- Avoid "failed to open $NVIM_LOG_FILE" noise in test output.
+      eq(('%s/logs/nvim.log'):format(xdgstatedir), eval('$WGVIM_LOG_FILE'))
+      -- Avoid "failed to open $WGVIM_LOG_FILE" noise in test output.
       expect_exit(command, 'qall!')
     end)
   end)
@@ -298,7 +298,7 @@ describe('XDG defaults', function()
     clear()
     local rtp = eval('split(&runtimepath, ",")')
     local rv = {}
-    local data_dir = is_os('win') and '/nvim-data' or '/nvim'
+    local data_dir = is_os('win') and '/wgvim-data' or '/nvim'
     local expected = { data_dir .. '/site', data_dir .. '/site/after' }
 
     for _, v in ipairs(rtp) do
@@ -342,24 +342,24 @@ describe('XDG defaults', function()
   local function vimruntime_and_libdir()
     local vimruntime = eval('$VIMRUNTIME')
     -- libdir is hard to calculate reliably across various ci platforms
-    -- local libdir = string.gsub(vimruntime, "share/nvim/runtime$", "lib/nvim")
+    -- local libdir = string.gsub(vimruntime, "share/wgvim/runtime$", "lib/wgvim")
     local libdir = api.nvim__get_lib_dir()
     return vimruntime, libdir
   end
 
   local env_sep = is_os('win') and ';' or ':'
-  local data_dir = is_os('win') and 'nvim-data' or 'nvim'
-  local state_dir = is_os('win') and 'nvim-data' or 'nvim'
+  local data_dir = is_os('win') and 'wgvim-data' or 'nvim'
+  local state_dir = is_os('win') and 'wgvim-data' or 'nvim'
   local root_path = is_os('win') and 'C:' or ''
 
   describe('with too long XDG vars', function()
     before_each(function()
       clear({
-        -- Ensure valid --listen address despite broken XDG vars (else Nvim won't start).
+        -- Ensure valid --listen address despite broken XDG vars (else wgvim won't start).
         args = { '--listen', is_os('win') and '' or t.tmpname(false) },
         args_rm = { 'runtimepath' },
         env = {
-          NVIM_LOG_FILE = testlog,
+          WGVIM_LOG_FILE = testlog,
           XDG_CONFIG_HOME = (root_path .. ('/x'):rep(4096)),
           XDG_CONFIG_DIRS = (root_path .. ('/a'):rep(2048) .. env_sep .. root_path .. ('/b'):rep(
             2048
@@ -433,11 +433,11 @@ describe('XDG defaults', function()
   describe('with expandable XDG vars', function()
     before_each(function()
       clear({
-        -- Ensure valid --listen address despite broken XDG vars (else Nvim won't start).
+        -- Ensure valid --listen address despite broken XDG vars (else wgvim won't start).
         args = { '--listen', is_os('win') and '' or t.tmpname(false) },
         args_rm = { 'runtimepath' },
         env = {
-          NVIM_LOG_FILE = testlog,
+          WGVIM_LOG_FILE = testlog,
           XDG_CONFIG_HOME = '$XDG_DATA_HOME',
           XDG_CONFIG_DIRS = '$XDG_DATA_DIRS',
           XDG_DATA_HOME = '$XDG_CONFIG_HOME',
@@ -466,16 +466,16 @@ describe('XDG defaults', function()
 
       local vimruntime, libdir = vimruntime_and_libdir()
       local expected_paths = table.concat({
-        '$XDG_DATA_HOME/nvim',
-        '$XDG_DATA_DIRS/nvim',
+        '$XDG_DATA_HOME/wgvim',
+        '$XDG_DATA_DIRS/wgvim',
         ('$XDG_CONFIG_HOME/%s/site'):format(data_dir),
-        '$XDG_CONFIG_DIRS/nvim/site',
+        '$XDG_CONFIG_DIRS/wgvim/site',
         vimruntime,
         libdir,
-        '$XDG_CONFIG_DIRS/nvim/site/after',
+        '$XDG_CONFIG_DIRS/wgvim/site/after',
         ('$XDG_CONFIG_HOME/%s/site/after'):format(data_dir),
-        '$XDG_DATA_DIRS/nvim/after',
-        '$XDG_DATA_HOME/nvim/after',
+        '$XDG_DATA_DIRS/wgvim/after',
+        '$XDG_DATA_HOME/wgvim/after',
       }, ',')
       eq(expected_paths, api.nvim_get_option_value('runtimepath', {}))
       command('set runtimepath&')
@@ -711,7 +711,7 @@ describe('stdpath()', function()
     os.remove(testlog)
   end)
 
-  --- Windows appends 'nvim-data' instead of just 'nvim' to prevent collisions
+  --- Windows appends 'wgvim-data' instead of just 'nvim' to prevent collisions
   --- due to XDG_CONFIG_HOME, XDG_DATA_HOME and XDG_STATE_HOME being the same.
   --- @param name string
   local function maybe_data(name)
@@ -750,9 +750,9 @@ describe('stdpath()', function()
     eq('Vim(call):E730: Using a List as a String', pcall_err(command, 'call stdpath([23])'))
   end)
 
-  it('$NVIM_APPNAME', function()
+  it('$WGVIM_APPNAME', function()
     local appname = 'NVIM_APPNAME_TEST' .. ('_'):rep(106)
-    clear({ env = { NVIM_APPNAME = appname, NVIM_LOG_FILE = testlog } })
+    clear({ env = { WGVIM_APPNAME = appname, WGVIM_LOG_FILE = testlog } })
     eq(appname, fn.fnamemodify(fn.stdpath('config'), ':t'))
     eq(appname, fn.fnamemodify(fn.stdpath('cache'), ':t'))
     eq(maybe_data(appname), fn.fnamemodify(fn.stdpath('log'), ':h:t'))
@@ -766,11 +766,11 @@ describe('stdpath()', function()
     end
     assert_alive() -- Check for crash. #8393
 
-    -- Check that Nvim rejects invalid APPNAMEs
+    -- Check that wgvim rejects invalid APPNAMEs
     local function test_appname(testAppname, expected_exitcode)
       local p = n.spawn_wait({
         args = { '--listen', 'x', '+qall!' },
-        env = { NVIM_APPNAME = testAppname },
+        env = { WGVIM_APPNAME = testAppname },
       })
       eq(expected_exitcode, p.status)
     end
@@ -792,7 +792,7 @@ describe('stdpath()', function()
     test_appname('a/b\\c', 0)
   end)
 
-  it('$NVIM_APPNAME relative path', function()
+  it('$WGVIM_APPNAME relative path', function()
     local tmpdir = t.tmpname(false)
     t.mkdir(tmpdir)
     -- Short runtime dir so the autogenerated server socket fits in sun_path even
@@ -806,8 +806,8 @@ describe('stdpath()', function()
     clear({
       args_rm = { '--listen' },
       env = {
-        NVIM_APPNAME = 'relative/appname',
-        NVIM_LOG_FILE = testlog,
+        WGVIM_APPNAME = 'relative/appname',
+        WGVIM_LOG_FILE = testlog,
         TMPDIR = tmpdir,
         XDG_RUNTIME_DIR = xdg_run,
       },
@@ -827,7 +827,7 @@ describe('stdpath()', function()
             XDG_CONFIG_HOME = '/home/docwhat/.config',
           },
         })
-        eq('/home/docwhat/.config/nvim', fn.stdpath('config'))
+        eq('/home/docwhat/.config/wgvim', fn.stdpath('config'))
       end)
 
       it('handles changes during runtime', function()
@@ -936,7 +936,7 @@ describe('stdpath()', function()
             XDG_CACHE_HOME = '/home/docwhat/.cache',
           },
         })
-        eq('/home/docwhat/.cache/nvim', fn.stdpath('cache'))
+        eq('/home/docwhat/.cache/wgvim', fn.stdpath('cache'))
       end)
 
       it('handles changes during runtime', function()
@@ -976,7 +976,7 @@ describe('stdpath()', function()
           HOMEDRIVE = 'C:',
           HOMEPATH = '\\Users\\docwhat',
           LOCALAPPDATA = 'C:\\Users\\docwhat\\AppData\\Local',
-          NVIM_LOG_FILE = testlog,
+          WGVIM_LOG_FILE = testlog,
           TEMP = 'C:\\Users\\docwhat\\AppData\\Local\\Temp',
           TMPDIR = 'C:\\Users\\docwhat\\AppData\\Local\\Temp',
           TMP = 'C:\\Users\\docwhat\\AppData\\Local\\Temp',
@@ -987,7 +987,7 @@ describe('stdpath()', function()
           HOMEDRIVE = 'HOMEDRIVE-should-be-ignored',
           HOMEPATH = 'HOMEPATH-should-be-ignored',
           LOCALAPPDATA = 'LOCALAPPDATA-should-be-ignored',
-          NVIM_LOG_FILE = testlog,
+          WGVIM_LOG_FILE = testlog,
           TEMP = 'TEMP-should-be-ignored',
           TMPDIR = 'TMPDIR-should-be-ignored',
           TMP = 'TMP-should-be-ignored',
@@ -1044,7 +1044,7 @@ describe('stdpath()', function()
           '/home/docwhat/.config',
         },
         {
-          '/home/docwhat/.config/nvim',
+          '/home/docwhat/.config/wgvim',
         }
       )
 
@@ -1057,7 +1057,7 @@ describe('stdpath()', function()
           '/etc/config',
         },
         {
-          '/home/docwhat/.config/nvim',
+          '/home/docwhat/.config/wgvim',
           '/etc/config/nvim',
         }
       )

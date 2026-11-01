@@ -61,7 +61,7 @@ describe("'belloff'", function()
       for j, input in ipairs(inputs) do
         screen.bell = false
         local beep = value ~= 'all' and i == j
-        -- Nvim avoids beeping more than 3 times in half a second,
+        -- wgvim avoids beeping more than 3 times in half a second,
         -- so retry if beeping is expected but not received.
         retry(not beep and 1 or nil, 1000, function()
           feed(input)

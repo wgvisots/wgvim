@@ -441,7 +441,7 @@ endfunc
 " of 'tabstop' (if 'vartabstop' is not set) or to the first value in
 " 'vartabstop'
 func Test_shiftwidth_vartabstop()
-  throw 'Skipped: Nvim removed this behavior in #6377'
+  throw 'Skipped: wgvim removed this behavior in #6377'
   setlocal tabstop=7 vartabstop=
   call assert_fails('set shiftwidth=-1', 'E487:')
   call assert_equal(7, &shiftwidth)
@@ -452,7 +452,7 @@ func Test_shiftwidth_vartabstop()
 endfunc
 
 func Test_vartabstop_latin1()
-  throw "Skipped: Nvim does not support 'compatible'"
+  throw "Skipped: wgvim does not support 'compatible'"
   let save_encoding = &encoding
   new
   set encoding=iso8859-1

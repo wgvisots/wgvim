@@ -74,7 +74,7 @@ endfunc
 let s:saveConfigHome = ''
 
 func s:SetupConfigHome()
-  " Nvim on Windows may use $XDG_CONFIG_HOME, and runnvim.sh sets it.
+  " wgvim on Windows may use $XDG_CONFIG_HOME, and runnvim.sh sets it.
   " if empty(windowsversion())
     let s:saveConfigHome = $XDG_CONFIG_HOME
     call setenv("XDG_CONFIG_HOME", s:GetConfigHome())

@@ -8,7 +8,7 @@ set_target_properties(nvim_bin
   PROPERTIES
   EXPORT_COMPILE_COMMANDS ON
   ENABLE_EXPORTS TRUE
-  OUTPUT_NAME nvim)
+  OUTPUT_NAME wgvim)
 
 #-------------------------------------------------------------------------------
 # Dependencies
@@ -295,7 +295,7 @@ endif()
 set(EVAL_FUNCS_METADATA ${PROJECT_BINARY_DIR}/eval_funcs_metadata.mpack)
 set(EXPORTED_FUNCS_METADATA ${PROJECT_BINARY_DIR}/exported_funcs_metadata.mpack)
 set(UI_METADATA ${PROJECT_BINARY_DIR}/ui_metadata.mpack)
-set(BINARY_LIB_DIR ${PROJECT_BINARY_DIR}/lib/nvim)
+set(BINARY_LIB_DIR ${PROJECT_BINARY_DIR}/lib/wgvim)
 set(GENERATED_DIR ${PROJECT_BINARY_DIR}/src/nvim/auto)
 set(GENERATED_INCLUDES_DIR ${PROJECT_BINARY_DIR}/include)
 set(GENERATOR_DIR ${PROJECT_SOURCE_DIR}/src/gen)
@@ -805,7 +805,7 @@ if(WIN32)
     COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/windows_runtime_deps
     COMMAND ${CMAKE_COMMAND}
       -D CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
-      -D BINARY="${PROJECT_BINARY_DIR}/bin/nvim${CMAKE_EXECUTABLE_SUFFIX}"
+      -D BINARY="${PROJECT_BINARY_DIR}/bin/wgvim${CMAKE_EXECUTABLE_SUFFIX}"
       -D DST=${PROJECT_BINARY_DIR}/windows_runtime_deps
       -D CI_BUILD=${CI_BUILD}
       -P ${PROJECT_SOURCE_DIR}/cmake/WindowsDllCopy.cmake)
@@ -834,11 +834,11 @@ endif()
 file(MAKE_DIRECTORY ${BINARY_LIB_DIR})
 
 # install treesitter parser if bundled
-if(EXISTS ${DEPS_PREFIX}/lib/nvim/parser)
+if(EXISTS ${DEPS_PREFIX}/lib/wgvim/parser)
   add_custom_command(
     TARGET nvim_runtime_deps
     POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E ${COPY_DIRECTORY} ${DEPS_PREFIX}/lib/nvim/parser ${BINARY_LIB_DIR}/parser)
+    COMMAND ${CMAKE_COMMAND} -E ${COPY_DIRECTORY} ${DEPS_PREFIX}/lib/wgvim/parser ${BINARY_LIB_DIR}/parser)
 endif()
 
 if(CYGWIN)
@@ -859,7 +859,7 @@ if(NOT PREFER_LUA)
   # install luajit runtime files if bundled
   if(EXISTS ${LUAJIT_RUNTIME_DIR})
     install(DIRECTORY ${LUAJIT_RUNTIME_DIR}
-      DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/nvim/runtime/lua
+      DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/wgvim/runtime/lua
       USE_SOURCE_PERMISSIONS)
   endif()
 endif()

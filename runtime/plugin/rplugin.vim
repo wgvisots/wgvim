@@ -7,8 +7,8 @@ let g:loaded_remote_plugins = '/path/to/manifest'
 function! s:GetManifestPath() abort
   let manifest_base = ''
 
-  if exists('$NVIM_RPLUGIN_MANIFEST')
-    return fnamemodify($NVIM_RPLUGIN_MANIFEST, ':p')
+  if exists('$WGVIM_RPLUGIN_MANIFEST')
+    return fnamemodify($WGVIM_RPLUGIN_MANIFEST, ':p')
   endif
 
   let dest = stdpath('data')
@@ -35,7 +35,7 @@ function! s:GetOldManifestPaths() abort
     return [origpath]
   endif
   " Windows used to use $APPLOCALDATA/nvim but stdpath('data') is
-  " $XDG_DATA_DIR/nvim-data
+  " $XDG_DATA_DIR/wgvim-data
   let pseudostdpath = exists('$LOCALAPPDATA') ? '$LOCALAPPDATA' : '~/AppData/Local'
   let pseudostdpath = fnamemodify(expand(pseudostdpath), ':p')
   return [substitute(pseudostdpath, '[/\\]\=$', '/', '') . 'nvim/rplugin.vim', origpath]

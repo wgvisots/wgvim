@@ -1,11 +1,11 @@
 ---
---- Nvim msgpack-RPC protocol session. Manages requests/notifications/responses.
+--- wgvim msgpack-RPC protocol session. Manages requests/notifications/responses.
 ---
 
 local uv = vim.uv
 local RpcStream = require('test.client.rpc_stream')
 
---- Nvim msgpack-RPC protocol session. Manages requests/notifications/responses.
+--- wgvim msgpack-RPC protocol session. Manages requests/notifications/responses.
 ---
 --- @class test.Session
 --- @field private _pending_messages string[] Requests/notifications received from the remote end.
@@ -15,7 +15,7 @@ local RpcStream = require('test.client.rpc_stream')
 --- @field private _is_running boolean true during `Session:run()` scope.
 --- @field data table Arbitrary user data.
 local Session = {
-  eof_err_msg = 'Nvim EOF (crash?)',
+  eof_err_msg = 'wgvim EOF (crash?)',
 }
 Session.__index = Session
 if package.loaded['jit'] then
@@ -275,5 +275,5 @@ function Session:_eof_msg()
   return msg
 end
 
---- Nvim msgpack-RPC session.
+--- wgvim msgpack-RPC session.
 return Session

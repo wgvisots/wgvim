@@ -143,8 +143,8 @@ describe(':terminal', function()
       API Definitions                                         *api-definitions*     |
                                                                                     |
                                                               ^*api-types*           |
-      The Nvim C API defines custom types for all function parameters. Some are just|
-      typedefs around C99 standard types, others are Nvim-defined data structures.  |
+      The wgvim C API defines custom types for all function parameters. Some are just|
+      typedefs around C99 standard types, others are wgvim-defined data structures.  |
                                                                                     |
       Basic types ~                                                                 |
                                                                                     |

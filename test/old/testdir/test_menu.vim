@@ -22,7 +22,7 @@ func Test_load_menu()
 endfunc
 
 func Test_buffer_menu_special_buffers()
-  throw "Skipped: Nvim supports cmdwin freedom #40312"
+  throw "Skipped: wgvim supports cmdwin freedom #40312"
   " Load in runtime menus
   try
     source $VIMRUNTIME/menu.vim
@@ -423,7 +423,7 @@ endfunc
 
 " Test for <special> keyword in a menu with 'cpo' containing '<'
 func Test_menu_special()
-  throw 'Skipped: Nvim does not support cpoptions flag "<"'
+  throw 'Skipped: wgvim does not support cpoptions flag "<"'
   new
   set cpo+=<
   nmenu Test.Sign  am<Tab>n<Esc>

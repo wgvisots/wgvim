@@ -23,6 +23,6 @@ set_target_properties(
     PREFIX ""
 )
 
-install(TARGETS markdown markdown_inline LIBRARY DESTINATION lib/nvim/parser)
+install(TARGETS markdown markdown_inline LIBRARY DESTINATION lib/wgvim/parser)
 
 # vim: set ft=cmake:

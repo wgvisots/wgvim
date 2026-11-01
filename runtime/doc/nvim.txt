@@ -1,11 +1,11 @@
-*nvim.txt*	Nvim
+*nvim.txt*	wgvim
 
 
                             NVIM REFERENCE MANUAL
 
 
 ==============================================================================
-Nvim                                              *nvim* *neovim* *nvim-intro*
+wgvim                                              *nvim* *neovim* *nvim-intro*
 
 Nvim is based on Vim by Bram Moolenaar. Nvim is emphatically a fork of Vim,
 not a clone: compatibility with Vim (especially editor and Vimscript features,
@@ -13,7 +13,7 @@ except |Vim9script|) is maintained where possible. See |vim-differences| for
 the complete reference.
 
 - If you already use Vim, see |nvim-from-vim| for a quickstart.
-- If you have never used Vim or Nvim before, see below.
+- If you have never used Vim or wgvim before, see below.
 
                                       Type |gO| to see the table of contents.
 
@@ -27,7 +27,7 @@ To learn how to use Vim in 30 minutes, try the tutorial: >vim
 Or watch this 10-minute video: https://youtu.be/TQn2hJeHQbM .
 
                                                *config-example* *example-init*
-To customize Nvim, you will need a config file. Create your |init.lua| by
+To customize wgvim, you will need a config file. Create your |init.lua| by
 copying the "example_init.lua" file: >vim
 
     :exe 'edit' stdpath('config') .. '/init.lua'
@@ -35,13 +35,13 @@ copying the "example_init.lua" file: >vim
     :write ++p
     :restart
 <
-See |lua-guide| for practical notes on using Lua to configure Nvim.
+See |lua-guide| for practical notes on using Lua to configure wgvim.
 
-"IDE" features in Nvim are provided by |LSP|.
+"IDE" features in wgvim are provided by |LSP|.
 
-If you are just trying out Nvim for a few minutes, and want to see the
+If you are just trying out wgvim for a few minutes, and want to see the
 extremes of what it can do, try one of these popular "extension packs" or
-"distributions" (Note: Nvim is not affiliated with these projects, and does
+"distributions" (Note: wgvim is not affiliated with these projects, and does
 not support them):
 
 - *lazyvim* https://www.lazyvim.org/
@@ -49,7 +49,7 @@ not support them):
 - *kickstart* https://github.com/nvim-lua/kickstart.nvim
   - Not recommended; use |example-init| instead.
 
-However, we recommend (eventually) taking time to learn Nvim from its stock
+However, we recommend (eventually) taking time to learn wgvim from its stock
 configuration, and incrementally setting options and adding plugins to your
 |config| as you discover a need.
 
@@ -67,24 +67,24 @@ Transitioning from Vim                                         *nvim-from-vim*
     let &packpath = &runtimepath
     source ~/.vimrc
 
-3. Restart Nvim, your existing Vim config will be loaded. >vim
+3. Restart wgvim, your existing Vim config will be loaded. >vim
 
     :restart
 
 See |provider-python| and |provider-clipboard| for additional software you
 might need to use some features.
 
-Your Vim configuration might not be entirely Nvim-compatible (see
-|vim-differences|). For example the 'ttymouse' option was removed from Nvim,
+Your Vim configuration might not be entirely wgvim-compatible (see
+|vim-differences|). For example the 'ttymouse' option was removed from wgvim,
 because mouse support is always enabled if possible. If you use the same
-|vimrc| for Vim and Nvim you could guard 'ttymouse' in your configuration
+|vimrc| for Vim and wgvim you could guard 'ttymouse' in your configuration
 like so:
 >vim
     if !has('nvim')
       set ttymouse=xterm2
     endif
 
-And for Nvim-specific configuration, you can do this:
+And for wgvim-specific configuration, you can do this:
 >vim
     if has('nvim')
       tnoremap <Esc> <C-\><C-n>
@@ -96,15 +96,15 @@ For a more granular approach use |exists()|:
       tnoremap <Esc> <C-\><C-n>
     endif
 
-Now you should be able to explore Nvim more comfortably. Check |nvim-features|
+Now you should be able to explore wgvim more comfortably. Check |nvim-features|
 for more information.
 
                                                         *portable-config*
-Because Nvim follows the XDG |base-directories| standard, configuration on
+Because wgvim follows the XDG |base-directories| standard, configuration on
 Windows is stored in ~/AppData instead of ~/.config. But you can still share
-the same Nvim configuration on all of your machines, by creating
-~/AppData/Local/nvim/init.vim containing just this line: >vim
-    source ~/.config/nvim/init.vim
+the same wgvim configuration on all of your machines, by creating
+~/AppData/Local/wgvim/init.vim containing just this line: >vim
+    source ~/.config/wgvim/init.vim
 <
 
  vim:tw=78:ts=8:et:ft=help:norl:

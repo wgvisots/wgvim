@@ -22,7 +22,7 @@ function registerNvimHandleTypes(types) {
         return msgpackr.pack(value.id);
       },
     });
-    console.log(`[msgpack] registered Nvim EXT type ${info.id} -> ${name}`);
+    console.log(`[msgpack] registered wgvim EXT type ${info.id} -> ${name}`);
   }
 }
 

@@ -112,7 +112,7 @@ struct TUIData {
   bool is_starting;
   bool resize_events_enabled;
 
-  // Terminal modes that Nvim enabled that it must disable on exit
+  // Terminal modes that wgvim enabled that it must disable on exit
   struct {
     bool grapheme_clusters : 1;
     bool theme_updates : 1;
@@ -271,7 +271,7 @@ void tui_handle_term_mode(TUIData *tui, TermMode mode, TermModeState state)
         tui->modes.resize_events = true;
       }
 
-      // We track both whether the mode is enabled AND if Nvim was the one to enable it
+      // We track both whether the mode is enabled AND if wgvim was the one to enable it
       tui->resize_events_enabled = true;
       break;
     case kTermModeLeftAndRightMargins:
@@ -364,14 +364,14 @@ void tui_query_bg_color(TUIData *tui)
   flush_buf(tui, kFlushBufFinal);
 }
 
-/// Use $NVIM_TERMDEFS to apply user overrides to terminfo. This is our own homebaked "terminfo",
+/// Use $WGVIM_TERMDEFS to apply user overrides to terminfo. This is our own homebaked "terminfo",
 /// analogous to Vim's t_xx options. #37274
 ///
 /// This also positions us to drop Unibilium entirely.
 static void apply_termdefs(TUIData *tui)
 {
   // We allow empty values just to provide the user with a warning
-  if (!os_env_exists("NVIM_TERMDEFS", false)) {
+  if (!os_env_exists("WGVIM_TERMDEFS", false)) {
     return;
   }
 
@@ -402,7 +402,7 @@ static void apply_termdefs(TUIData *tui)
     KeyValuePair kv = rv.data.dict.items[i];
     TermdefField *td_field = pmap_get(cstr_t)(&termdef_fields, kv.key.data);
     if (!td_field || kv.value.type != td_field->type) {
-      PUSH_ERR("skipping invalid field in $NVIM_TERMDEFS: '%s'\n", kv.key.data);
+      PUSH_ERR("skipping invalid field in $WGVIM_TERMDEFS: '%s'\n", kv.key.data);
       continue;
     }
     Object val = kv.value;
@@ -422,7 +422,7 @@ static void apply_termdefs(TUIData *tui)
     case kObjectTypeArray:
       if (val.data.array.size > 2) {
         PUSH_ERR(
-                "skipping invalid field definition in $NVIM_TERMDEFS for %s: array should have at most two entries for unshifted and shifted key variants.\n",
+                "skipping invalid field definition in $WGVIM_TERMDEFS for %s: array should have at most two entries for unshifted and shifted key variants.\n",
                 kv.key.data);
         continue;
       }
@@ -434,7 +434,7 @@ static void apply_termdefs(TUIData *tui)
         Object key_mapping = val.data.array.items[key_map_idx];
         if (key_mapping.type != kObjectTypeString) {
           PUSH_ERR(
-                  "skipping invalid field definition in $NVIM_TERMDEFS for %s[%zu]: expected type 'string'\n",
+                  "skipping invalid field definition in $WGVIM_TERMDEFS for %s[%zu]: expected type 'string'\n",
                   kv.key.data, key_map_idx);
           continue;
         }
@@ -507,7 +507,7 @@ static void terminfo_start(TUIData *tui)
 
   // Set up terminfo.
   tui->terminfo_found_in_db = false;
-  if (term && !os_env_exists("NVIM_TERMDEFS", false)) {
+  if (term && !os_env_exists("WGVIM_TERMDEFS", false)) {
     if (terminfo_from_database(&tui->ti, term, &tui->ti_arena)) {
       tui->term = arena_strdup(&tui->ti_arena, term);
       tui->terminfo_found_in_db = true;
@@ -583,7 +583,7 @@ static void terminfo_start(TUIData *tui)
   tui->has_left_and_right_margin_mode = false;
   tui->has_sync_mode = false;
 
-  // Query support for private DEC modes that Nvim can take advantage of.
+  // Query support for private DEC modes that wgvim can take advantage of.
   // Some terminals (such as Terminal.app) do not support DECRQM, so skip the query.
   if (!nsterm) {
     tui_request_term_mode(tui, kTermModeLeftAndRightMargins);
@@ -703,7 +703,7 @@ static void terminfo_stop(TUIData *tui)
     ui_client_exit_status = ui_client_error_exit;
   }
 
-  // If Nvim exited with nonzero status, without indicating this was an
+  // If wgvim exited with nonzero status, without indicating this was an
   // intentional exit (like `:1cquit`), it likely was an internal failure.
   // Don't clobber the stderr error message in this case. #21608
   if (ui_client_exit_status == MAX(ui_client_error_exit, 0)) {
@@ -746,7 +746,7 @@ static void after_startup_cb(uv_timer_t *handle)
 static void tui_terminal_after_startup(TUIData *tui)
   FUNC_ATTR_NONNULL_ALL
 {
-  // Emit this after Nvim startup, not during.  This works around a tmux
+  // Emit this after wgvim startup, not during.  This works around a tmux
   // 2.3 bug(?) which caused slow drawing during startup.  #7649
   out_len(tui, tui->terminfo_ext.enable_focus_reporting);
   flush_buf(tui, kFlushBufFinal);

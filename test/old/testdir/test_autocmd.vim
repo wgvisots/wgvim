@@ -1315,7 +1315,7 @@ endfunc
 
 func Test_OptionSet()
   " Use test/functional/legacy/autocmd_option_spec.lua
-  throw 'Skipped: Nvim changed types of OptionSet v: variables'
+  throw 'Skipped: wgvim changed types of OptionSet v: variables'
   CheckOption autochdir
 
   call test_override('starting', 1)
@@ -2344,7 +2344,7 @@ func Test_Cmdline()
   au! CmdlineLeavePre
 
   let save_shellslash = &shellslash
-  " Nvim doesn't allow setting value of a hidden option to non-default value
+  " wgvim doesn't allow setting value of a hidden option to non-default value
   if exists('+shellslash')
     set noshellslash
   endif
@@ -2458,7 +2458,7 @@ func Test_bufunload_all()
     endfunc
     au BufUnload * call UnloadAllBufs()
     au VimLeave * call writefile(['Test Finished'], 'Xout')
-    set nohidden  " Accommodate Nvim default
+    set nohidden  " Accommodate wgvim default
     edit Xxx1
     split Xxx2
     q
@@ -3513,7 +3513,7 @@ func Test_autocmd_was_using_freed_memory()
   augroup winenter
     au WinEnter * if winnr('$') > 2 | quit | endif
   augroup END
-  " Nvim needs large 'winwidth' and 'nowinfixwidth' to crash
+  " wgvim needs large 'winwidth' and 'nowinfixwidth' to crash
   set winwidth=99999 nowinfixwidth
   split
 
@@ -3624,7 +3624,7 @@ func LogACmd()
 endfunc
 
 func Test_TermChanged()
-  throw 'skipped: Nvim does not support TermChanged event'
+  throw 'skipped: wgvim does not support TermChanged event'
   CheckNotGui
 
   enew!
@@ -3811,7 +3811,7 @@ func Test_close_autocmd_window()
   tabnew two.txt
   augroup aucmd_win_test2
     au!
-    " Nvim makes aucmd_win the last window
+    " wgvim makes aucmd_win the last window
     " au BufEnter * if expand('<afile>') == 'one.txt' | 1close | endif
     au BufEnter * if expand('<afile>') == 'one.txt' | close | endif
   augroup END
@@ -3915,14 +3915,14 @@ endfunc
 func Test_autocmd_normal_mess()
   " Uses `q/` (cmdwin) in autocmd; with non-blocking cmdwin (#40312) the
   " expected E1159 path now hits E1513 (winfixbuf) instead.
-  throw 'Skipped: Nvim supports cmdwin freedom #40312'
+  throw 'Skipped: wgvim supports cmdwin freedom #40312'
   " For unknown reason this hangs on MS-Windows
   CheckNotMSWindows
 
   augroup aucmd_normal_test
     au BufLeave,BufWinLeave,BufHidden,BufUnload,BufDelete,BufWipeout * norm 7q/qc
   augroup END
-  " Nvim has removed :open
+  " wgvim has removed :open
   " call assert_fails('o4', 'E1159:')
   call assert_fails('e4', 'E1159:')
   silent! H
@@ -3935,7 +3935,7 @@ func Test_autocmd_normal_mess()
 endfunc
 
 func Test_autocmd_closing_cmdwin()
-  throw 'Skipped: Nvim supports cmdwin freedom #40312'
+  throw 'Skipped: wgvim supports cmdwin freedom #40312'
   " For unknown reason this hangs on MS-Windows
   CheckNotMSWindows
 
@@ -3950,7 +3950,7 @@ endfunc
 func Test_autocmd_vimgrep()
   augroup aucmd_vimgrep
     au QuickfixCmdPre,BufNew,BufReadCmd * sb
-    " Nvim makes aucmd_win the last window
+    " wgvim makes aucmd_win the last window
     " au QuickfixCmdPre,BufNew,BufReadCmd * q9
     au QuickfixCmdPre,BufNew,BufReadCmd * exe 'q' .. (winnr('$') - (win_gettype(winnr('$')) == 'autocmd'))
   augroup END
@@ -4152,7 +4152,7 @@ func Test_mode_changes()
   au ModeChanged n:c let g:n_to_c += 1
   let g:c_to_n = 0
   au ModeChanged c:n let g:c_to_n += 1
-  " Nvim: Cannot test non-blocking cmdwin (#40312) using feedkeys() 'x' flag.
+  " wgvim: Cannot test non-blocking cmdwin (#40312) using feedkeys() 'x' flag.
   "let g:mode_seq += ['c', 'n', 'c', 'n']
   "call feedkeys("q:\<C-C>\<Esc>", 'tnix')
   "call assert_equal(len(g:mode_seq) - 1, g:index)
@@ -4913,7 +4913,7 @@ func Test_autocmd_TabClosedPre()
     redir END
     let tabsout = substitute(tabsout, '\n', '', 'g')
     let tabsout = substitute(tabsout, 'Tab page ', '', 'g')
-    let tabsout = substitute(tabsout, '#', '', 'g')  " Nvim: remove '#'
+    let tabsout = substitute(tabsout, '#', '', 'g')  " wgvim: remove '#'
     let tabsout = substitute(tabsout, ' ', '', 'g')
     return tabsout
   endfunc

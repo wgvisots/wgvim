@@ -37,7 +37,7 @@ describe('lua stdlib', function()
   --    length 3 (in bytes).
   --
   -- Note: 'i' !=? 'İ' and 'ⱥ' !=? 'Ⱥ' on some systems.
-  -- Note: Built-in Nvim comparison (on systems lacking `strcasecmp`) works
+  -- Note: Built-in wgvim comparison (on systems lacking `strcasecmp`) works
   --       only on ASCII characters.
   it('vim.stricmp', function()
     eq(0, fn.luaeval('vim.stricmp("a", "A")'))
@@ -158,8 +158,8 @@ describe('lua stdlib', function()
 
       it('plugin=nil, no error if soft-deprecated', function()
         eq(vim.NIL, exec_lua [[return vim.deprecate('old1', 'new1', '0.99.0')]])
-        -- Major version > current Nvim major is always "soft-deprecated".
-        -- XXX: This is also a reminder to update the hardcoded `nvim_major`, when Nvim reaches 1.0.
+        -- Major version > current wgvim major is always "soft-deprecated".
+        -- XXX: This is also a reminder to update the hardcoded `nvim_major`, when wgvim reaches 1.0.
         eq(vim.NIL, exec_lua [[return vim.deprecate('old2', 'new2', '1.0.0')]])
       end)
 
@@ -2524,7 +2524,7 @@ describe('lua stdlib', function()
       )
     end)
 
-    it('does not leak when Nvim exits while waiting', function()
+    it('does not leak when wgvim exits while waiting', function()
       n.expect_exit(500, exec_lua, function()
         vim.defer_fn(function()
           vim.cmd('qall!')

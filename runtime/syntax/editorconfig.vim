@@ -1,4 +1,4 @@
-" Nvim syntax file
+" wgvim syntax file
 " Language:     EditorConfig
 " Last Change:  2023-07-20
 "

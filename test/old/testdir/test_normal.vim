@@ -75,7 +75,7 @@ func Test_normal00_optrans()
   1
   norm! 2D
   call assert_equal(['3 this is the third line', '4 This is a simple test: abcd', '5 This is the second line', '6 this is the third line', ''], getline(1,'$'))
-  " Nvim: no "#" flag in 'cpoptions'.
+  " wgvim: no "#" flag in 'cpoptions'.
   " set cpo+=#
   " norm! 4D
   " call assert_equal(['', '4 This is a simple test: abcd', '5 This is the second line', '6 this is the third line', ''], getline(1,'$'))
@@ -536,7 +536,7 @@ func Test_normal09c_operatorfunc()
   call setline(1, ['first', 'first', 'third', 'third', 'second'])
   normal! 1GVjg@
   normal! 3G.
-  " Nvim: "." re-executes the captured keysequence ("Vjg@"), not an equal-size
+  " wgvim: "." re-executes the captured keysequence ("Vjg@"), not an equal-size
   " reselect. At the last line the replayed "j" fails, aborting the replay:
   " nothing is applied (and the pending Visual mode is left active).
   normal! 5G.
@@ -1429,7 +1429,7 @@ func Test_scroll_in_ex_mode()
 endfunc
 
 func Test_scroll_and_paste_in_ex_mode()
-  throw 'Skipped: does not work when Nvim is run from :!'
+  throw 'Skipped: does not work when wgvim is run from :!'
   " This used to crash because of moving cursor to line 0.
   let lines =<< trim END
       v/foo/vi|YY9PYQ
@@ -1968,7 +1968,7 @@ func Test_normal23_K()
   delcom Kprog
 
   " Only expect "man" to work on Unix
-  if !has("unix") || has('nvim')  " Nvim K uses :terminal. #15398
+  if !has("unix") || has('nvim')  " wgvim K uses :terminal. #15398
     let &keywordprg = k
     bw!
     return
@@ -2339,7 +2339,7 @@ func Test_normal29_brace()
   " Test with { in cpoptions
   %d
   call append(0, text)
-  " Nvim: no "{" flag in 'cpoptions'.
+  " wgvim: no "{" flag in 'cpoptions'.
   " set cpo+={
   " 1
   " norm! 0d2}
@@ -2856,7 +2856,7 @@ func Test_normal33_g_cmd2()
 endfunc
 
 func Test_normal_ex_substitute()
-  throw 'Skipped: Nvim "gQ" restores multicursors (not Ex-mode)'
+  throw 'Skipped: wgvim "gQ" restores multicursors (not Ex-mode)'
   " This was hanging on the substitute prompt.
   new
   call setline(1, 'a')
@@ -3140,9 +3140,9 @@ endfunc
 
 " Test for CTRL-\ commands
 func Test_normal40_ctrl_bsl()
-  " Nvim #40312: includes a cmdwin assertion that doesn't translate
+  " wgvim #40312: includes a cmdwin assertion that doesn't translate
   " (cmdwin is now a normal window so CTRL-\ CTRL-N is a no-op there).
-  throw 'Skipped: Nvim supports cmdwin freedom #40312'
+  throw 'Skipped: wgvim supports cmdwin freedom #40312'
   new
   call append(0, 'here      are   some words')
   exe "norm! 1gg0a\<C-\>\<C-N>"
@@ -3301,7 +3301,7 @@ func Test_normal50_commandline()
   func! DoTimerWork(id)
     call assert_equal(1, getbufinfo('')[0].command)
 
-    " Nvim removed the E11 "Invalid in command-line window" restriction (#40312, #40484).
+    " wgvim removed the E11 "Invalid in command-line window" restriction (#40312, #40484).
     "call assert_fails(":wincmd p", 'E11')
 
     " Return from commandline window.
@@ -3492,12 +3492,12 @@ func Test_message_when_using_ctrl_c()
   %bwipe!
 
   exe "normal \<C-C>"
-  call assert_match("Type  :qa  and press <Enter> to exit Nvim", Screenline(&lines))
+  call assert_match("Type  :qa  and press <Enter> to exit wgvim", Screenline(&lines))
 
   new
   cal setline(1, 'hi!')
   exe "normal \<C-C>"
-  call assert_match("Type  :qa!  and press <Enter> to abandon all changes and exit Nvim", Screenline(&lines))
+  call assert_match("Type  :qa!  and press <Enter> to abandon all changes and exit wgvim", Screenline(&lines))
 
   bwipe!
 endfunc
@@ -3726,7 +3726,7 @@ endfunc
 
 " Test for supplying a count to a normal-mode command across a cursorhold call
 func Test_normal_cursorhold_with_count()
-  throw 'Skipped: Nvim removed <CursorHold> key'
+  throw 'Skipped: wgvim removed <CursorHold> key'
   func s:cHold()
     let g:cHold_Called += 1
   endfunc

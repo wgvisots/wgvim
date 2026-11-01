@@ -61,7 +61,7 @@ local function check_basics()
     local lockfile_absent = has_lockfile and 'present' or 'absent'
     local plug_dir_absent = has_plug_dir and 'present' or 'absent'
     local msg = ('Lockfile is %s, plugin directory is %s.'):format(lockfile_absent, plug_dir_absent)
-      .. ' Restart Nvim and run `vim.pack.add({})` to '
+      .. ' Restart wgvim and run `vim.pack.add({})` to '
       .. (has_lockfile and 'install plugins from the lockfile' or 'regenerate the lockfile')
     health.warn(msg)
   end
@@ -94,7 +94,7 @@ local function check_plugin_lock_data(plug_name, lock_data)
   local function error_with_del_advice(reason)
     local msg = ('%s %s.'):format(name_str, reason)
       .. (' Delete %s entry (do not create trailing comma) and '):format(name_str)
-      .. 'restart Nvim to regenerate lockfile data'
+      .. 'restart wgvim to regenerate lockfile data'
     health.error(msg)
     return false
   end
@@ -123,7 +123,7 @@ local function check_plugin_lock_data(plug_name, lock_data)
   if vim.fn.isdirectory(plug_path) ~= 1 then
     health.warn(
       ('Plugin %s is not installed but present in the lockfile.'):format(name_str)
-        .. ' Restart Nvim and run `vim.pack.add({})` to autoinstall.'
+        .. ' Restart wgvim and run `vim.pack.add({})` to autoinstall.'
         .. (' To fully delete, run `vim.pack.del({ %s }, { force = true })`'):format(name_str)
     )
     return false
@@ -141,10 +141,10 @@ local function check_plugin_lock_data(plug_name, lock_data)
     health.error(
       ('Plugin %s is not at expected revision\n'):format(name_str)
         .. ('Expected: %s\nActual:   %s\n'):format(lock_data.rev, head)
-        .. 'To synchronize, restart Nvim and run '
+        .. 'To synchronize, restart wgvim and run '
         .. ('`vim.pack.update({ %s }, { offline = true })`\n'):format(name_str)
         .. 'If there are no updates, delete `rev` lockfile entry (do not create trailing comma) '
-        .. 'and restart Nvim to regenerate lockfile data\n'
+        .. 'and restart wgvim to regenerate lockfile data\n'
         .. 'This can happen after updating plugins with read-only `$XDG_CONFIG_HOME`'
     )
     return false
@@ -161,7 +161,7 @@ local function check_plugin_lock_data(plug_name, lock_data)
         ('Plugin %s has not expected source\n'):format(name_str)
           .. ('Expected: %s\nActual:   %s\n'):format(lock_data.src, origin)
           .. 'Delete `src` lockfile entry (do not create trailing comma) and '
-          .. 'restart Nvim to regenerate lockfile data'
+          .. 'restart wgvim to regenerate lockfile data'
       )
       return false
     end
@@ -177,19 +177,19 @@ local function check_lockfile()
   local path = get_lockfile_path()
   local can_read, text = pcall(vim.fn.readblob, path)
   if not can_read then
-    health.error('Could not read lockfile. Delete it and restart Nvim.')
+    health.error('Could not read lockfile. Delete it and restart wgvim.')
     return
   end
 
   --- @cast text string
   local can_parse, data = pcall(vim.json.decode, text)
   if not can_parse then
-    health.error(('Could not parse lockfile: %s\nDelete it and restart Nvim'):format(data))
+    health.error(('Could not parse lockfile: %s\nDelete it and restart wgvim'):format(data))
     return
   end
 
   if type(data.plugins) ~= 'table' then
-    health.error('Field `plugins` is not proper type. Delete lockfile and restart Nvim')
+    health.error('Field `plugins` is not proper type. Delete lockfile and restart wgvim')
     return
   end
 
@@ -279,7 +279,7 @@ local function check_manifest(plug_data, all_plug_data)
     is_good = false
   elseif not nvim_version_range:has(vim.version()) then
     warn(
-      ('Plugin %s Nvim version requirement %s'):format(name_str, tostring(nvim_version_range))
+      ('Plugin %s wgvim version requirement %s'):format(name_str, tostring(nvim_version_range))
         .. (' does not match current version %s'):format(tostring(vim.version()))
     )
     is_good = false
@@ -345,7 +345,7 @@ local function check_installed_plugin(plug_name, all_plug_data)
     health.warn(
       ('Plugin %s is not at state which is a result of `vim.pack` operation.\n'):format(name_str)
         .. 'If it was intentional, make sure you know what you are doing.\n'
-        .. 'Otherwise, restart Nvim and run '
+        .. 'Otherwise, restart wgvim and run '
         .. ('`vim.pack.update({ %s }, { offline = true })`.\n'):format(name_str)
         .. 'If nothing is updated, plugin is at correct revision and will be managed as expected'
     )

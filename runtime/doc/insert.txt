@@ -1,4 +1,4 @@
-*insert.txt*    Nvim
+*insert.txt*    wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -1477,9 +1477,9 @@ Universal Ctags is preferred, Exuberant Ctags is no longer maintained.
 
 If you want to complete system functions you can do something like this.  Use
 ctags to generate a tags file for all the system header files: >
-	% ctags -R -f ~/.config/nvim/systags /usr/include /usr/local/include
+	% ctags -R -f ~/.config/wgvim/systags /usr/include /usr/local/include
 In your vimrc file add this tags file to the 'tags' option: >
-	set tags+=~/.config/nvim/systags
+	set tags+=~/.config/wgvim/systags
 
 When using CTRL-X CTRL-O after a name without any "." or "->" it is completed
 from the tags file directly.  This works for any identifier, also function

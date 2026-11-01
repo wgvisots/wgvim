@@ -1,4 +1,4 @@
-*ft_sql.txt*	Nvim
+*ft_sql.txt*	wgvim
 
 ==============================================================================
 SQL filetype plugin
@@ -294,8 +294,8 @@ To help identify these scripts, try to create the files with a "sql" prefix.
 If you decide you wish to create customizations for the SQLite database, you
 can create any of the following: >
     Unix
-	~/.config/nvim/syntax/sqlite.vim
-	~/.config/nvim/indent/sqlite.vim
+	~/.config/wgvim/syntax/sqlite.vim
+	~/.config/wgvim/indent/sqlite.vim
 
 No changes are necessary to the SQLSetType function.  It will automatically
 pick up the new SQL files and load them when you issue the SQLSetType command.

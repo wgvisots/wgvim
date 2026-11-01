@@ -769,11 +769,11 @@ describe('vim.fs', function()
         xdg_config_home .. '/nvim',
         exec_lua(function()
           return vim._with({ env = { XDG_CONFIG_HOME = xdg_config_home } }, function()
-            return vim.fs.normalize('$XDG_CONFIG_HOME/nvim')
+            return vim.fs.normalize('$XDG_CONFIG_HOME/wgvim')
           end)
         end)
       )
-      eq('$XDG_CONFIG_HOME/nvim', vim.fs.normalize('$XDG_CONFIG_HOME/nvim', { plain = true }))
+      eq('$XDG_CONFIG_HOME/wgvim', vim.fs.normalize('$XDG_CONFIG_HOME/wgvim', { plain = true }))
     end)
 
     -- Opts required for testing posix paths and win paths

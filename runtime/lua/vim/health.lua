@@ -1,7 +1,7 @@
 --- @brief
 ---
 --- vim.health is a minimal framework to help users troubleshoot configuration and any other
---- environment conditions that a plugin might care about. Nvim ships with healthchecks for
+--- environment conditions that a plugin might care about. wgvim ships with healthchecks for
 --- configuration, performance, python support, ruby support, clipboard support, and more.
 ---
 --- To run all healthchecks, use:
@@ -16,7 +16,7 @@
 ---                                                              *:che* *:checkhealth*
 --- :che[ckhealth]  Run all healthchecks.
 ---                                         *E5009*
----                 Nvim depends on |$VIMRUNTIME|, 'runtimepath' and 'packpath' to
+---                 wgvim depends on |$VIMRUNTIME|, 'runtimepath' and 'packpath' to
 ---                 find the standard "runtime files" for syntax highlighting,
 ---                 filetype-specific behavior, and standard plugins (including
 ---                 :checkhealth).  If the runtime files cannot be found then
@@ -24,7 +24,7 @@
 ---
 --- :che[ckhealth] {plugins}
 ---                 Run healthcheck(s) for one or more plugins. E.g. to run only
----                 the standard Nvim healthcheck: >vim
+---                 the standard wgvim healthcheck: >vim
 ---                         :checkhealth vim.health
 --- <
 ---                 To run the healthchecks for the "foo" and "bar" plugins
@@ -33,7 +33,7 @@
 ---                         :checkhealth foo bar
 --- <
 ---                 To run healthchecks for Lua submodules, use dot notation or
----                 "*" to refer to all submodules. For example Nvim provides
+---                 "*" to refer to all submodules. For example wgvim provides
 ---                 `vim.lsp` and `vim.treesitter`:  >vim
 ---                         :checkhealth vim.lsp vim.treesitter
 ---                         :checkhealth vim*
@@ -74,7 +74,7 @@
 ---</pre>
 ---
 --- Healthchecks are functions that check the user environment, configuration, or any other
---- prerequisites that a plugin cares about. Nvim ships with healthchecks in:
+--- prerequisites that a plugin cares about. wgvim ships with healthchecks in:
 --- - $VIMRUNTIME/autoload/health/
 --- - $VIMRUNTIME/lua/vim/lsp/health.lua
 --- - $VIMRUNTIME/lua/vim/treesitter/health.lua

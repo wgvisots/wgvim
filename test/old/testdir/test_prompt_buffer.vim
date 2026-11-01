@@ -1,7 +1,7 @@
 " Tests for setting 'buftype' to "prompt"
 
 source check.vim
-" Nvim's channel implementation differs from Vim's
+" wgvim's channel implementation differs from Vim's
 " CheckFeature channel
 
 source shared.vim
@@ -166,7 +166,7 @@ func Test_prompt_buffer_edit()
   normal! i
   call assert_beeps('normal! dd')
   call assert_beeps('normal! ~')
-  " Nvim: these operations are supported
+  " wgvim: these operations are supported
   " call assert_beeps('normal! o')
   " call assert_beeps('normal! O')
   " call assert_beeps('normal! p')

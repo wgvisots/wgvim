@@ -7,7 +7,7 @@
 ==============================================================================
 Diagnostic framework                                     *vim.diagnostic*
 
-Nvim provides a framework for displaying errors or warnings from external
+wgvim provides a framework for displaying errors or warnings from external
 tools, otherwise known as "diagnostics". These diagnostics can come from a
 variety of sources, such as linters or LSP servers. The diagnostic framework
 is an extension to existing error handling functionality such as the
@@ -71,7 +71,7 @@ values and accept one of three forms:
 ==============================================================================
 DEFAULTS                                              *diagnostic-defaults*
 
-These diagnostic keymaps are created unconditionally when Nvim starts:
+These diagnostic keymaps are created unconditionally when wgvim starts:
 - `]d` jumps to the next diagnostic in the buffer. |]d-default|
 - `[d` jumps to the previous diagnostic in the buffer. |[d-default|
 - `]D` jumps to the last diagnostic in the buffer. |]D-default|
@@ -106,7 +106,7 @@ If a diagnostic handler is configured with a "severity" key then the list of
 diagnostics passed to that handler will be filtered using the value of that
 key (see example below).
 
-Nvim provides these handlers by default: "virtual_text", "virtual_lines",
+wgvim provides these handlers by default: "virtual_text", "virtual_lines",
 "signs", and "underline".
 
                                                 *diagnostic-handlers-example*
@@ -459,7 +459,7 @@ vim.Diagnostic                                                *vim.Diagnostic*
                       diagnostic |vim.diagnostic.severity|
 
 vim.Diagnostic.Set                                        *vim.Diagnostic.Set*
-    Diagnostics use the same indexing as the rest of the Nvim API (i.e.
+    Diagnostics use the same indexing as the rest of the wgvim API (i.e.
     0-based rows, and columns given as 0-based byte indices). |api-indexing|
 
     Fields: ~

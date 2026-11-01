@@ -56,7 +56,7 @@ endfunc
 
 " Test for getting the value of 'pastetoggle'
 func Test_pastetoggle()
-  throw "Skipped: 'pastetoggle' is removed from Nvim"
+  throw "Skipped: 'pastetoggle' is removed from wgvim"
   " character with K_SPECIAL byte
   let &pastetoggle = '…'
   call assert_equal('…', &pastetoggle)
@@ -865,7 +865,7 @@ func Test_set_option_errors()
   call assert_fails('set complete=x', 'E539:')
 
   " Test for 'statusline' errors
-  call assert_fails('set statusline=%^', 'E539:')  " Nvim: supports %$
+  call assert_fails('set statusline=%^', 'E539:')  " wgvim: supports %$
   call assert_fails('set statusline=%{', 'E540:')
   call assert_fails('set statusline=%{%', 'E540:')
   call assert_fails('set statusline=%{%}', 'E539:')
@@ -873,7 +873,7 @@ func Test_set_option_errors()
   call assert_fails('set statusline=%)', 'E542:')
 
   " Test for 'tabline' errors
-  call assert_fails('set tabline=%^', 'E539:')  " Nvim: supports %$
+  call assert_fails('set tabline=%^', 'E539:')  " wgvim: supports %$
   call assert_fails('set tabline=%{', 'E540:')
   call assert_fails('set tabline=%{%', 'E540:')
   call assert_fails('set tabline=%{%}', 'E539:')
@@ -975,7 +975,7 @@ func Test_set_option_errors()
 endfunc
 
 func Test_set_encoding()
-  throw 'skipped: Nvim supports ''utf8'' encoding only'
+  throw 'skipped: wgvim supports ''utf8'' encoding only'
   let save_encoding = &encoding
 
   set enc=iso8859-1
@@ -1011,7 +1011,7 @@ endfunc
 
 " Must be executed before other tests that set 'term'.
 func Test_000_term_option_verbose()
-  throw "Skipped: Nvim does not support setting 'term'"
+  throw "Skipped: wgvim does not support setting 'term'"
   CheckNotGui
 
   call CheckWasNotSet('t_cm')
@@ -1044,7 +1044,7 @@ func Test_copy_context()
 endfunc
 
 func Test_set_ttytype()
-  throw "Skipped: Nvim does not support 'ttytype'"
+  throw "Skipped: wgvim does not support 'ttytype'"
   CheckUnix
   CheckNotGui
 
@@ -1101,7 +1101,7 @@ func Test_set_all_one_column()
 endfunc
 
 func Test_renderoptions()
-  throw 'skipped: Nvim does not support renderoptions'
+  throw 'skipped: wgvim does not support renderoptions'
   " Only do this for Windows Vista and later, fails on Windows XP and earlier.
   " Doesn't hurt to do this on a non-Windows system.
   if windowsversion() !~ '^[345]\.'
@@ -1404,7 +1404,7 @@ func Test_shortmess_F2()
   " call assert_false(test_getvalue('need_fileinfo'))
   call assert_true(empty(execute('bn', '')))
   " call assert_false(test_getvalue('need_fileinfo'))
-  set shortmess-=F  " Accommodate Nvim default.
+  set shortmess-=F  " Accommodate wgvim default.
   call assert_match('file1', execute('bn', ''))
   call assert_match('file2', execute('bn', ''))
   bwipe
@@ -1540,14 +1540,14 @@ func Test_writedelay()
 
   new
   call setline(1, 'empty')
-  " Nvim: 'writedelay' is applied per screen line.
+  " wgvim: 'writedelay' is applied per screen line.
   " Create 7 vertical splits first.
   vs | vs | vs | vs | vs | vs
   redraw
   set writedelay=10
   let start = reltime()
   " call setline(1, repeat('x', 70))
-  " Nvim: enable 'writedelay' per screen line.
+  " wgvim: enable 'writedelay' per screen line.
   " In each of the 7 vertical splits, 10 screen lines need to be drawn.
   set redrawdebug+=line
   call setline(1, repeat(['x'], 10))
@@ -2340,7 +2340,7 @@ endfunc
 
 " Check that VIM_POSIX env variable influences default value of 'cpo' and 'shm'
 func Test_VIM_POSIX()
-  throw 'Skipped: Nvim does not support $VIM_POSIX'
+  throw 'Skipped: wgvim does not support $VIM_POSIX'
   let saved_VIM_POSIX = getenv("VIM_POSIX")
 
   call setenv('VIM_POSIX', "1")
@@ -2369,7 +2369,7 @@ endfunc
 
 " Test for setting an option to a Vi or Vim default
 func Test_opt_default()
-  throw 'Skipped: Nvim has different defaults'
+  throw 'Skipped: wgvim has different defaults'
   set formatoptions&vi
   call assert_equal('vt', &formatoptions)
   set formatoptions&vim
@@ -2397,7 +2397,7 @@ func Test_opt_cmdheight()
   set laststatus=2
   set cmdheight=9999
   call assert_equal(ht - 2, &cmdheight)
-  set cmdheight& laststatus=1  " Accommodate Nvim default
+  set cmdheight& laststatus=1  " Accommodate wgvim default
 
   " The tabline should be taken into account only non-GUI.
   set showtabline=2
@@ -2508,7 +2508,7 @@ func Test_set_completion_fuzzy()
   " Test fuzzy option completion
   set wildoptions=fuzzy
   call feedkeys(":set termg\<C-A>\<C-B>\"\<CR>", 'tx')
-  " Nvim doesn't have 'termencoding'
+  " wgvim doesn't have 'termencoding'
   " call assert_equal('"set termguicolors termencoding', @:)
   call assert_equal('"set termguicolors', @:)
 
@@ -2523,7 +2523,7 @@ func Test_switchbuf_reset()
   sblast
   call assert_equal(1, winnr('$'))
   set all&
-  " Nvim has a different default for 'switchbuf'
+  " wgvim has a different default for 'switchbuf'
   " call assert_equal('', &switchbuf)
   call assert_equal('uselast', &switchbuf)
   sblast
@@ -2991,7 +2991,7 @@ func Test_set_missing_options()
 endfunc
 
 func Test_showcmd()
-  throw 'Skipped: Nvim does not support support Vi-compatible mode'
+  throw 'Skipped: wgvim does not support support Vi-compatible mode'
   " in no-cp mode, 'showcmd' is enabled
   let _cp=&cp
   call assert_equal(1, &showcmd)

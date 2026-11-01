@@ -48,7 +48,7 @@ describe('normal', function()
       virt_lines = { { { '---', 'IncSearch' } } },
       virt_lines_above = true,
     })
-    -- Nvim: not actually necessary to scroll down to hide the virtual line.
+    -- wgvim: not actually necessary to scroll down to hide the virtual line.
     -- Check topfill instead of skipcol and show the screen state.
     feed('<C-E>')
     eq(0, fn.winsaveview().topfill)
@@ -74,7 +74,7 @@ describe('normal', function()
     eq(1, fn.winsaveview().topfill)
     screen:expect(s2)
 
-    -- Nvim: also test virt_lines below the last line
+    -- wgvim: also test virt_lines below the last line
     feed('yy100pG<C-L>')
     api.nvim_buf_set_extmark(0, ns, 100, 0, { virt_lines = { { { '---', 'IncSearch' } } } })
     screen:expect({
@@ -135,7 +135,7 @@ describe('normal', function()
 
   -- oldtest: Test_pos_percentage_in_turkish_locale()
   it('viewport position percentage in Turkish locale', function()
-    t.skip(not t.translations_enabled(), 'N/A: Nvim not built with ENABLE_TRANSLATIONS')
+    t.skip(not t.translations_enabled(), 'N/A: wgvim not built with ENABLE_TRANSLATIONS')
     t.skip(not pcall(exec, 'lang tr_TR.UTF-8'), 'Turkish locale not available')
 
     local build_dir = t.paths.test_build_dir

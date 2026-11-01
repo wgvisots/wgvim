@@ -252,7 +252,7 @@ function repos_setup.with_manifest()
 
   local manifest_tbl = {
     name = 'plug',
-    description = 'Nvim plugin',
+    description = 'wgvim plugin',
     engine = { nvim = '>=0.12.0', vim = '>=9.1.0' },
     -- Should handle both `*.lua` and `*.vim` files
     scripts = {
@@ -2370,7 +2370,7 @@ describe('vim.pack', function()
       vim_pack_add({ repos_src.manifest })
       local manifest_tbl = {
         name = 'plug',
-        description = 'Nvim plugin',
+        description = 'wgvim plugin',
         engine = { nvim = '>=0.12.0', vim = '>=9.1.0' },
         scripts = {
           install = 'scripts/install.lua',

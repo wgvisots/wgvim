@@ -35,7 +35,7 @@ typedef enum {
   kCdScopeBuffer,   ///< Affects one buffer.
   kCdScopeWindow,   ///< Affects one window.
   kCdScopeTabpage,  ///< Affects one tab page.
-  kCdScopeGlobal,   ///< Affects the entire Nvim instance.
+  kCdScopeGlobal,   ///< Affects the entire wgvim instance.
 } CdScope;
 
 /// What caused the current directory to change.

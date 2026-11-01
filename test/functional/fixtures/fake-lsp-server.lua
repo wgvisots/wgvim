@@ -8,13 +8,13 @@ vim.fn.stdioopen({
   end,
 })
 
--- Logs to $NVIM_LOG_FILE.
+-- Logs to $WGVIM_LOG_FILE.
 --
 -- TODO(justinmk): remove after https://github.com/neovim/neovim/pull/7062
 local function log(loglevel, area, msg)
   vim.fn.writefile(
     { string.format('%d %s %s: %s', pid, loglevel, area, msg) },
-    vim.env.NVIM_LOG_FILE,
+    vim.env.WGVIM_LOG_FILE,
     'a'
   )
 end

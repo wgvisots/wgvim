@@ -343,7 +343,7 @@ static void set_init_fenc_default(void)
 /// Initialize the options, first part.
 ///
 /// Called only once from main(), just after creating the first buffer.
-/// If "clean_arg" is true, Nvim was started with --clean.
+/// If "clean_arg" is true, wgvim was started with --clean.
 ///
 /// NOTE: ELOG() etc calls are not allowed here, as log location depends on
 /// env var expansion which depends on expression evaluation and other
@@ -411,7 +411,7 @@ void set_init_1(bool clean_arg)
 
   // Allow disabling ttyfast during startup to disable features such as
   // automatic background detection over slow connections.
-  if (os_env_exists("NVIM_NOTTYFAST", false)) {
+  if (os_env_exists("WGVIM_NOTTYFAST", false)) {
     set_option_value_give_err(kOptTtyfast, BOOLEAN_OBJ(false), 0);
   }
 

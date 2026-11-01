@@ -1,7 +1,7 @@
-Maintaining the Neovim project
+Maintaining the wgvim project
 ==============================
 
-Notes on maintaining the Neovim project.
+Notes on maintaining the wgvim project.
 
 General guidelines
 ------------------
@@ -22,7 +22,7 @@ In practice we haven't found a way to forecast more precisely than "next" and
 * Next feature-release (1.x.0)
 
 The forecasting problem might be solved with an explicit priority system (like
-Vim's todo.txt). Meanwhile the Neovim priority system is defined by:
+Vim's todo.txt). Meanwhile the wgvim priority system is defined by:
 
 * PRs nearing completion.
 * Issue labels. E.g. the `has:plan` label increases the ticket's priority merely
@@ -62,7 +62,7 @@ Trigger the action by labeling a PR with `ci:backport release-x.y`. See `.github
 Deprecating and removing features
 ---------------------------------
 
-Neovim inherits many features and design decisions from Vim, not all of which
+wgvim inherits many features and design decisions from Vim, not all of which
 align with the goals of this project. It is sometimes desired or necessary to
 remove existing features, or refactor parts of the code that would change
 user's workflow. In these cases, a deprecation policy is needed to properly
@@ -80,7 +80,7 @@ When a (non-experimental) feature is slated to be removed it should:
     - For Vimscript features, use `v:lua.vim.deprecate()`. Use the same version
       as described for Lua features.
     - `vim.deprecate(…, 'x.y.z')` where major version `x` is greater than the
-      current Nvim major version, is always treated as _soft_ deprecation.
+      current wgvim major version, is always treated as _soft_ deprecation.
 2. Be _hard_ deprecated in a release following the release in which it was soft deprecated.
     - Use of the deprecated feature will still work but should issue a warning.
     - Features implemented in C will need bespoke implementations to communicate
@@ -140,7 +140,7 @@ Some can be auto-bumped by `scripts/bump_deps.lua`.
 * [treesitter parsers](https://github.com/neovim/neovim/blob/7e97c773e3ba78fcddbb2a0b9b0d572c8210c83e/cmake.deps/deps.txt#L47-L62)
 * (Deprecated) [unibilium](https://github.com/neovim/unibilium)
     * The original project [was abandoned](https://github.com/neovim/neovim/issues/10302), so the [neovim/unibilium](https://github.com/neovim/unibilium) fork is considered "upstream" and is maintained on the `master` branch.
-    * **Note:** unibilium is NOT required. See [BUILD.md](./BUILD.md#build-without-unibilium) to build Nvim without unibilium.
+    * **Note:** unibilium is NOT required. See [BUILD.md](./BUILD.md#build-without-unibilium) to build wgvim without unibilium.
 
 ### Vendored dependencies
 
@@ -195,7 +195,7 @@ Refactoring
 
 ### Frozen legacy modules
 
-Refactoring Vim structurally and aesthetically is an important goal of Neovim.
+Refactoring Vim structurally and aesthetically is an important goal of wgvim.
 But there are some modules that should not be changed significantly, because
 they are maintained by Vim, at present. Until someone takes "ownership" of
 these modules, the cost of any significant changes (including style or

@@ -1,0 +1,53 @@
+wgvim
+=====
+
+wgvim is a modified version of Neovim. Nearly all of the code, documentation and
+design in this repository is the work of the Neovim contributors and, before them,
+of Bram Moolenaar and the Vim contributors. Their work is the reason this software
+exists, and the credit for it belongs to them, not to the maintainers of wgvim.
+
+wgvim is NOT the Neovim project, is not affiliated with it, and is not endorsed
+or supported by it. Please do not report problems in wgvim to the Neovim project.
+Defects introduced by the modifications listed below are ours, not theirs.
+
+Origin
+------
+  Neovim            https://neovim.io  (https://github.com/neovim/neovim)
+  Version           0.13.0-dev
+  Snapshot taken    commit d2993065640e1ef93a05b655c76ecabbea5f33f3
+                    "fix(ui): ui_attach handler resets v:count #42619"
+                    (as found on master of github.com/wgvisots/wgvim on 2026-10-31;
+                    it has not been compared against neovim/neovim)
+  Vim               https://www.vim.org  (Bram Moolenaar and the Vim contributors),
+                    from which Neovim is derived.
+
+Licence
+-------
+  Copyright Neovim contributors. All rights reserved.
+  Neovim is licensed under the Apache License 2.0, except for parts that were
+  contributed under the Vim licence. The complete, unmodified licence text is in
+  LICENSE.txt and applies to wgvim as well. Bundled third-party code keeps its own
+  licence: see the LICENSE / COPYING files in src/lpeg, src/mpack, src/xdiff and
+  src/nvim/vterm, and the licence files inside each archive in deps/.
+
+Modifications made for wgvim
+----------------------------
+  In accordance with section 4(b) of the Apache License 2.0, this lists the
+  changes. The git history of this repository is the authoritative record.
+
+  * Name and identity: the program, its documentation and its user-facing
+    messages are called "wgvim". The executable is "wgvim"; per-user directories
+    and environment variables use "wgvim" / "WGVIM" instead of "nvim" / "NVIM".
+    Internal identifiers (the nvim_* API functions, the src/nvim/ directory, the
+    "vim" Lua namespace) are unchanged so existing Lua plugins keep working.
+    Lines that carry credit, copyright, licence or provenance statements were
+    deliberately left as written. scripts/rename-wgvim.py records the rename.
+  * Dependencies are vendored in deps/ and built offline. Every file is checked
+    against the SHA256 recorded in cmake.deps/deps.txt (scripts/verify-deps.sh).
+    The build refuses network URLs.
+  * The Zig build, the CI configuration and the maintainer scripts that fetch from
+    or publish to the network were removed.
+  * A tree-sitter parser for C++ (tree-sitter-cpp 0.23.4) was added, with C++ and
+    MATLAB highlight queries under runtime/queries/.
+  * Further changes (removal of network-capable code, security fixes) are listed
+    in the git history.

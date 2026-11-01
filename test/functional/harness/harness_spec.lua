@@ -1,5 +1,5 @@
 -- Black-box tests for the local Lua harness itself. These spawn a separate
--- Nvim process instead of driving an embedded instance via testnvim.
+-- wgvim process instead of driving an embedded instance via testnvim.
 local t = require('test.testutil')
 local describe, it, pending, finally = t.describe, t.it, t.pending, t.finally
 local uv = vim.uv
@@ -10,7 +10,7 @@ local not_matches = t.not_matches
 
 local root = t.paths.test_source_path
 local build_dir = t.paths.test_build_dir
-local nvim_prog = build_dir .. '/bin/nvim'
+local nvim_prog = build_dir .. '/bin/wgvim'
 local runner = root .. '/test/runner.lua'
 
 ---@param path string
@@ -92,14 +92,14 @@ local function run_harness(suite_dir, extra_args)
   local handle = assert(uv.spawn(nvim_prog, {
     args = args,
     env = make_env({
-      NVIM_TEST = '1',
+      WGVIM_TEST = '1',
       TEST_COLORS = '0',
       VIMRUNTIME = root .. '/runtime',
       XDG_CONFIG_HOME = env_root .. '/config',
       XDG_DATA_HOME = env_root .. '/share',
       XDG_STATE_HOME = env_root .. '/state',
-      NVIM_RPLUGIN_MANIFEST = env_root .. '/rplugin_manifest',
-      NVIM_LOG_FILE = env_root .. '/nvim.log',
+      WGVIM_RPLUGIN_MANIFEST = env_root .. '/rplugin_manifest',
+      WGVIM_LOG_FILE = env_root .. '/nvim.log',
       TMPDIR = env_root .. '/tmp',
       SYSTEM_NAME = os.getenv('SYSTEM_NAME') or uv.os_uname().sysname,
       SHELL = os.getenv('SHELL') or 'sh',

@@ -2,7 +2,7 @@
 "  autload script of matchit plugin, see ../plugin/matchit.vim
 "  Last Change: June 01, 2026
 
-" Neovim does not support scriptversion
+" wgvim does not support scriptversion
 if has("vimscript-4")
   scriptversion 4
 endif

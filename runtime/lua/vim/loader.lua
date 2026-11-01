@@ -122,7 +122,7 @@ end
 local function cache_filename(name)
   if is_appimage then
     -- Avoid cache pollution caused by AppImage randomizing the program root. #31165
-    -- "/tmp/.mount_nvimAmpHPH/usr/share/nvim/runtime" => "/usr/share/nvim/runtime"
+    -- "/tmp/.mount_nvimAmpHPH/usr/share/wgvim/runtime" => "/usr/share/wgvim/runtime"
     name = name:match('(/usr/.*)') or name
   end
 
@@ -423,11 +423,11 @@ end
 --- * overrides |loadfile()|
 --- * adds the Lua loader using the byte-compilation cache
 --- * adds the libs loader
---- * removes the default Nvim loader
+--- * removes the default wgvim loader
 ---
 --- Disable (`enable=false`):
 --- * removes the loaders
---- * adds the default Nvim loader
+--- * adds the default wgvim loader
 ---
 --- @since 0
 ---
@@ -447,7 +447,7 @@ function M.enable(enable)
     table.insert(loaders, 2, loader_cached)
     -- add libs loader
     table.insert(loaders, 3, loader_lib_cached)
-    -- remove Nvim loader
+    -- remove wgvim loader
     for l, loader in ipairs(loaders) do
       if loader == vim._load_package then
         table.remove(loaders, l)

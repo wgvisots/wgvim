@@ -9,7 +9,7 @@ local clear = n.clear
 before_each(clear)
 
 describe('ffi.cdef', function()
-  it('can use Neovim core functions', function()
+  it('can use wgvim core functions', function()
     if not exec_lua("return pcall(require, 'ffi')") then
       pending('N/A: missing LuaJIT FFI')
     end

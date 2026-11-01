@@ -13,7 +13,7 @@ local M = vim._defer_require('vim.diagnostic', {
   _handlers = ..., --- @module 'vim.diagnostic._handlers'
 })
 
---- Diagnostics use the same indexing as the rest of the Nvim API (i.e. 0-based
+--- Diagnostics use the same indexing as the rest of the wgvim API (i.e. 0-based
 --- rows, and columns given as 0-based byte indices). |api-indexing|
 --- @class vim.Diagnostic.Set
 ---

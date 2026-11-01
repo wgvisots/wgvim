@@ -36,9 +36,9 @@ describe('executable()', function()
     -- Needs to check paths relative to repo root dir.
     n.api.nvim_set_current_dir(t.paths.test_source_path)
 
-    t.matches('build/Xtest_xdg[%w_]*/share/nvim%-data', fn.stdpath('data'))
+    t.matches('build/Xtest_xdg[%w_]*/share/wgvim%-data', fn.stdpath('data'))
     command('set shellslash')
-    t.matches('build/Xtest_xdg[%w_]*/share/nvim%-data', fn.stdpath('data'))
+    t.matches('build/Xtest_xdg[%w_]*/share/wgvim%-data', fn.stdpath('data'))
   end)
 
   it('fails for invalid values', function()
@@ -68,7 +68,7 @@ describe('executable()', function()
   it('sibling to nvim binary', function()
     -- Some executable in build/bin/, *not* in $PATH nor CWD.
     local sibling_exe = 'printargs-test'
-    -- Windows: siblings are in Nvim's "pseudo-$PATH".
+    -- Windows: siblings are in wgvim's "pseudo-$PATH".
     local expected = is_os('win') and 1 or 0
     if is_os('win') then
       eq('arg1=lemon;arg2=sky;arg3=tree;', call('system', sibling_exe .. ' lemon sky tree'))

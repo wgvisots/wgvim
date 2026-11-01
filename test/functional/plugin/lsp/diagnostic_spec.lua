@@ -20,7 +20,7 @@ describe('vim.lsp.diagnostic', function()
 
   before_each(function()
     clear { env = {
-      NVIM_LUA_NOTRACK = '1',
+      WGVIM_LUA_NOTRACK = '1',
       VIMRUNTIME = os.getenv 'VIMRUNTIME',
     } }
 

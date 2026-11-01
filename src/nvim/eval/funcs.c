@@ -3141,7 +3141,7 @@ static const char *pty_ignored_env_vars[] = {
   "COLORFGBG",
 #endif
   "COLORTERM",
-  // Nvim-owned env vars. #6764
+  // wgvim-owned env vars. #6764
   "VIM",
   "VIMRUNTIME",
   NULL
@@ -3168,7 +3168,7 @@ static const char *required_env_vars[] = {
 
 /// Builds an environment dict for a child process (job).
 ///
-/// @param set_nvim_addr  Set the $NVIM env var.
+/// @param set_nvim_addr  Set the $WGVIM env var.
 dict_T *create_environment(const dictitem_T *job_env, const bool clear_env, const bool pty,
                            const bool set_nvim_addr, const char * const pty_term_name)
 {
@@ -3223,15 +3223,15 @@ dict_T *create_environment(const dictitem_T *job_env, const bool clear_env, cons
     tv_dict_add_str(env, S_LEN("TERM"), pty_term_name);
   }
 
-  // Set $NVIM (in the child process) to v:servername. #3118
+  // Set $WGVIM (in the child process) to v:servername. #3118
   if (set_nvim_addr) {
     char *nvim_addr = get_vim_var_str(VV_SEND_SERVER);
     if (nvim_addr[0] != NUL) {
-      dictitem_T *dv = tv_dict_find(env, S_LEN("NVIM"));
+      dictitem_T *dv = tv_dict_find(env, S_LEN("WGVIM"));
       if (dv) {
         tv_dict_item_remove(env, dv);
       }
-      tv_dict_add_str(env, S_LEN("NVIM"), nvim_addr);
+      tv_dict_add_str(env, S_LEN("WGVIM"), nvim_addr);
     }
   }
 

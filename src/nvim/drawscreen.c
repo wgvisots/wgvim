@@ -316,7 +316,7 @@ static bool cmdline_number_prompt(void)
   return !ui_has(kUIMessages) && (State & MODE_CMDLINE) && get_cmdline_info()->mouse_used != NULL;
 }
 
-/// Set dimensions of the Nvim application "screen".
+/// Set dimensions of the wgvim application "screen".
 void screen_resize(int width, int height)
 {
   // Avoid recursiveness, can happen when setting the window size causes
@@ -459,7 +459,7 @@ void screen_resize(int width, int height)
   resizing_screen = false;
 }
 
-/// Check if the new Nvim application "screen" dimensions are valid.
+/// Check if the new wgvim application "screen" dimensions are valid.
 /// Correct it if it's too small or way too big.
 void check_screensize(void)
 {

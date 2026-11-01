@@ -89,7 +89,7 @@ func Test_sign()
   " Place a sign without specifying the filename or buffer
   sign place 77 line=9 name=Sign2
   let a=execute('sign place')
-  " Nvim: sign line clamped to buffer length
+  " wgvim: sign line clamped to buffer length
   call assert_equal("\n--- Signs ---\nSigns for Untitled:\n" .
 		\ "    line=4  id=77  name=Sign2  priority=10", a)
   sign unplace *
@@ -799,7 +799,7 @@ func Test_sign_group()
   set buftype=nofile
   sign place 25 line=76 name=sign1 priority=99 file=foo
   let a = execute('sign place')
-  " Nvim: sign line clamped to buffer length
+  " wgvim: sign line clamped to buffer length
   call assert_equal("\n--- Signs ---\nSigns for Xsign:\n" .
 	      \ "    line=10  id=5  name=sign1  priority=10\n" .
 	      \ "Signs for foo:\n" .
@@ -1531,7 +1531,7 @@ func Test_sign_priority()
               \ 'priority' : 20}]
   call assert_equal(se, s[0].signs)
 
-  " Nvim: signs are always sorted lnum->priority->sign_id->last_modified
+  " wgvim: signs are always sorted lnum->priority->sign_id->last_modified
   " Last modified does not take precedence over sign_id here.
 
   " Place the last sign again with the same priority
@@ -1691,7 +1691,7 @@ func Test_sign_lnum_adjust()
   " changes made by this function.
   let &g:undolevels=&g:undolevels
 
-  " Nvim: deleting a line removes the signs along with it.
+  " wgvim: deleting a line removes the signs along with it.
 
   " " Delete the line with the sign
   " call deletebufline('', 4)
@@ -1996,7 +1996,7 @@ func Test_sign_funcs_multi()
   call sign_unplace('*')
 
   " Place multiple signs at once with auto-generated sign identifier
-  " Nvim: next sign id is not reset and is always incremented
+  " wgvim: next sign id is not reset and is always incremented
   call assert_equal([2, 3, 4], sign_placelist([
 	      \ {'group' : 'g1', 'name' : 'sign1',
 	      \ 'buffer' : 'Xsign', 'lnum' : 11},

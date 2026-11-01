@@ -809,7 +809,7 @@ func Xnomem_tests(cchar)
 endfunc
 
 func Test_nomem()
-  throw 'Skipped: Nvim does not support test_alloc_fail()'
+  throw 'Skipped: wgvim does not support test_alloc_fail()'
   call Xnomem_tests('c')
   call Xnomem_tests('l')
 endfunc
@@ -2654,9 +2654,9 @@ func Xproperty_tests(cchar)
   if has('job')
     call g:Xsetlist([], 'a', {'context' : test_null_job()})
   endif
-  " Nvim doesn't have null functions
+  " wgvim doesn't have null functions
   " call g:Xsetlist([], 'a', {'context' : test_null_function()})
-  " Nvim doesn't have null partials
+  " wgvim doesn't have null partials
   " call g:Xsetlist([], 'a', {'context' : test_null_partial()})
   call g:Xsetlist([], 'a', {'context' : ''})
   call test_garbagecollect_now()
@@ -5998,7 +5998,7 @@ func Test_qftextfunc_other_loclist()
 endfunc
 
 func Test_qftextfunc_result_refcount()
-  throw 'Skipped: Nvim does not have test_refcount()'
+  throw 'Skipped: wgvim does not have test_refcount()'
   let save_qftf = &quickfixtextfunc
   new
   try

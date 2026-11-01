@@ -1,12 +1,12 @@
--- Functions to test :terminal and the Nvim TUI.
+-- Functions to test :terminal and the wgvim TUI.
 -- Starts a child process in a `:terminal` and sends bytes to the child via nvim_chan_send().
 -- Note: the global functional/testutil.lua test-session is _host_ session, _not_
 -- the child session.
 --
 -- - Use `setup_screen()` to test `:terminal` behavior with an arbitrary command.
--- - Use `setup_child_nvim()` to test the Nvim TUI.
+-- - Use `setup_child_nvim()` to test the wgvim TUI.
 --    - NOTE: Only use this if your test actually needs the full lifecycle/capabilities of the
---    builtin Nvim TUI. Most tests should just use `Screen.new()` directly, or plain old API calls.
+--    builtin wgvim TUI. Most tests should just use `Screen.new()` directly, or plain old API calls.
 
 local t = require('test.testutil')
 local n = require('test.functional.testnvim')()
@@ -113,7 +113,7 @@ local default_command = { testprg('tty-test') }
 ---@param cols? integer Create screen with this many columns (default: 50)
 ---@param env? table Environment set on the `cmd` job.
 ---@param screen_opts? table Options for `Screen.new()`.
----@return test.functional.ui.screen # Screen attached to the global (not child) Nvim session.
+---@return test.functional.ui.screen # Screen attached to the global (not child) wgvim session.
 function M.setup_screen(extra_rows, cmd, cols, env, screen_opts)
   extra_rows = extra_rows and extra_rows or 0
   cmd = cmd and cmd or default_command
@@ -191,21 +191,21 @@ function M.setup_screen(extra_rows, cmd, cols, env, screen_opts)
   return screen
 end
 
---- Spawns Nvim with `args` in a :terminal, and returns a `Screen` object.
+--- Spawns wgvim with `args` in a :terminal, and returns a `Screen` object.
 ---
---- @note Only use this if you actually need the full lifecycle/capabilities of the builtin Nvim
+--- @note Only use this if you actually need the full lifecycle/capabilities of the builtin wgvim
 --- TUI. Most tests should just use `Screen.new()` directly, or plain old API calls.
 ---
----@param args? string[] Args passed to child Nvim.
+---@param args? string[] Args passed to child wgvim.
 ---@param opts? table Options
----@return test.functional.ui.screen # Screen attached to the global (not child) Nvim session.
+---@return test.functional.ui.screen # Screen attached to the global (not child) wgvim session.
 function M.setup_child_nvim(args, opts)
   opts = opts or {}
   local argv = { nvim_prog, unpack(args or {}) }
 
   local env = t.shallowcopy(opts.env) or {}
   env.VIMRUNTIME = env.VIMRUNTIME or os.getenv('VIMRUNTIME')
-  env.NVIM_TEST = env.NVIM_TEST or os.getenv('NVIM_TEST')
+  env.WGVIM_TEST = env.WGVIM_TEST or os.getenv('WGVIM_TEST')
   -- Child servers need the socket dir set by runner.lua.
   env.XDG_RUNTIME_DIR = env.XDG_RUNTIME_DIR or os.getenv('XDG_RUNTIME_DIR')
 

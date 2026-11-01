@@ -302,7 +302,7 @@ local function set_readonly(buf)
   api.nvim_set_option_value('modifiable', false, { buf = buf })
 end
 
---- Read extracted bytes through Nvim's normal reader to preserve encoding, EOL, and binary behavior.
+--- Read extracted bytes through wgvim's normal reader to preserve encoding, EOL, and binary behavior.
 ---@param buf integer Target archive entry buffer.
 ---@param temp string Temporary file containing the extracted bytes.
 local function read_tempfile(buf, temp)

@@ -10,7 +10,7 @@
 #include "nvim/os/stdpaths_defs.h"
 #include "nvim/types_defs.h"
 
-// True if when running in a test environment ($NVIM_TEST).
+// True if when running in a test environment ($WGVIM_TEST).
 // TODO(justinmk): Can we use v:testing instead?
 EXTERN bool nvim_testing INIT( = false);
 extern char *default_vim_dir;
@@ -24,8 +24,8 @@ extern char *default_lib_dir;
 #include "os/users.h.generated.h"
 // IWYU pragma: end_exports
 
-#define ENV_LOGFILE "NVIM_LOG_FILE"
-#define ENV_LOGFILE_WANT "__NVIM_LOG_FILE_WANT"
-#define ENV_NVIM "NVIM"
-#define ENV_STARTREASON "__NVIM_STARTREASON"
-#define ENV_TEST_LOG "__NVIM_TEST_LOG"
+#define ENV_LOGFILE "WGVIM_LOG_FILE"
+#define ENV_LOGFILE_WANT "__WGVIM_LOG_FILE_WANT"
+#define ENV_NVIM "WGVIM"
+#define ENV_STARTREASON "__WGVIM_STARTREASON"
+#define ENV_TEST_LOG "__WGVIM_TEST_LOG"

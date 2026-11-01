@@ -1,15 +1,15 @@
-*gui.txt*       Nvim
+*gui.txt*       wgvim
 
 
                   VIM REFERENCE MANUAL    by Bram Moolenaar
 
 
 ==============================================================================
-Nvim Graphical User Interface                           *gui* *GUI*
+wgvim Graphical User Interface                           *gui* *GUI*
 
-Any client that supports the Nvim |ui-protocol| can be used as a UI for Nvim.
-And multiple UIs can connect to the same Nvim instance! The terms "UI" and
-"GUI" are often used interchangeably because all Nvim UI clients have the same
+Any client that supports the wgvim |ui-protocol| can be used as a UI for wgvim.
+And multiple UIs can connect to the same wgvim instance! The terms "UI" and
+"GUI" are often used interchangeably because all wgvim UI clients have the same
 potential capabilities; the "TUI" refers to a UI client that outputs to your
 terminal, whereas a "GUI" outputs directly to the OS graphics system.
 
@@ -23,10 +23,10 @@ features, whereas help tags with the "ui-" prefix refer to the |ui-protocol|.
 ==============================================================================
 Third-party GUIs                                *third-party-guis* *vscode*
 
-Nvim provides a builtin "terminal UI" (|TUI|), but also works with many
+wgvim provides a builtin "terminal UI" (|TUI|), but also works with many
 (third-party) GUIs which may provide a fresh look or extra features on top of
-Nvim. For example, "vscode-neovim" essentially allows you to use VSCode as
-a Nvim GUI.
+wgvim. For example, "vscode-neovim" essentially allows you to use VSCode as
+a wgvim GUI.
 
 - vscode-neovim (Nvim in VSCode!) https://github.com/vscode-neovim/vscode-neovim
 - Firenvim (Nvim in your web browser!) https://github.com/glacambre/firenvim
@@ -41,21 +41,21 @@ a Nvim GUI.
 Starting the GUI                                *gui-config* *gui-start*
 
                                 *ginit.vim* *gui-init* *gvimrc* *$MYGVIMRC*
-For GUI-specific configuration Nvim provides the |UIEnter| event.  This
+For GUI-specific configuration wgvim provides the |UIEnter| event.  This
 happens after other |initialization|s, or whenever a UI attaches (multiple UIs
-can connect to any Nvim instance).
+can connect to any wgvim instance).
 
 Example: this sets "g:gui" to the value of the UI's "rgb" field:    >
         :autocmd UIEnter * let g:gui = filter(nvim_list_uis(),{k,v-> v.chan==v:event.chan})[0].rgb
 <
 								*ui-lifecycle*
-Nvim's |clientserver| architecture allows you to |:restart|, |:detach| (Nvim
+wgvim's |clientserver| architecture allows you to |:restart|, |:detach| (wgvim
 continues in the background), or |:connect| to another instance.
 
 Use cases:
 - keep the session running on remote machines after (unexpected) SSH disconnect
 - open files in an existing session from your OS file explorer
-- run Nvim as a background process (daemon/service), attach/detach as needed
+- run wgvim as a background process (daemon/service), attach/detach as needed
 
 ------------------------------------------------------------------------------
 Stop or detach the current UI
@@ -88,25 +88,25 @@ Stop or detach the current UI
                 Same as |nvim_chan_set()| `detach=true` on the UI channel.
                 Preserved across |:restart|.
 
-                If you always want Nvim to survive accidental disconnect, put
+                If you always want wgvim to survive accidental disconnect, put
                 this in your config: >vim
 
                     silent detach!
 <
 
 ------------------------------------------------------------------------------
-Restart Nvim
+Restart wgvim
 
 :restart[!] [+cmd] [command]			*:restart* *:restart!* *E5201*
-                Restarts Nvim. Saves and restores the current session, unless
+                Restarts wgvim. Saves and restores the current session, unless
                 [!] is given. Sets |v:exitreason|. See also |ZR|.
 
                 1. Saves the current session (unless [!] was given).
-                2. Stops Nvim using `:qall` (or |+cmd|, if given).
-                3. Starts a new Nvim server using the same |v:argv| (except
+                2. Stops wgvim using `:qall` (or |+cmd|, if given).
+                3. Starts a new wgvim server using the same |v:argv| (except
                    `-- [file…]` files and `-S [file]`), and sets |v:startreason|.
                 4. Restores the saved session (unless [!] was given).
-                5. Attaches all UIs to the new Nvim server and runs `[command]`
+                5. Attaches all UIs to the new wgvim server and runs `[command]`
                    on it.
 
                 Example: discard changes and stop with `:qall!`, then restart: >
@@ -128,7 +128,7 @@ Restart Nvim
 Connect UI to a different server
 
 :connect {address}					*:connect*
-                Attaches the UI to another Nvim instance: detaches from the
+                Attaches the UI to another wgvim instance: detaches from the
                 current server, then attaches to {address}.
 
                 Note: If the current UI hasn't implemented the "connect" UI

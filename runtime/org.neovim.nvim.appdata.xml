@@ -11,11 +11,11 @@
   <translation type="gettext">nvim</translation>
   <project_license>Apache-2.0</project_license>
   <metadata_license>CC0-1.0</metadata_license>
-  <name>Neovim</name>
+  <name>wgvim</name>
   <summary>Vim-fork focused on extensibility and usability</summary>
 
   <description>
-    <p>Neovim is a refactor of the Vim text editor designed to encourage new features, advanced UIs, and powerful extensions.</p>
+    <p>wgvim is a refactor of the Vim text editor designed to encourage new features, advanced UIs, and powerful extensions.</p>
   </description>
 
   <developer id="org.neovim">

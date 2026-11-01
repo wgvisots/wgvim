@@ -46,7 +46,7 @@ describe('server', function()
   it('broken $XDG_RUNTIME_DIR is not fatal #30282', function()
     clear {
       args_rm = { '--listen' },
-      env = { NVIM_LOG_FILE = testlog, XDG_RUNTIME_DIR = '/non-existent-dir/subdir//' },
+      env = { WGVIM_LOG_FILE = testlog, XDG_RUNTIME_DIR = '/non-existent-dir/subdir//' },
     }
 
     if is_os('win') then
@@ -58,14 +58,14 @@ describe('server', function()
     end
   end)
 
-  it('serverstart(), serverstop() does not set $NVIM', function()
+  it('serverstart(), serverstop() does not set $WGVIM', function()
     clear()
     local s = eval('serverstart()')
     assert(s ~= nil and s:len() > 0, 'serverstart() returned empty')
-    eq('', eval('$NVIM'))
-    eq('', eval('$NVIM_LISTEN_ADDRESS'))
+    eq('', eval('$WGVIM'))
+    eq('', eval('$WGVIM_LISTEN_ADDRESS'))
     eq(1, eval("serverstop('" .. s .. "')"))
-    eq('', eval('$NVIM_LISTEN_ADDRESS'))
+    eq('', eval('$WGVIM_LISTEN_ADDRESS'))
   end)
 
   it('sets v:servername at startup or if all servers were stopped', function()
@@ -87,7 +87,7 @@ describe('server', function()
     eq(1, fn.serverstop(fn.serverlist()[1]))
     eq('', api.nvim_get_vvar('servername'))
 
-    -- v:servername and $NVIM take the next available server.
+    -- v:servername and $WGVIM take the next available server.
     local servername = (
       is_os('win') and [[//./pipe/Xtest-functional-server-pipe]]
       or './Xtest-functional-server-socket'
@@ -95,15 +95,15 @@ describe('server', function()
     fn.serverstart(servername)
     eq(servername, api.nvim_get_vvar('servername'))
     -- Not set in the current process, only in children.
-    eq('', eval('$NVIM'))
+    eq('', eval('$WGVIM'))
   end)
 
   it('serverstop() returns false for invalid input', function()
     clear {
       args_rm = { '--listen' },
       env = {
-        NVIM_LOG_FILE = testlog,
-        NVIM_LISTEN_ADDRESS = '',
+        WGVIM_LOG_FILE = testlog,
+        WGVIM_LISTEN_ADDRESS = '',
       },
     }
     eq(0, eval("serverstop('')"))
@@ -115,8 +115,8 @@ describe('server', function()
     clear {
       args_rm = { '--listen' },
       env = {
-        NVIM_LOG_FILE = testlog,
-        NVIM_LISTEN_ADDRESS = '',
+        WGVIM_LOG_FILE = testlog,
+        WGVIM_LISTEN_ADDRESS = '',
       },
     }
     clear_serverlist()
@@ -191,7 +191,7 @@ describe('server', function()
     -- After serverstop() the servers should NOT be in the list.
     eq(_n, eval('len(serverlist())'))
 
-    -- serverlist({peer=true}) returns servers from other Nvim sessions.
+    -- serverlist({peer=true}) returns servers from other wgvim sessions.
     if t.is_os('win') then
       return
     end
@@ -307,11 +307,11 @@ describe('server', function()
       return vim
         .system(
           { vim.v.progpath, '--headless', '--listen', sock },
-          { text = true, env = { NVIM_LOG_FILE = testlog } }
+          { text = true, env = { WGVIM_LOG_FILE = testlog } }
         )
         :wait()
     end, socket_path)
-    t.assert_log('Socket already in use by another Nvim instance: ', testlog, 100)
+    t.assert_log('Socket already in use by another wgvim instance: ', testlog, 100)
     t.assert_log('Failed to start server: address already in use: ', testlog, 100)
 
     neq(0, result.code)
@@ -327,7 +327,7 @@ describe('server', function()
     clear { args_rm = { '--listen' } }
     matches('//./pipe/', fn.eval('v:servername'), true)
 
-    clear({ args_rm = { '--listen' }, env = { NVIM_LISTEN_ADDRESS = named_pipe } })
+    clear({ args_rm = { '--listen' }, env = { WGVIM_LISTEN_ADDRESS = named_pipe } })
     eq(vim.fs.normalize(named_pipe), fn.eval('v:servername'))
 
     clear({ args_rm = { '--listen' }, args = { '--listen', name } })
@@ -355,7 +355,7 @@ describe('server', function()
 end)
 
 describe('startup --listen', function()
-  -- Tests Nvim output when failing to start, with and without "--headless".
+  -- Tests wgvim output when failing to start, with and without "--headless".
   local function _test(args, env, expected)
     local function run(cmd)
       return n.spawn_wait {
@@ -364,7 +364,7 @@ describe('startup --listen', function()
         env = vim.tbl_extend(
           'force',
           -- Avoid noise in the logs; we expect failures for these tests.
-          { NVIM_LOG_FILE = testlog },
+          { WGVIM_LOG_FILE = testlog },
           env or {}
         ),
       }
@@ -386,7 +386,7 @@ describe('startup --listen', function()
   end
 
   it('validates', function()
-    clear { env = { NVIM_LOG_FILE = testlog } }
+    clear { env = { WGVIM_LOG_FILE = testlog } }
     local in_use = n.eval('v:servername') ---@type string Address already used by another server.
 
     t.assert_nolog('Failed to start server', testlog, 100)
@@ -422,23 +422,23 @@ describe('startup --listen', function()
 
     _test(
       {},
-      { NVIM_LISTEN_ADDRESS = in_use },
-      ('nvim.*: Failed $NVIM_LISTEN_ADDRESS: [^:]+ already [^:]+: "%s"'):format(vim.pesc(in_use))
+      { WGVIM_LISTEN_ADDRESS = in_use },
+      ('nvim.*: Failed $WGVIM_LISTEN_ADDRESS: [^:]+ already [^:]+: "%s"'):format(vim.pesc(in_use))
     )
-    _test({}, { NVIM_LISTEN_ADDRESS = '/' }, 'nvim.*: Failed $NVIM_LISTEN_ADDRESS: [^:]+: "/"')
+    _test({}, { WGVIM_LISTEN_ADDRESS = '/' }, 'nvim.*: Failed $WGVIM_LISTEN_ADDRESS: [^:]+: "/"')
     _test(
       {},
-      { NVIM_LISTEN_ADDRESS = 'https://example.com' },
-      ('nvim.*: Failed $NVIM_LISTEN_ADDRESS: %s: "https://example.com"'):format(
+      { WGVIM_LISTEN_ADDRESS = 'https://example.com' },
+      ('nvim.*: Failed $WGVIM_LISTEN_ADDRESS: %s: "https://example.com"'):format(
         is_os('mac') and 'unknown node or service' or 'service not available for socket type'
       )
     )
   end)
 
-  it('sets v:servername, overrides $NVIM_LISTEN_ADDRESS', function()
+  it('sets v:servername, overrides $WGVIM_LISTEN_ADDRESS', function()
     local addr = (is_os('win') and [[//./pipe/Xtest-listen-pipe]] or './Xtest-listen-pipe')
-    clear({ env = { NVIM_LISTEN_ADDRESS = './Xtest-env-pipe' }, args = { '--listen', addr } })
-    eq('', eval('$NVIM_LISTEN_ADDRESS')) -- Cleared on startup.
+    clear({ env = { WGVIM_LISTEN_ADDRESS = './Xtest-env-pipe' }, args = { '--listen', addr } })
+    eq('', eval('$WGVIM_LISTEN_ADDRESS')) -- Cleared on startup.
     eq(addr, api.nvim_get_vvar('servername'))
 
     -- Address without slashes is a "name" which is appended to a generated path. #8519

@@ -1,8 +1,8 @@
-You can install Neovim from [download](#install-from-download), [package](#install-from-package), or [source](#install-from-source) in just a few seconds.
+You can install wgvim from [download](#install-from-download), [package](#install-from-package), or [source](#install-from-source) in just a few seconds.
 
 ---
 
-- To start Neovim, run `nvim` (not `neovim`).
+- To start wgvim, run `nvim` (not `neovim`).
     - [Discover plugins](https://github.com/neovim/neovim/wiki/Related-projects#plugins).
 - Before upgrading to a new version, **check [Breaking Changes](https://neovim.io/doc/user/news.html#news-breaking).**
 - For config (vimrc) see [the FAQ](https://neovim.io/doc/user/faq.html#faq-general).
@@ -27,7 +27,7 @@ Downloads are available on the [Releases](https://github.com/neovim/neovim/relea
 Install from package
 ====================
 
-Packages are listed below. (You can also [build Neovim from source](#install-from-source).)
+Packages are listed below. (You can also [build wgvim from source](#install-from-source).)
 
 ## Windows
 
@@ -35,7 +35,7 @@ Windows 8+ is required. Windows 7 or older is not supported.
 
 ### [Winget](https://docs.microsoft.com/en-us/windows/package-manager/winget/)
 
-- **Release:** `winget install Neovim.Neovim`
+- **Release:** `winget install wgvim.wgvim`
 - **Nightly:** [Not supported by winget](https://github.com/neovim/neovim/issues/38585)
 
 ### [Chocolatey](https://chocolatey.org)
@@ -91,7 +91,7 @@ You can use this powershell script to install the MSI from the [releases page](h
     uv tool install --upgrade pynvim
     ```
     - Run `:checkhealth` and read `:help provider-python` for more details.
-- **init.vim ("vimrc"):** If you already have Vim installed you can copy `%userprofile%/_vimrc` to `%userprofile%/AppData/Local/nvim/init.vim` to use your Vim config with Neovim.
+- **init.vim ("vimrc"):** If you already have Vim installed you can copy `%userprofile%/_vimrc` to `%userprofile%/AppData/Local/wgvim/init.vim` to use your Vim config with wgvim.
 
 
 ## macOS / OS X
@@ -104,13 +104,13 @@ For x86_64:
 ```bash
 curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-macos-x86_64.tar.gz
 tar xzf nvim-macos-x86_64.tar.gz
-./nvim-macos-x86_64/bin/nvim
+./nvim-macos-x86_64/bin/wgvim
 ```
 For arm64:
 ```bash
 curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-macos-arm64.tar.gz
 tar xzf nvim-macos-arm64.tar.gz
-./nvim-macos-arm64/bin/nvim
+./nvim-macos-arm64/bin/wgvim
 ```
 ### [Homebrew](https://brew.sh) on macOS or Linux
 
@@ -170,13 +170,13 @@ If the `./nvim-linux-x86_64.appimage` command fails, try:
 
 # Optional: exposing nvim globally.
 sudo mv squashfs-root /
-sudo ln -s /squashfs-root/AppRun /usr/bin/nvim
+sudo ln -s /squashfs-root/AppRun /usr/bin/wgvim
 nvim
 ```
 
 ### Arch Linux
 
-Neovim can be installed from the community repository:
+wgvim can be installed from the community repository:
 ```bash
 sudo pacman -S neovim
 ```
@@ -252,7 +252,7 @@ flatpak run io.neovim.nvim
 
 You can add `/var/lib/flatpak/exports/bin` (or `~/.local/share/flatpak/exports/bin` if you used `--user`) to the `$PATH` and run it with `io.neovim.nvim`.
 
-Note that Flatpak'ed Neovim will look for `init.vim` in `~/.var/app/io.neovim.nvim/config/nvim` instead of `~/.config/nvim`.
+Note that Flatpak'ed wgvim will look for `init.vim` in `~/.var/app/io.neovim.nvim/config/nvim` instead of `~/.config/wgvim`.
 
 ### Gentoo Linux
 
@@ -263,21 +263,21 @@ emerge -a app-editors/neovim
 
 ### GNU Guix
 
-Neovim can be installed with:
+wgvim can be installed with:
 ```bash
 guix install neovim
 ```
 
 ### GoboLinux
 
-Neovim can be installed with:
+wgvim can be installed with:
 ```bash
 sudo -H Compile NeoVim
 ```
 
 ### Nix / NixOS
 
-Neovim can be installed with:
+wgvim can be installed with:
 ```bash
 nix-env -iA nixpkgs.neovim
 ```
@@ -310,7 +310,7 @@ makedeb -si
 
 ### OpenSUSE
 
-Neovim can be installed with:
+wgvim can be installed with:
 ```bash
 sudo zypper in neovim
 ```
@@ -335,14 +335,14 @@ See [neovim on SlackBuilds](https://slackbuilds.org/apps/neovim/).
 
 ### Source Mage
 
-Neovim can be installed using the Sorcery package manager:
+wgvim can be installed using the Sorcery package manager:
 ```bash
 cast neovim
 ```
 
 ### Solus
 
-Neovim can be installed using the default package manager in Solus (eopkg):
+wgvim can be installed using the default package manager in Solus (eopkg):
 ```bash
 sudo eopkg install neovim
 ```
@@ -375,7 +375,7 @@ Python (`:python`) support seems to be automatically installed
 sudo apt install python3-neovim
 ```
 
-Neovim has been added to a "Personal Package Archive" (PPA). This allows you to install it with `apt-get`. Follow the links to the PPAs to see which versions of Ubuntu are currently available via the PPA. Choose **stable** or **unstable**:
+wgvim has been added to a "Personal Package Archive" (PPA). This allows you to install it with `apt-get`. Follow the links to the PPAs to see which versions of Ubuntu are currently available via the PPA. Choose **stable** or **unstable**:
 
 - [https://launchpad.net/~neovim-ppa/+archive/ubuntu/**stable**](https://launchpad.net/~neovim-ppa/+archive/ubuntu/stable)
 - [https://launchpad.net/~neovim-ppa/+archive/ubuntu/**unstable**](https://launchpad.net/~neovim-ppa/+archive/ubuntu/unstable)
@@ -413,14 +413,14 @@ sudo easy_install3 pip
 
 ### Void-Linux
 
-Neovim can be installed using the xbps package manager
+wgvim can be installed using the xbps package manager
 ```bash
 sudo xbps-install -S neovim
 ```
 
 ### Alpine Linux
 
-Neovim can be installed using the apk package manager
+wgvim can be installed using the apk package manager
 ```bash
 sudo apk add neovim
 ```
@@ -464,13 +464,13 @@ cd /usr/ports/editors/neovim/ && make install
 Install from source
 ===================
 
-If a package is not provided for your platform, you can build Neovim from source. See [BUILD.md](./BUILD.md) for details.  If you have the [prerequisites](./BUILD.md#build-prerequisites) then building is easy:
+If a package is not provided for your platform, you can build wgvim from source. See [BUILD.md](./BUILD.md) for details.  If you have the [prerequisites](./BUILD.md#build-prerequisites) then building is easy:
 ```bash
 make CMAKE_BUILD_TYPE=Release
 sudo make install
 ```
 
-For Unix-like systems this installs Neovim to `/usr/local`, while for Windows to `C:/Program Files`. Note, however, that this can complicate uninstallation. The following example avoids this by isolating an installation under `$HOME/neovim`:
+For Unix-like systems this installs wgvim to `/usr/local`, while for Windows to `C:/Program Files`. Note, however, that this can complicate uninstallation. The following example avoids this by isolating an installation under `$HOME/neovim`:
 ```bash
 rm -r build/  # clear the CMake cache
 make CMAKE_EXTRA_FLAGS="-DCMAKE_INSTALL_PREFIX=$HOME/neovim"
@@ -489,6 +489,6 @@ sudo cmake --build build/ --target uninstall
 Alternatively, just delete the `CMAKE_INSTALL_PREFIX` artifacts:
 
 ```bash
-sudo rm /usr/local/bin/nvim
-sudo rm -r /usr/local/share/nvim/
+sudo rm /usr/local/bin/wgvim
+sudo rm -r /usr/local/share/wgvim/
 ```

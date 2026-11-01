@@ -18,7 +18,7 @@ function M.check()
     local removal_version = string.format('nvim-%d.%d', major, minor)
     local will_be_removed = vim.fn.has(removal_version) == 1 and 'was removed' or 'will be removed'
 
-    local msg = ('%s is deprecated. Feature %s in Nvim %s'):format(name, will_be_removed, version)
+    local msg = ('%s is deprecated. Feature %s in wgvim %s'):format(name, will_be_removed, version)
     local msg_alternative = alternative and ('use %s instead.'):format(alternative)
     local advice = { msg_alternative }
     table.insert(advice, backtraces)

@@ -1,5 +1,5 @@
 --- @brief
---- The `vim.lsp.log` module provides logging for the Nvim LSP client.
+--- The `vim.lsp.log` module provides logging for the wgvim LSP client.
 ---
 --- When debugging language servers, it is helpful to enable extra-verbose logging of the LSP client
 --- RPC events. Example:

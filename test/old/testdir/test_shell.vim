@@ -78,7 +78,7 @@ endfunc
 
 " Test for the 'shell' option
 func Test_shell()
-  throw 'Skipped: Nvim missing :shell currently'
+  throw 'Skipped: wgvim missing :shell currently'
   CheckUnix
   let save_shell = &shell
   set shell=

@@ -1751,13 +1751,13 @@ static inline char *add_env_sep_dirs(char *dest, const char *const val, const ch
 ///
 /// Commas in the added directory are escaped.
 ///
-/// Windows: Appends "nvim-data" instead of "nvim" if `type` is kXDGDataHome.
+/// Windows: Appends "wgvim-data" instead of "nvim" if `type` is kXDGDataHome.
 ///
 /// @see get_xdg_home
 ///
 /// @param[in,out]  dest  Destination comma-separated array.
 /// @param[in]  dir  Directory to append.
-/// @param[in]  type  Decides whether to append "nvim" (Win: or "nvim-data").
+/// @param[in]  type  Decides whether to append "nvim" (Win: or "wgvim-data").
 /// @param[in]  suf1  If not NULL, suffix appended to destination. Prior to it
 ///                   directory separator is appended. Suffix must not contain
 ///                   commas.
@@ -1820,10 +1820,10 @@ char *get_lib_dir(void)
     return xstrdup(default_lib_dir);
   }
 
-  // Find library path relative to the nvim binary: ../lib/nvim/
+  // Find library path relative to the nvim binary: ../lib/wgvim/
   char exe_name[MAXPATHL];
   vim_get_prefix_from_exepath(exe_name);
-  if (append_path(exe_name, "lib/nvim", MAXPATHL) == OK) {
+  if (append_path(exe_name, "lib/wgvim", MAXPATHL) == OK) {
     return xstrdup(exe_name);
   }
   return NULL;
@@ -1831,10 +1831,10 @@ char *get_lib_dir(void)
 
 /// Determine the startup value for &runtimepath
 ///
-/// Windows: Uses "…/nvim-data" for kXDGDataHome to avoid storing
+/// Windows: Uses "…/wgvim-data" for kXDGDataHome to avoid storing
 /// configuration and data files in the same path. #4403
 ///
-/// @param clean_arg  Nvim was started with --clean.
+/// @param clean_arg  wgvim was started with --clean.
 /// @return allocated string with the value
 char *runtimepath_default(bool clean_arg)
 {
@@ -2725,7 +2725,7 @@ void f_getscriptinfo(typval_T *argvars, typval_T *rettv, EvalFuncData fptr)
     tv_dict_add_str(d, S_LEN("name"), si->sn_name);
     tv_dict_add_nr(d, S_LEN("sid"), i);
     tv_dict_add_nr(d, S_LEN("version"), 1);
-    // Vim9 autoload script (:h vim9-autoload), not applicable to Nvim.
+    // Vim9 autoload script (:h vim9-autoload), not applicable to wgvim.
     tv_dict_add_bool(d, S_LEN("autoload"), false);
 
     // When a script ID is specified, return information about only the

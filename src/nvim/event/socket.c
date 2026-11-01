@@ -201,7 +201,7 @@ int socket_watcher_start(SocketWatcher *watcher, int backlog, socket_cb cb)
         }
       } else {
         // Socket is alive - this is a real error
-        ELOG("Socket already in use by another Nvim instance: %s", watcher->addr);
+        ELOG("Socket already in use by another wgvim instance: %s", watcher->addr);
       }
     }
 

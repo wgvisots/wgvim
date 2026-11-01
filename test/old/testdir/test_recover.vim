@@ -271,7 +271,7 @@ func Test_recover_corrupted_swap_file()
 
   " set the block number in a pointer entry to a negative number
   let b = copy(save_b)
-  if v:true  " Nvim changed this field from a long to an int64_t
+  if v:true  " wgvim changed this field from a long to an int64_t
     let b[4104:4111] = s:little_endian ? 0z00000000.00000080 : 0z80000000.00000000
   else
     let b[4104:4107] = s:little_endian ? 0z00000080 : 0z80000000
@@ -507,7 +507,7 @@ func Test_recover_corrupted_swap_file1()
   " Test 1: Heap buffer-overflow
   new
   let sample = 'samples/recover-crash1.swp'
-  let target = '.Xpoc1.swp'  " Xpoc1.swp (non-hidden) doesn't work in Nvim
+  let target = '.Xpoc1.swp'  " Xpoc1.swp (non-hidden) doesn't work in wgvim
   " In an out-of-source-tree build the sample may be a symlink, this copies the
   " data into a real file.
   call writefile(readblob(sample), target, 'D')
@@ -523,7 +523,7 @@ func Test_recover_corrupted_swap_file1()
   " Test 2: Segfault
   new
   let sample = 'samples/recover-crash2.swp'
-  let target = '.Xpoc2.swp'  " Xpoc1.swp (non-hidden) doesn't work in Nvim
+  let target = '.Xpoc2.swp'  " Xpoc1.swp (non-hidden) doesn't work in wgvim
   " In an out-of-source-tree build the sample may be a symlink, this copies the
   " data into a real file.
   call writefile(readblob(sample), target, 'D')

@@ -9,7 +9,7 @@
 // - removing a node from a child queue will remove the corresponding link node
 //   in the parent queue
 //
-// These properties allow Nvim to organize and process events from different
+// These properties allow wgvim to organize and process events from different
 // sources with a certain degree of control. How the multiqueue is used:
 //
 //                         +----------------+

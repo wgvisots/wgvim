@@ -351,7 +351,7 @@ func Test_nocatch_timer_garbage_collect()
   " FIXME: why does this fail only on MacOS M1?
   try
     CheckNotMacM1
-    throw 'Skipped: Nvim does not support test_garbagecollect_soon(), test_override()'
+    throw 'Skipped: wgvim does not support test_garbagecollect_soon(), test_override()'
   catch /Skipped/
     let g:skipped_reason = v:exception
     return

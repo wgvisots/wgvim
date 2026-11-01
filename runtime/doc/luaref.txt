@@ -1,4 +1,4 @@
-*luaref.txt*           Nvim
+*luaref.txt*           wgvim
 
 
 ==============================================================================
@@ -4868,7 +4868,7 @@ The main ideas and concepts on how to implement this reference were taken from
 Christian Habermann's CRefVim project
 (https://www.vim.org/scripts/script.php?script_id=614).
 
-Adapted for bundled Nvim documentation; the original plugin can be found at
+Adapted for bundled wgvim documentation; the original plugin can be found at
 https://www.vim.org/scripts/script.php?script_id=1291
 
  vim:tw=78:ts=4:ft=help:norl:et

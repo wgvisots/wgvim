@@ -188,12 +188,12 @@ local function read_tail_lines(path, keep)
 end
 
 -- TODO(lewis6991): move out of harness
---- Read and optionally rename the current Nvim log for failure output.
+--- Read and optionally rename the current wgvim log for failure output.
 --- @param logfile? string
 --- @param ci_rename? boolean
 --- @return string?
 function M.read_nvim_log(logfile, ci_rename)
-  logfile = logfile or os.getenv('NVIM_LOG_FILE') or 'nvim.log'
+  logfile = logfile or os.getenv('WGVIM_LOG_FILE') or 'nvim.log'
   if not uv.fs_stat(logfile) then
     return
   end
@@ -205,7 +205,7 @@ function M.read_nvim_log(logfile, ci_rename)
   local parts = {
     separator,
     '\n',
-    string.format('$NVIM_LOG_FILE: %s\n', logfile),
+    string.format('$WGVIM_LOG_FILE: %s\n', logfile),
     #lines > 0 and string.format('(last %d lines)\n', keep) or '(empty)\n',
   }
   for _, line in ipairs(lines) do

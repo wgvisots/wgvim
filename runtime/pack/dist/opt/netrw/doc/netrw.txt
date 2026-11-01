@@ -1,4 +1,4 @@
-*netrw.txt*  Nvim
+*netrw.txt*  wgvim
 
 	    ------------------------------------------------
 	    NETRW REFERENCE MANUAL    by Charles E. Campbell

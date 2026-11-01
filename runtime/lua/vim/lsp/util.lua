@@ -256,7 +256,7 @@ function M.apply_text_edits(text_edits, bufnr, position_encoding, change_annotat
       -- Normalize line ending
       text_edit.newText, _ = string.gsub(text_edit.newText, '\r\n?', '\n')
 
-      -- Convert from LSP style ranges to Neovim style ranges.
+      -- Convert from LSP style ranges to wgvim style ranges.
       local range = vim.range.lsp(bufnr, text_edit.range, position_encoding)
       local start_row, start_col, end_row, end_col =
         range.start_row, range.start_col, range.end_row, range.end_col

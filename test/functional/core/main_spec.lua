@@ -103,7 +103,7 @@ describe('command-line option', function()
         term = true,
         env = { VIMRUNTIME = os.getenv('VIMRUNTIME') },
       })
-      -- First screen confirms Nvim reached TUI (didn't crash closing scriptin).
+      -- First screen confirms wgvim reached TUI (didn't crash closing scriptin).
       screen:expect(
         [[
         ^                                        |
@@ -118,7 +118,7 @@ describe('command-line option', function()
       n.feed('i:cq 42<CR>')
 
       if is_os('win') then
-        -- XXX: `:cq 42` isn't reaching Nvim, or Nvim exits 1 anyway?
+        -- XXX: `:cq 42` isn't reaching wgvim, or wgvim exits 1 anyway?
         screen:expect({ any = '%[Process exited 1%]' })
       else
         screen:expect({ any = '%[Process exited 42%]' })
@@ -147,7 +147,7 @@ describe('command-line option', function()
       )
       eq(
         'Cannot open for reading: "' .. nonexistent_fname .. '": no such file or directory\n',
-        --- TODO(justinmk): using `p.output` because Nvim emits CRLF even on non-Win. Emit LF instead?
+        --- TODO(justinmk): using `p.output` because wgvim emits CRLF even on non-Win. Emit LF instead?
         p:output()
       )
       eq(2, p.status)
@@ -167,7 +167,7 @@ describe('command-line option', function()
         dollar_fname,
         fname_2
       )
-      --- TODO(justinmk): using `p.output` because Nvim emits CRLF even on non-Win. Emit LF instead?
+      --- TODO(justinmk): using `p.output` because wgvim emits CRLF even on non-Win. Emit LF instead?
       eq('Attempt to open script file again: "-s ' .. dollar_fname .. '"\n', p:output())
       eq(2, p.status)
       eq(nil, uv.fs_stat(fname_2))

@@ -1,10 +1,10 @@
-# Welcome to the Neovim Tutorial
+# Welcome to the wgvim Tutorial
 
 # Chapter 1
 
-Neovim is a very powerful editor that has many commands, too many to explain in
+wgvim is a very powerful editor that has many commands, too many to explain in
 a tutorial such as this. This tutorial is designed to describe enough of the
-commands that you will be able to easily use Neovim as an all-purpose editor.
+commands that you will be able to easily use wgvim as an all-purpose editor.
 
 It is IMPORTANT to remember that this tutorial is set up to teach by use. That
 means that you need to do the exercises to learn them properly. If you only
@@ -26,7 +26,7 @@ This tutorial is interactive, and there are a few things you should know.
 
 When there is a ✗ sign at the left, you will be required to modify text.
 Once you have done the changes correctly, the ✗ sign at the left will change
-to ✓. I imagine you can already see how neat Neovim can be.
+to ✓. I imagine you can already see how neat wgvim can be.
 
 Other times, you'll be prompted to run a command (I'll explain this later):
 
@@ -76,7 +76,7 @@ NOTE: The cursor keys should also work. But using hjkl you will be able to
 
     This quits the editor, DISCARDING any changes you have made.
 
- 3. Open Neovim and get back here by executing the command that got you into
+ 3. Open wgvim and get back here by executing the command that got you into
     this tutorial. That might be:
 
     `:Tutor`{vim} `<Enter>`{normal}
@@ -107,7 +107,7 @@ The ccow jumpedd ovverr thhe mooon. [[The cow jumped over the moon.]]
  5. Now that the line is correct, go on to Lesson 1.4.
 
 NOTE: As you go through this tutorial, do not try to memorize everything,
-      your Neovim vocabulary will expand with usage. Consider returning to
+      your wgvim vocabulary will expand with usage. Consider returning to
       this tutorial periodically for a refresher.
 
 # Lesson 1.4: TEXT EDITING: INSERTION
@@ -164,12 +164,12 @@ There is also some text missing here. [[There is also some text missing here.]]
 ~~~ sh
     $ nvim tutor
 ~~~
-    'nvim' is the command to start the Nvim editor, 'tutor' is the name of
+    'nvim' is the command to start the wgvim editor, 'tutor' is the name of
     the file you wish to edit. Use a file that may be changed.
 
  3. Insert and delete text as you learned in the previous lessons.
 
- 4. Save the file with changes and exit Neovim with:
+ 4. Save the file with changes and exit wgvim with:
 ~~~ cmd
     :wq
 ~~~
@@ -185,11 +185,11 @@ There is also some text missing here. [[There is also some text missing here.]]
  1. The cursor is moved using either the arrow keys or the hjkl keys.
      h (left)   j (down)       k (up)       l (right)
 
- 2. To start Neovim from the shell prompt type:
+ 2. To start wgvim from the shell prompt type:
 ~~~ sh
     $ nvim FILENAME
 ~~~
- 3. To exit Neovim type: `<Esc>`{normal} `:q!`{vim} `<Enter>`{normal} to trash all changes.
+ 3. To exit wgvim type: `<Esc>`{normal} `:q!`{vim} `<Enter>`{normal} to trash all changes.
                 OR type: `<Esc>`{normal} `:wq`{vim} `<Enter>`{normal} to save the changes.
 
  4. To delete the character at the cursor type: `x`{normal}
@@ -370,7 +370,7 @@ Fiix the errors oon thhis line and reeplace them witth undo. [[Fix the errors on
 
  1. Move the cursor to the first `--->` line below.
 
- 2. Type `dd`{normal} to delete the line and store it in a Neovim register.
+ 2. Type `dd`{normal} to delete the line and store it in a wgvim register.
 
  3. Move the cursor to the c) line, ABOVE where the deleted line should go.
 
@@ -645,7 +645,7 @@ NOTE: All `:`{vim} commands are executed when you press `<Enter>`{normal}.
  4. This saves the current file under the name TEST.
     To verify this, type `:!{unix:(ls),win:(dir)}`{vim} again to see your directory.
 
-NOTE: If you were to exit Neovim and start it again with `nvim TEST`, the file
+NOTE: If you were to exit wgvim and start it again with `nvim TEST`, the file
       would be an exact copy of the tutorial when you saved it.
 
  5. Now remove the file by typing:
@@ -677,7 +677,7 @@ NOTE: If you were to exit Neovim and start it again with `nvim TEST`, the file
 
     before you press `<Enter>`{normal}.
 
- 5. Neovim will write the selected lines to the file TEST. Use `:!{unix:(ls),win:(dir)}`{vim} to see it.
+ 5. wgvim will write the selected lines to the file TEST. Use `:!{unix:(ls),win:(dir)}`{vim} to see it.
     Do not remove it yet! We will use it in the next lesson.
 
 NOTE: Pressing [v](v) starts [Visual selection](visual-mode). You can move the cursor around to
@@ -717,7 +717,7 @@ NOTE: You can also read the output of an external command. For example,
      `:!{unix:(ls ),win:(dir)}`{vim}                   - shows a directory listing
      `:!{unix:(rm ),win:(del)} FILENAME`{vim}          - removes file FILENAME
 
- 2. [:w](:w) FILENAME              writes the current Neovim file to disk with
+ 2. [:w](:w) FILENAME              writes the current wgvim file to disk with
                              name FILENAME.
 
  3. [v](v)  motion  :w FILENAME   saves the Visually selected lines in file
@@ -820,7 +820,7 @@ NOTE: You can use `P`{normal} to put before the cursor, rather than after.
 
 ** Set an option so search and substitute commands ignore case. **
 
-There are many settings in Neovim that you can configure to suit your needs.
+There are many settings in wgvim that you can configure to suit your needs.
 
  1. Search for 'ignore' by entering: `/ignore`
     Repeat several times by pressing `n`{normal}.
@@ -888,7 +888,7 @@ NOTE: If you want to ignore case for just one search command, use [\c](/\c)
 
 ** Use the online help system. **
 
-Neovim has a comprehensive online help system.
+wgvim has a comprehensive online help system.
 
 To get started, try one of these two:
 
@@ -915,9 +915,9 @@ You can find help on just about any subject, by giving an argument to the
 
  2. Type the start of a command: `:e`{vim}
 
- 3. Press `<C-d>`{normal} and Neovim will show a list of commands beginning with "e".
+ 3. Press `<C-d>`{normal} and wgvim will show a list of commands beginning with "e".
 
- 4. Press `<Tab>`{normal} and Neovim will show a menu with possible completions
+ 4. Press `<Tab>`{normal} and wgvim will show a menu with possible completions
     (or complete the match, if the entered command is unique, e.g.
     ":ed`<Tab>`{normal}" will be completed to ":edit").
 
@@ -936,7 +936,7 @@ NOTE: Completion works for many commands. It is especially useful for `:help`{vi
 
 # Lesson 7.3: CONFIGURING NVIM
 
-Neovim is a very configurable editor. You can customise it any way you like. To
+wgvim is a very configurable editor. You can customise it any way you like. To
 start using more features, create a vimrc file, which can be "init.lua" if you
 want to use Lua, or "init.vim" if you want to use Vimscript. We'll use
 "init.lua" in this lesson.
@@ -953,7 +953,7 @@ want to use Lua, or "init.vim" if you want to use Vimscript. We'll use
 
     `:w ++p`{vim}
 
- 4. Next time you start Neovim, you can quickly open this vimrc file with:
+ 4. Next time you start wgvim, you can quickly open this vimrc file with:
 
     `:e $MYVIMRC`{vim}
 
@@ -976,15 +976,15 @@ want to use Lua, or "init.vim" if you want to use Vimscript. We'll use
 
 # What's next?
 
-Run `:help nvim-quickstart`{vim} for more information on extending Nvim.
+Run `:help nvim-quickstart`{vim} for more information on extending wgvim.
 
 # CONCLUSION
 
 This concludes Chapter 1 of the Vim Tutor.  Consider continuing with
 [Chapter 2](@tutor:vim-02-beginner).
 
-This was intended to give a brief overview of the Neovim editor, just enough to
-allow you to use it fairly easily. It is far from complete as Neovim has
+This was intended to give a brief overview of the wgvim editor, just enough to
+allow you to use it fairly easily. It is far from complete as wgvim has
 many many more commands. Consult the help often.
 There are also countless great tutorials and videos to be found online.
 Here's a bunch of them:
@@ -1005,7 +1005,7 @@ Here's a bunch of them:
   https://github.com/mhinz/vim-galore
 
 If you prefer a book, *Practical Vim* by Drew Neil is recommended often
-(the sequel, *Modern Vim*, includes material specific to Neovim).
+(the sequel, *Modern Vim*, includes material specific to wgvim).
 
 This tutorial was written by Michael C. Pierce and Robert K. Ware, Colorado
 School of Mines using ideas supplied by Charles Smith, Colorado State
@@ -1013,6 +1013,6 @@ University. E-mail: bware@mines.colorado.edu.
 
 Modified for Vim by Bram Moolenaar.
 Modified for vim-tutor-mode by Felipe Morales.
-Modified for Neovim by Rory Nesbitt.
+Modified for wgvim by Rory Nesbitt.
 
 // vim: nowrap

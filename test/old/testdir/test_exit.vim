@@ -137,7 +137,7 @@ func Test_exit_code()
 endfunc
 
 func Test_exit_error_reading_input()
-  throw 'Skipped: Nvim does not exit after stdin is read'
+  throw 'Skipped: wgvim does not exit after stdin is read'
 
   CheckNotGui
   CheckNotMSWindows
@@ -147,7 +147,7 @@ func Test_exit_error_reading_input()
 
   call writefile([":au VimLeave * call writefile(['l = ' .. v:exiting], 'Xtestout')", ":tabnew", "q:"], 'Xscript', 'b')
 
-  " Nvim requires "-s -" to read stdin as Normal mode input
+  " wgvim requires "-s -" to read stdin as Normal mode input
   " if RunVim([], [], '<Xscript')
   if RunVim([], [], '-s - <Xscript')
     call assert_equal(1, v:shell_error)

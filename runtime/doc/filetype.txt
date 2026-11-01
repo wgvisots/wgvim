@@ -1,4 +1,4 @@
-*filetype.txt*  Nvim
+*filetype.txt*  wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -199,7 +199,7 @@ This means that the contents of compressed files are not inspected.
 							*new-filetype*
 If a file type that you want to use is not detected yet, there are a few ways
 to add it.  The recommended way is to use |vim.filetype.add()| to add it to
-Nvim's builtin filetype detection mechanism.  If you want to handle the
+wgvim's builtin filetype detection mechanism.  If you want to handle the
 detection manually, proceed as follows:
 
 A. If you want to overrule all default file type checks.
@@ -210,7 +210,7 @@ A. If you want to overrule all default file type checks.
    1. Create your user runtime directory.  You would normally use the first
       item of the 'runtimepath' option.  Then create the directory "ftdetect"
       inside it.  Example for Unix: >
-	:!mkdir -p ~/.config/nvim/ftdetect
+	:!mkdir -p ~/.config/wgvim/ftdetect
 <
    2. Create a file that contains an autocommand to detect the file type.
       Example: >
@@ -220,7 +220,7 @@ A. If you want to overrule all default file type checks.
       check the contents of the file to recognize it.
       Write this file as "mine.vim" in the "ftdetect" directory in your user
       runtime directory.  For example, for Unix: >
-	:w ~/.config/nvim/ftdetect/mine.vim
+	:w ~/.config/wgvim/ftdetect/mine.vim
 
 <  3. To use the new filetype detection you must restart Vim.
 
@@ -243,7 +243,7 @@ B. If you want to detect your file after the default file type checks.
 C. If your file type can be detected by the file name or extension.
    1. Create your user runtime directory.  You would normally use the first
       item of the 'runtimepath' option.  Example for Unix: >
-	:!mkdir -p ~/.config/nvim
+	:!mkdir -p ~/.config/wgvim
 <
    2. Create a file that contains autocommands to detect the file type.
       Example: >
@@ -258,7 +258,7 @@ C. If your file type can be detected by the file name or extension.
 <
       Write this file as "filetype.vim" in your user runtime directory.  For
       example, for Unix: >
-	:w ~/.config/nvim/filetype.vim
+	:w ~/.config/wgvim/filetype.vim
 
 <  3. To use the new filetype detection you must restart Vim.
 
@@ -272,7 +272,7 @@ D. If your filetype can only be detected by inspecting the contents of the
 
    1. Create your user runtime directory.  You would normally use the first
       item of the 'runtimepath' option.  Example for Unix: >
-	:!mkdir -p ~/.config/nvim
+	:!mkdir -p ~/.config/wgvim
 <
    2. Create a Vim script file for doing this.  Example: >
 	if did_filetype()	" filetype already set..
@@ -286,7 +286,7 @@ D. If your filetype can only be detected by inspecting the contents of the
 <     See $VIMRUNTIME/scripts.vim for more examples.
       Write this file as "scripts.vim" in your user runtime directory.  For
       example, for Unix: >
-	:w ~/.config/nvim/scripts.vim
+	:w ~/.config/wgvim/scripts.vim
 <
    3. The detection will work right away, no need to restart Vim.
 
@@ -299,7 +299,7 @@ If a file type is detected that is wrong for you, you can set 'filetype' to
 a non-existing name such as `ignored` to avoid that it will be set later anyway.
 
 						     *g:did_load_filetypes*
-The builtin filetype detection provided by Nvim can be disabled by setting
+The builtin filetype detection provided by wgvim can be disabled by setting
 the `did_load_filetypes` global variable. If this variable exists, the default
 `$VIMRUNTIME/filetype.lua` will not run.
 
@@ -312,19 +312,19 @@ all loaded.  For example, if this command: >
 
 produces this output: >
 
-	runtimepath=/etc/vim,~/.config/nvim,/usr/local/share/vim/vim82
+	runtimepath=/etc/vim,~/.config/wgvim,/usr/local/share/vim/vim82
 
 then Vim will load all plugins in these directories and below: >
 
 	/etc/vim/plugin/
-	~/.config/nvim/plugin/
+	~/.config/wgvim/plugin/
 	/usr/local/share/vim/vim82/plugin/
 
 Note that the last one is the value of $VIMRUNTIME which has been expanded.
 
 Note that when using a plugin manager or |packages| many directories will be
 added to 'runtimepath'.  These plugins each require their own directory, don't
-put them directly in ~/.config/nvim/plugin.
+put them directly in ~/.config/wgvim/plugin.
 
 What if it looks like your plugin is not being loaded?  You can find out what
 happens when Vim starts up by using the |-V| argument: >
@@ -377,7 +377,7 @@ ways to change this:
 1. Add a few settings.
    You must create a new filetype plugin in a directory early in
    'runtimepath'.  For Unix, for example you could use this file: >
-	vim ~/.config/nvim/ftplugin/fortran.vim
+	vim ~/.config/wgvim/ftplugin/fortran.vim
 <   You can set those settings and mappings that you would like to add.  Note
    that the global plugin will be loaded after this, it may overrule the
    settings that you do here.  If this is the case, you need to use one of the
@@ -386,7 +386,7 @@ ways to change this:
 2. Make a copy of the plugin and change it.
    You must put the copy in a directory early in 'runtimepath'.  For Unix, for
    example, you could do this: >
-	cp $VIMRUNTIME/ftplugin/fortran.vim ~/.config/nvim/ftplugin/fortran.vim
+	cp $VIMRUNTIME/ftplugin/fortran.vim ~/.config/wgvim/ftplugin/fortran.vim
 <   Then you can edit the copied file to your liking.  Since the b:did_ftplugin
    variable will be set, the global plugin will not be loaded.
    A disadvantage of this method is that when the distributed plugin gets
@@ -395,7 +395,7 @@ ways to change this:
 3. Overrule the settings after loading the global plugin.
    You must create a new filetype plugin in a directory from the end of
    'runtimepath'.  For Unix, for example, you could use this file: >
-	vim ~/.config/nvim/after/ftplugin/fortran.vim
+	vim ~/.config/wgvim/after/ftplugin/fortran.vim
 <   In this file you can change just those settings that you want to change.
 
 ==============================================================================
@@ -889,7 +889,7 @@ Local mappings:
 
 MAN					*ft-man-plugin* *:Man* *man.lua*
 
-View manpages in Nvim. Supports highlighting, completion, locales, and
+View manpages in wgvim. Supports highlighting, completion, locales, and
 navigation. Also see |find-manpage|.
 
 man.lua will always attempt to reuse the closest man window (above/left) but
@@ -932,11 +932,11 @@ Variables:
                           empty or larger than the window width. Enabled by
                           default. Set |FALSE| to enable soft wrapping.
 
-To use Nvim as a manpager: >bash
+To use wgvim as a manpager: >bash
     export MANPAGER='nvim +Man!'
 
-Note: when running `man` from the shell with Nvim as `$MANPAGER`, `man` will
-pre-format the manpage using `groff`, and Nvim will display the manual page as
+Note: when running `man` from the shell with wgvim as `$MANPAGER`, `man` will
+pre-format the manpage using `groff`, and wgvim will display the manual page as
 it was received from stdin (it can't "undo" the hard-wrap caused by
 man/groff). To prevent man/groff from hard-wrapping the manpage, you can set
 `$MANWIDTH=999` in your environment.
@@ -1000,7 +1000,7 @@ To disable this behavior, set the following variable in your vimrc: >
 	let g:python_recommended_style = 0
 <
 Python omni-completion |compl-omni| is provided by python3complete.vim (or
-pythoncomplete.vim) for Nvim with the |python3| provider.
+pythoncomplete.vim) for wgvim with the |python3| provider.
 By default it does not inspect the import / from statements found in the
 buffer. This means completion of names defined in the buffer itself (classes,
 functions, variables) works, but completion of members of imported modules is

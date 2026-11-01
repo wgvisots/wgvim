@@ -1,4 +1,4 @@
-*various.txt*   Nvim
+*various.txt*   wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -548,7 +548,7 @@ user command or autocommand, the script in which it was defined is reported.
 			  before "K" is inserted after the "-s".  If there is
 			  no count, the "-s" is removed.
 							       *K-lsp-default*
-			- The Nvim |LSP| client sets K to show LSP "hover"
+			- The wgvim |LSP| client sets K to show LSP "hover"
 			  feature. |lsp-defaults|
 
 {Visual}K						*v_K*
@@ -588,7 +588,7 @@ g==							*g==*
 			Works in |help| buffers.
 
 :upt[ime]						*:upt* *:uptime*
-			Shows Nvim's uptime.
+			Shows wgvim's uptime.
 			See also |v:starttime|.
 
 ==============================================================================

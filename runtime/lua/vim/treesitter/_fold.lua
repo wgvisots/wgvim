@@ -207,7 +207,7 @@ local group = api.nvim_create_augroup('nvim.treesitter.fold')
 --- Update the folds in the windows that contain the buffer and use expr foldmethod (assuming that
 --- the user doesn't use different foldexpr for the same buffer).
 ---
---- Nvim usually automatically updates folds when text changes, but it doesn't work here because
+--- wgvim usually automatically updates folds when text changes, but it doesn't work here because
 --- FoldInfo update is scheduled. So we do it manually.
 ---@package
 ---@param srow integer

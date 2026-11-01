@@ -136,7 +136,7 @@ function! provider#node#Require(host) abort
 
   let args = ['node']
 
-  if !empty($NVIM_NODE_HOST_DEBUG) && provider#node#can_inspect()
+  if !empty($WGVIM_NODE_HOST_DEBUG) && provider#node#can_inspect()
     call add(args, '--inspect-brk')
   endif
 

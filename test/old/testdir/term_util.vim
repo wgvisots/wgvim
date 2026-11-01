@@ -6,7 +6,7 @@ if exists('*CanRunVimInTerminal')
 endif
 
 func CanRunVimInTerminal()
-  " Nvim: always false, we use Lua screen-tests instead.
+  " wgvim: always false, we use Lua screen-tests instead.
   return 0
 endfunc
 

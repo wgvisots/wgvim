@@ -6,7 +6,7 @@ local s_host ---@type integer?
 --- @param prog string
 --- @return integer
 function M.require(host, prog)
-  local args = { prog, '-e', 'use Neovim::Ext; start_host();' }
+  local args = { prog, '-e', 'use wgvim::Ext; start_host();' }
 
   -- Collect registered perl plugins into args
   local perl_plugins = vim.fn['remote#host#PluginsForHost'](host.name) ---@type any
@@ -34,7 +34,7 @@ function M.detect()
 
   -- if perl is available, make sure the required module is available
   if vim.system({ prog, '-W', '-MNeovim::Ext', '-e', '' }):wait().code ~= 0 then
-    return nil, '"Neovim::Ext" cpan module is not installed'
+    return nil, '"wgvim::Ext" cpan module is not installed'
   end
   return prog, nil
 end

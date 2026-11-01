@@ -1,4 +1,4 @@
-*usr_03.txt*	Nvim
+*usr_03.txt*	wgvim
 
 
 		     VIM USER MANUAL	by Bram Moolenaar
@@ -481,7 +481,7 @@ If you like one of the options mentioned before, and set it each time you use
 Vim, you can put the command in your Vim startup file.  Edit the file, for
 example with: >
 
-	:edit ~/.config/nvim/init.vim
+	:edit ~/.config/wgvim/init.vim
 
 Then add a line with the command to set the option, just like you typed it in
 Vim.  Example: >

@@ -236,7 +236,7 @@ function M.has(outer, inner)
     return false
   end
 
-  -- accounts for empty ranges at the start/end of `outer` that per Neovim API and LSP logic insert
+  -- accounts for empty ranges at the start/end of `outer` that per wgvim API and LSP logic insert
   -- the text outside `outer`
   if
     (

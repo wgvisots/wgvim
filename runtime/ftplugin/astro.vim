@@ -63,7 +63,7 @@ function! s:CollectPathsFromConfig() abort
                 \ ->get('paths', {})
     catch /^Vim\%((\a\+)\)\=:E491:/ " invalid json
         let paths_from_config = {}
-    catch /^Vim\%((\a\+)\)\=:E474:/ " invalid json in Nvim
+    catch /^Vim\%((\a\+)\)\=:E474:/ " invalid json in wgvim
         let paths_from_config = {}
     endtry
 

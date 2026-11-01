@@ -1193,7 +1193,7 @@ endfunc
 
 " Test for errors with :winpos
 func Test_winpos_errors()
-  throw 'Skipped: Nvim does not have :winpos'
+  throw 'Skipped: wgvim does not have :winpos'
   if !has("gui_running") && !has('win32')
     call assert_fails('winpos', 'E188:')
   endif
@@ -1313,7 +1313,7 @@ func Run_noroom_for_newwindow_test(dir_arg)
 endfunc
 
 func Test_split_cmds_with_no_room()
-  throw "Skipped: Nvim supports cmdwin freedom #40312"
+  throw "Skipped: wgvim supports cmdwin freedom #40312"
   call Run_noroom_for_newwindow_test('h')
   call Run_noroom_for_newwindow_test('v')
 endfunc
@@ -1766,7 +1766,7 @@ endfunc
 " tabline, for each possible value of 'laststatus', 'scrolloff',
 " 'equalalways', and with the cursor at the top, middle and bottom.
 func Test_splitkeep_options()
-  throw "Skipped: Nvim supports cmdwin freedom #40312"
+  throw "Skipped: wgvim supports cmdwin freedom #40312"
   " disallow window resizing
   " let save_WS = &t_WS
   " set t_WS=
@@ -1779,7 +1779,7 @@ func Test_splitkeep_options()
     let &laststatus = (run % 3)
     let &splitbelow = (run % 3)
     let &equalalways = (run % 2)
-    " Nvim: both windows have a winbar after splitting
+    " wgvim: both windows have a winbar after splitting
     " let wsb = (run % 2) && &splitbelow
     let wsb = 0
     let tl = (gui ? 0 : ((run % 5) ? 1 : 0))
@@ -1896,7 +1896,7 @@ func Test_splitkeep_options()
 endfunc
 
 func Test_splitkeep_cmdwin_cursor_position()
-  throw 'Skipped: Nvim supports cmdwin freedom #40312'
+  throw 'Skipped: wgvim supports cmdwin freedom #40312'
   set splitkeep=screen
   call setline(1, range(&lines))
 
@@ -2258,7 +2258,7 @@ func Test_autocmd_window_force_room()
 endfunc
 
 func Test_win_gotoid_splitmove_textlock_cmdwin()
-  throw 'Skipped: Nvim supports cmdwin freedom #40312'
+  throw 'Skipped: wgvim supports cmdwin freedom #40312'
   call setline(1, 'foo')
   new
   let curwin = win_getid()

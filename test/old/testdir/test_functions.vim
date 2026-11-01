@@ -23,7 +23,7 @@ func Test_00_bufexists()
 endfunc
 
 func Test_has()
-  throw 'Skipped: Nvim has removed some features'
+  throw 'Skipped: wgvim has removed some features'
   call assert_equal(1, has('eval'))
   call assert_equal(1, has('eval', 1))
 
@@ -90,7 +90,7 @@ func Test_empty()
 endfunc
 
 func Test_err_teapot()
-  throw 'Skipped: Nvim does not have err_teapot()'
+  throw 'Skipped: wgvim does not have err_teapot()'
   call assert_fails('call err_teapot()', "E418: I'm a teapot")
   call assert_fails('call err_teapot(0)', "E418: I'm a teapot")
   call assert_fails('call err_teapot(v:false)', "E418: I'm a teapot")
@@ -867,7 +867,7 @@ func Test_mode()
   call assert_equal('c-c', g:current_modes)
   call feedkeys(":\<Insert>\<F2>\<CR>", 'xt')
   call assert_equal("c-cr", g:current_modes)
-  " Nvim: interactive Ex mode is a cmdwin wrapper: mode()=n/i ("cv" means
+  " wgvim: interactive Ex mode is a cmdwin wrapper: mode()=n/i ("cv" means
   " -es); cannot run inside :normal/feedkeys('x').
   "call feedkeys("gQ\<F2>vi\<CR>", 'xt')
   "call assert_equal('c-cv', g:current_modes)
@@ -2246,7 +2246,7 @@ func Test_inputlist()
   call assert_equal(-2, c)
 
   call assert_fails('call inputlist("")', 'E686:')
-  " Nvim accepts null list as empty list
+  " wgvim accepts null list as empty list
   " call assert_fails('call inputlist(v:_null_list)', 'E686:')
 endfunc
 
@@ -2535,7 +2535,7 @@ func Test_getchar()
   call assert_equal('', getchar(0, #{number: v:false}))
   call assert_equal('', getchar(1, #{number: v:false}))
 
-  " Nvim: <M-x> is never simplified
+  " wgvim: <M-x> is never simplified
   " for key in ["C-I", "C-X", "M-x"]
   for key in ["C-I", "C-X"]
     let lines =<< eval trim END
@@ -2934,13 +2934,13 @@ func Test_call()
   call assert_fails('call foo', 'E107:')
 
   " These once caused a crash.
-  " Nvim doesn't have null functions
+  " wgvim doesn't have null functions
   " call call(test_null_function(), [])
-  " Nvim doesn't have null partials
+  " wgvim doesn't have null partials
   " call call(test_null_partial(), [])
-  " Nvim doesn't have null functions
+  " wgvim doesn't have null functions
   " call assert_fails('call test_null_function()()', 'E1192:')
-  " Nvim doesn't have null partials
+  " wgvim doesn't have null partials
   " call assert_fails('call test_null_partial()()', 'E117:')
 
   let lines =<< trim END

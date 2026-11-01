@@ -65,7 +65,7 @@ end
 
 local M = {}
 
---- This is run in the context of the remote Nvim instance.
+--- This is run in the context of the remote wgvim instance.
 --- @param bytecode string
 --- @param upvalues table<string,any>
 --- @param ... any[]

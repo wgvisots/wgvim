@@ -1,9 +1,9 @@
-*lua-plugin.txt*                     Nvim
+*lua-plugin.txt*                     wgvim
 
                             NVIM REFERENCE MANUAL
 
 ==============================================================================
-Developing Lua plugins for Nvim
+Developing Lua plugins for wgvim
 
 
                                        Type |gO| to see the table of contents.
@@ -11,9 +11,9 @@ Developing Lua plugins for Nvim
 ==============================================================================
 Introduction                                                       *lua-plugin*
 
-This document provides guidance for developing Nvim Lua plugins.
+This document provides guidance for developing wgvim Lua plugins.
 
-- See |lua-guide| for guidance on using Lua to configure and operate Nvim.
+- See |lua-guide| for guidance on using Lua to configure and operate wgvim.
 - See |luaref| and |lua-concepts| for details on the Lua programming language.
 
 ==============================================================================
@@ -46,7 +46,7 @@ susceptible to unexpected bugs at the wrong time.
 
 You can leverage LuaCATS or "emmylua" annotations https://luals.github.io/wiki/annotations/
 along with lua-language-server ("LuaLS") https://luals.github.io/ to catch
-potential bugs in your CI before your plugin's users do. The Nvim codebase
+potential bugs in your CI before your plugin's users do. The wgvim codebase
 uses these annotations extensively.
 
 TOOLS
@@ -156,7 +156,7 @@ Some users like to micro-manage "lazy loading" of plugins by explicitly
 configuring which commands and key mappings load the plugin.
 
 Your plugin should not depend on every user micro-managing their configuration
-in such a way. Nvim has a mechanism for every plugin to do its own implicit
+in such a way. wgvim has a mechanism for every plugin to do its own implicit
 lazy-loading, via |autoload| (Vimscript) and `lua/` (Lua).
 
 Plugin authors can provide "lazy loading" by providing a `plugin/<name>.lua`
@@ -300,7 +300,7 @@ result of code changes in your plugin.
 
 HEALTH
 
-Nvim's "health" framework gives plugins a simple way to report status checks
+wgvim's "health" framework gives plugins a simple way to report status checks
 to users. See |health-dev| for an example.
 
 Basically, this just means your plugin will have a `lua/{plugin}/health.lua`
@@ -349,7 +349,7 @@ VERSIONING TOOLS
 Documentation                                                 *lua-plugin-doc*
 
 Provide vimdoc (see |help-writing|), so that users can read your plugin's
-documentation in Nvim, by entering `:h {plugin}` in |command-mode|. The
+documentation in wgvim, by entering `:h {plugin}` in |command-mode|. The
 help-tags (the right-aligned "search keywords" in the help documents) are
 regenerated using the |:helptags| command.
 

@@ -27,7 +27,7 @@ function s:test_inputrestore()
     call inputrestore()
 endfunction
 
-function s:test_input(prompt, text = v:null, completion = v:null)  " Nvim: use v:null instead of v:none
+function s:test_input(prompt, text = v:null, completion = v:null)  " wgvim: use v:null instead of v:none
 
     if exists("s:inputdefaults_disabled") && s:inputdefaults_disabled || a:text == v:null
         return input(a:prompt)
@@ -261,7 +261,7 @@ func SetShell(shell)
     if a:shell == "default"
         set shell& shellcmdflag& shellxquote& shellpipe& shellredir&
         if has("win32")
-          " Nvim: default 'shell' is "sh" due to $SHELL being set in Makefile,
+          " wgvim: default 'shell' is "sh" due to $SHELL being set in Makefile,
           " but here 'shell' should be cmd.exe.
           set shell=cmd.exe shellcmdflag=/s\ /c
         endif
@@ -286,7 +286,7 @@ func SetShell(shell)
     else
         call assert_report("Trying to select an unknown shell")
     endif
-    " Nvim: 'shellxquote' needs to be empty for the tests for work.
+    " wgvim: 'shellxquote' needs to be empty for the tests for work.
     set shellxquote=
 endfunc
 

@@ -12,7 +12,7 @@
 --- end
 --- ```
 ---
---- [vim.version()] returns the version of the current Nvim process.
+--- [vim.version()] returns the version of the current wgvim process.
 ---
 --- VERSION RANGE SPEC [version-range]()
 ---
@@ -242,7 +242,7 @@ local VersionRange = {}
 --- local r = vim.version.range('1.0.0 - 2.0.0')
 --- print(r:has('1.9.9'))       -- true
 --- print(r:has('2.0.0'))       -- false
---- print(r:has(vim.version())) -- check against current Nvim version
+--- print(r:has(vim.version())) -- check against current wgvim version
 --- ```
 ---
 --- Or use cmp(), le(), lt(), ge(), gt(), and/or eq() to compare a version
@@ -509,7 +509,7 @@ function M.parse(version, opts)
 end
 
 setmetatable(M, {
-  --- Returns the current Nvim version.
+  --- Returns the current wgvim version.
   ---@return vim.Version
   __call = function()
     local version = vim.fn.api_info().version ---@type vim.Version

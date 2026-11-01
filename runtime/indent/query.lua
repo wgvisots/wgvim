@@ -1,4 +1,4 @@
--- Neovim indent file
+-- wgvim indent file
 -- Language:	Treesitter query
 
 -- it's a lisp!

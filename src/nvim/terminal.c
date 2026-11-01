@@ -10,7 +10,7 @@
 // vterm_keyboard_key/vterm_keyboard_unichar, which generates byte streams that
 // must be fed back to the master fd.
 //
-// Nvim buffers are used as the display mechanism for both the visible screen
+// wgvim buffers are used as the display mechanism for both the visible screen
 // and the scrollback buffer.
 //
 // When a line becomes invisible due to a decrease in screen height or because

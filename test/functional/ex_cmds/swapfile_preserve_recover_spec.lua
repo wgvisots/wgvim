@@ -80,7 +80,7 @@ describe("preserve and (R)ecover with custom 'directory'", function()
   end
 
   local function test_recover(swappath1)
-    -- Start another Nvim instance.
+    -- Start another wgvim instance.
     local nvim2 =
       n.new_session(false, { args = { '-u', 'NONE', '-i', 'NONE', '--embed' }, merge = false })
     set_session(nvim2)
@@ -120,7 +120,7 @@ describe("preserve and (R)ecover with custom 'directory'", function()
   end)
 
   it('killing TUI process without :preserve #22096', { retries = 2 }, function()
-    -- Windows(#38669): inner server could attach to the outer Nvim terminal's console
+    -- Windows(#38669): inner server could attach to the outer wgvim terminal's console
     -- and die abruptly when the outer terminal job closed, leaving an unreadable swapfile
     skip(is_os('win'), 'unreadable swapfile on Windows after TUI process exit')
 
@@ -314,7 +314,7 @@ describe('swapfile detection', function()
     feed('isometext<esc>')
     command('preserve')
 
-    -- Start another Nvim instance.
+    -- Start another wgvim instance.
     local nvim2 =
       n.new_session(true, { args = { '-u', 'NONE', '-i', 'NONE', '--embed' }, merge = false })
     set_session(nvim2)
@@ -405,7 +405,7 @@ describe('swapfile detection', function()
     exec(init)
 
     feed(':edit Xfile1\n')
-    local msg_expected = ('W325: Ignoring swapfile from Nvim process %d'):format(nvimpid)
+    local msg_expected = ('W325: Ignoring swapfile from wgvim process %d'):format(nvimpid)
     screen:expect({ any = vim.pesc(msg_expected) })
     eq(msg_expected, n.exec_capture('messages'))
     command('bwipe!')
@@ -416,7 +416,7 @@ describe('swapfile detection', function()
     screen:expect([[
       ^                                        |
       {1:~                                       }|*16
-      {19:W325: Ignoring swapfile from Nvim proces}|
+      {19:W325: Ignoring swapfile from wgvim proces}|
     ]])
     eq(('\n' .. msg_expected):rep(2):sub(2), n.exec_capture('messages'))
     command('bwipe!')
@@ -428,7 +428,7 @@ describe('swapfile detection', function()
     screen:expect([[
       ^                                                            |
       {1:~                                                           }|*16
-      {19:W325: Ignoring swapfile from Nvim process }0,0-1          All|
+      {19:W325: Ignoring swapfile from wgvim process }0,0-1          All|
     ]])
     eq(('\n' .. msg_expected):rep(3):sub(2), n.exec_capture('messages'))
     command('bwipe!')
@@ -467,7 +467,7 @@ describe('swapfile detection', function()
         ^some text...                                                               |
         ~                                                                          |*6
         Xfile1                                                   1,1            All|
-        {MATCH:W325: Ignoring swapfile from Nvim process %d+ *}|
+        {MATCH:W325: Ignoring swapfile from wgvim process %d+ *}|
                                                                                    |
       ]],
       attr_ids = {},
@@ -647,7 +647,7 @@ describe('swapfile detection', function()
 
   it('swapfile created before boot + default SwapExists handler', function()
     test_swapfile_after_reboot(true, function(screen)
-      screen:expect({ any = 'W325: Ignoring swapfile from Nvim process' })
+      screen:expect({ any = 'W325: Ignoring swapfile from wgvim process' })
     end)
   end)
 end)

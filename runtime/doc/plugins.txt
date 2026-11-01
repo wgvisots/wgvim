@@ -1,4 +1,4 @@
-*plugins.txt*  Nvim
+*plugins.txt*  wgvim
 
 
                             NVIM REFERENCE MANUAL
@@ -6,9 +6,9 @@
                                        Type |gO| to see the table of contents.
 
 ==============================================================================
-Plugins and modules included with Nvim                       *standard-plugin*
+Plugins and modules included with wgvim                       *standard-plugin*
 
-Nvim includes various Lua and Vim plugins or modules which may provide
+wgvim includes various Lua and Vim plugins or modules which may provide
 commands (such as :TOhtml) or modules that you can optionally require() or
 :packadd. The Lua ones are not part of the |lua-stdlib|, that is, they are not
 available from the global `vim` module namespace. Some of the plugins are
@@ -22,7 +22,7 @@ Help-link		Loaded	Short description ~
 |difftool|		No	Compares directories (and files) side-by-side
 |editorconfig|		Yes	Detect and interpret editorconfig
 |ft-shada|		Yes	Allows editing binary |shada| files
-|man.lua|		Yes	View manpages in Nvim
+|man.lua|		Yes	View manpages in wgvim
 |matchit|		Yes	Extended |%| matching
 |matchparen|		Yes	Highlight matching pairs
 |netrw|			No	Reading and writing files over a network
@@ -31,7 +31,7 @@ Help-link		Loaded	Short description ~
 |package-justify|	No	Justify text
 |package-nohlsearch|	No	Automatically run :nohlsearch
 |package-spellfile|	Yes	Install spellfile if missing
-|package-termdebug|	No	Debug inside Nvim with gdb
+|package-termdebug|	No	Debug inside wgvim with gdb
 |package-tohtml|	No	Convert buffer to html, syntax included
 |package-undotree|	No	Interactive textual undotree
 |pi_gzip.txt|		Yes	Reading and writing compressed files
@@ -46,7 +46,7 @@ Help-link		Loaded	Short description ~
 ==============================================================================
 Builtin plugin: dir                                                      *dir*
 
-Nvim opens a directory listing when you |:edit| a directory path, handled by
+wgvim opens a directory listing when you |:edit| a directory path, handled by
 the builtin "dir" plugin.  The listing is read-only, dir.lua does not provide
 actions which modify the filesystem.
 
@@ -267,7 +267,7 @@ EditorConfig is enabled by default. To disable it, add to your config: >lua
 (Vimscript: `let g:editorconfig = v:false`). It can also be disabled
 per-buffer by setting the |b:editorconfig| buffer-local variable to `false`.
 
-Nvim stores the applied properties in |b:editorconfig| if it is not `false`.
+wgvim stores the applied properties in |b:editorconfig| if it is not `false`.
 
                                               *editorconfig-custom-properties*
 

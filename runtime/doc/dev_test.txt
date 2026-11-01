@@ -1,21 +1,21 @@
-*dev_test.txt*          Nvim
+*dev_test.txt*          wgvim
 
 
                             NVIM REFERENCE MANUAL
 
 
 ==============================================================================
-Writing tests for Nvim                                              *dev-test*
+Writing tests for wgvim                                              *dev-test*
 
                                   Type |gO| to see the table of contents.
 
 ==============================================================================
-Writing tests for Nvim
+Writing tests for wgvim
 
-Nvim has a powerful yet simple test framework. It's approximately 7x better
+wgvim has a powerful yet simple test framework. It's approximately 7x better
 than whatever you use at work.
 
-Each test starts a new Nvim process (10-30ms) which is discarded after the
+Each test starts a new wgvim process (10-30ms) which is discarded after the
 test finishes. You assert stuff using `t.eq()` and `screen:expect()` (which
 automatically waits as needed). That's pretty much it.
 
@@ -40,7 +40,7 @@ tests, or see |dev-quickstart|.
 
 Tests are run by the `/cmake/RunTests.cmake` script using the repo-local Lua
 test harness in `/test/harness.lua`.
-For some failures, `./build/nvim.log` (or `$NVIM_LOG_FILE`) may provide insight.
+For some failures, `./build/nvim.log` (or `$WGVIM_LOG_FILE`) may provide insight.
 
 Depending on the presence of binaries (e.g., `xclip`) some tests will be
 skipped.
@@ -75,7 +75,7 @@ Test Layout
 - `/test/**/testutil.lua` : common utility functions in the context of the test
   runner
 - `/test/**/testnvim.lua` : common utility functions in the context of the
-  test session (RPC channel to the Nvim child process created by clear() for each test)
+  test session (RPC channel to the wgvim child process created by clear() for each test)
 - `/test/*/**/*_spec.lua` : actual tests. Files that do not end with
   `_spec.lua` are libraries like `/test/**/testutil.lua`, except that they have
   some common topic.
@@ -121,7 +121,7 @@ DEBUGGING TESTS
     DBG 2022-06-15T18:37:45.226 T57.58016.0   UI: flush
     DBG 2022-06-15T18:37:45.226 T57.58016.0   inbuf_poll:442: blocking... events_enabled=0 events_pending=0
     DBG 2022-06-15T18:37:45.227 T57.58016.0/c UI: stop
-    INF 2022-06-15T18:37:45.227 T57.58016.0/c os_exit:595: Nvim exit: 0
+    INF 2022-06-15T18:37:45.227 T57.58016.0/c os_exit:595: wgvim exit: 0
     DBG 2022-06-15T18:37:45.229 T57.58016.0   read_cb:118: closing Stream (0x7fd5d700ea18): EOF (end of file)
     INF 2022-06-15T18:37:45.229 T57.58016.0   on_proc_exit:400: exited: pid=58017 status=0 stoptime=0
 
@@ -131,7 +131,7 @@ DEBUGGING TESTS
   Read more about |dev-filter-test|.
 
   Then, in another terminal: >sh
-    gdb -ex 'target remote localhost:7777' build/bin/nvim
+    gdb -ex 'target remote localhost:7777' build/bin/wgvim
 <
   If `$VALGRIND` is also set it will pass `--vgdb=yes` to valgrind instead of
   starting gdbserver directly.
@@ -360,7 +360,7 @@ Writing tests                                                 *dev-write-test*
 GUIDELINES
 
 - CI runs tests in parallel via the `functionaltest-parallel` cmake target.
-- The Nvim test instance CWD is isolated to per "test group" (see
+- The wgvim test instance CWD is isolated to per "test group" (see
   `WORKING_DIRECTORY` in `cmake/RunTests.cmake`), so tests can write files to
   CWD without interfering with other tests running in parallel.
 - Luajit needs to know about type and constant declarations used in function
@@ -411,10 +411,10 @@ Fixing tests                                                    *dev-fix-test*
 
 FIXING HARNESS WARNINGS
 
-> Nvim session T123 took 2000 milliseconds to exit
+> wgvim session T123 took 2000 milliseconds to exit
 > This indicates a likely problem with the test even if it passed!
 
-This may indicate a leak, because Nvim waits on uv handles before exiting.
+This may indicate a leak, because wgvim waits on uv handles before exiting.
 Example: https://github.com/neovim/neovim/pull/35768
 
 
@@ -450,7 +450,7 @@ Number; !must be defined to function properly):
   Currently only compilers with gcc-compatible arguments are supported.
 
 - `GDB` (F) (D): makes nvim instances to be run under `gdbserver`. It will be
-  accessible on `localhost:7777`: use `gdb build/bin/nvim`, type `target remote :7777` inside.
+  accessible on `localhost:7777`: use `gdb build/bin/wgvim`, type `target remote :7777` inside.
 
 - `GDBSERVER_PORT` (F) (I): overrides port used for `GDB`.
 
@@ -470,12 +470,12 @@ Number; !must be defined to function properly):
 - `TEST_TIMEOUT` (FU) (I): specifies maximum time, in seconds, before the test
   suite run is killed
 
-- `NVIM_TEST` (FU) (D): lets Nvim process detect that it is running in a test.
+- `WGVIM_TEST` (FU) (D): lets wgvim process detect that it is running in a test.
   With |v:testing| also set, all file I/O counts as slow (see `slow_io_ns()`).
 
-- `NVIM_LUA_NOTRACK` (F) (D): disable reference counting of Lua objects
+- `WGVIM_LUA_NOTRACK` (F) (D): disable reference counting of Lua objects
 
-- `NVIM_PRG` (F) (S): path to Nvim executable (default: `build/bin/nvim`).
+- `WGVIM_PRG` (F) (S): path to wgvim executable (default: `build/bin/wgvim`).
 
 - `NVIM_TEST_MAIN_CDEFS` (U) (1): makes `ffi.cdef` run in main process. This
   raises a possibility of bugs due to conflicts in header definitions, despite

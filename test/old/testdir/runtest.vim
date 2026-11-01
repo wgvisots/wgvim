@@ -146,11 +146,11 @@ set nomore
 " Output all messages in English.
 lang mess C
 
-" Nvim: append runtime from build dir, which contains the generated doc/tags.
+" wgvim: append runtime from build dir, which contains the generated doc/tags.
 let &runtimepath ..= ',' .. expand($BUILD_DIR) .. '/runtime/'
-" Nvim: append libdir from build dir, which contains the bundled TS parsers.
-let &runtimepath ..= ',' .. expand($BUILD_DIR) .. '/lib/nvim/'
-" Nvim: load the ":helptags" module + parser now, because tests reset 'runtimepath'.
+" wgvim: append libdir from build dir, which contains the bundled TS parsers.
+let &runtimepath ..= ',' .. expand($BUILD_DIR) .. '/lib/wgvim/'
+" wgvim: load the ":helptags" module + parser now, because tests reset 'runtimepath'.
 lua pcall(vim.treesitter.language.add, 'vimdoc')
 
 let s:t_bold = &t_md
@@ -310,7 +310,7 @@ func RunTheTest(test)
   " directory after executing the test.
   let save_cwd = getcwd()
 
-  " Align Nvim defaults to Vim.
+  " Align wgvim defaults to Vim.
   source setup.vim
 
   if exists("*SetUp")

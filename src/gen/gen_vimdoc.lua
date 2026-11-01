@@ -1,5 +1,5 @@
 #!/usr/bin/env -S nvim -l
---- Generates Nvim :help docs from Lua/C docstrings.
+--- Generates wgvim :help docs from Lua/C docstrings.
 ---
 --- Usage:
 ---     make doc

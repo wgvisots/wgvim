@@ -1,4 +1,4 @@
-*lua-async.txt*   Nvim
+*lua-async.txt*   wgvim
 
 
                             NVIM REFERENCE MANUAL
@@ -10,7 +10,7 @@ Lua module: vim.async                                    *lua-async* *vim.async*
 Structured async API for Lua code that waits on event-loop work.
 
 `vim.async` lets Lua code wait for timers, callbacks, and other tasks without
-blocking Nvim's event loop. Async work runs inside tasks, which can pause at
+blocking wgvim's event loop. Async work runs inside tasks, which can pause at
 checkpoints and manage child tasks created while they are running.
 
 Start async work with |vim.async.run()|. Inside a task, use
@@ -20,7 +20,7 @@ can fail and the current task should continue.
 
 Examples in this help use `local async = vim.async` for brevity.
 
-Example: run async work without blocking Nvim: >lua
+Example: run async work without blocking wgvim: >lua
     local async = vim.async
 
     async.run(function()

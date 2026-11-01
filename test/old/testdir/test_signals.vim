@@ -15,7 +15,7 @@ endfunc
 
 " Test signal WINCH (window resize signal)
 func Test_signal_WINCH()
-  throw 'skipped: Nvim cannot avoid terminal resize'
+  throw 'skipped: wgvim cannot avoid terminal resize'
   CheckNotGui
   if !HasSignal('WINCH')
     throw 'Skipped: WINCH signal not supported'

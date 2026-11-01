@@ -1,4 +1,4 @@
-*pi_paren.txt*  Nvim
+*pi_paren.txt*  wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar

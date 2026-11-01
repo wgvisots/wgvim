@@ -129,7 +129,7 @@ describe('nvim_replace_termcodes', function()
     -- an empty string.
     --
     -- Problem here is that if String argument has .data in allocated memory
-    -- then `return str` in vim_replace_termcodes body will make Neovim free
+    -- then `return str` in vim_replace_termcodes body will make wgvim free
     -- `str.data` twice: once when freeing arguments, then when freeing return
     -- value.
     eq('', n.api.nvim_replace_termcodes('', true, true, true))

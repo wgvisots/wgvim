@@ -1,4 +1,4 @@
-*windows.txt*   Nvim
+*windows.txt*   wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -84,7 +84,7 @@ invisible. Hidden windows and their statuslines are not redrawn.
 
 					*window-ID* *winid* *windowid*
 Each window has a unique identifier called the window ID, which is permanent
-during the Nvim session. The |win_getid()| and |win_id2tabwin()| functions
+during the wgvim session. The |win_getid()| and |win_id2tabwin()| functions
 convert between the window/tab "number" and the identifier.
 							*window-number*
 Windows are numbered according to their arrangement in a tabpage; this window
@@ -579,7 +579,7 @@ CTRL-W =						*CTRL-W_=*
 		To equalize only horizontally (each window equally wide) use: >
 		    :horizontal wincmd =
 <
-		To equalize windows when Nvim itself is resized, see
+		To equalize windows when wgvim itself is resized, see
 		|VimResized|.
 
 :res[ize] -N					*:res* *:resize*

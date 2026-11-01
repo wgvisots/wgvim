@@ -20,7 +20,7 @@ describe('version', function()
     eq({ major = 42, minor = 3, patch = 99 }, exec_lua("return vim.version.parse('v42.3.99')"))
   end)
 
-  it('version() returns Nvim version', function()
+  it('version() returns wgvim version', function()
     local expected = fn.api_info().version
     local actual = exec_lua('return vim.version()')
     eq(expected.major, actual.major)
@@ -336,7 +336,7 @@ describe('version', function()
     describe('strict=true', function()
       local testcases = {
         {
-          desc = 'Nvim version',
+          desc = 'wgvim version',
           version = 'v0.9.0-dev-1233+g210120dde81e',
           want = {
             major = 0,

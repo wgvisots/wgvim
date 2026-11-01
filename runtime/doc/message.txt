@@ -1,4 +1,4 @@
-*message.txt*   Nvim
+*message.txt*   wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -338,9 +338,9 @@ generate this message.  This could be caused by a |-m| commandline argument.
 You can switch the 'write' option on with ":set write".
 
 							*E25*  >
-  Nvim does not have a built-in GUI
+  wgvim does not have a built-in GUI
 
-Nvim does not have a built in GUI, so `:gvim` and `:gui` don't work.
+wgvim does not have a built in GUI, so `:gvim` and `:gui` don't work.
 
 							*E49*  >
   Invalid scroll size
@@ -778,8 +778,8 @@ src/ex_cmds.lua.  Update the lookup table by re-running the build.
   Failed to initialize lua interpreter
   Failed to initialize builtin lua modules
 
-Nvim failed to initialize the Lua interpreter or its builtin modules during
-startup. This is a fatal error that prevents Nvim from running.
+wgvim failed to initialize the Lua interpreter or its builtin modules during
+startup. This is a fatal error that prevents wgvim from running.
 
 							*E5107*  >
   Lua: {error}
@@ -901,7 +901,7 @@ any other typed key to dismiss it.
 ==============================================================================
 Progress messages					*progress-message*
 
-Plugins and core Nvim features can emit "progress" |ui-messages| to report the
+Plugins and core wgvim features can emit "progress" |ui-messages| to report the
 state of long-running tasks.
 
 Create or update a progress-message by calling |nvim_echo()| with
@@ -910,7 +910,7 @@ Create or update a progress-message by calling |nvim_echo()| with
 existing progress-message.
 
 Note: To avoid a "dangling" progress-message, always emit a non-"running"
-`status`, when your task is done; otherwise consumers (including Nvim itself)
+`status`, when your task is done; otherwise consumers (including wgvim itself)
 tracking the task by its message-id cannot know when the task is done.
 
 Events: ~

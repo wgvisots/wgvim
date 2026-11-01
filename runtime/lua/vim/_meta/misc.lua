@@ -17,7 +17,7 @@ error('Cannot require a meta file')
 --- @return any
 function vim.call(func, ...) end
 
---- Renamed to `vim.text.diff`, remove at Nvim 1.0
+--- Renamed to `vim.text.diff`, remove at wgvim 1.0
 ---@deprecated
 ---@param a string First string to compare
 ---@param b string Second string to compare

@@ -7103,7 +7103,7 @@ func Test_unlet_env()
 endfunc
 
 func Test_refcount()
-    throw 'Skipped: Nvim does not support test_refcount()'
+    throw 'Skipped: wgvim does not support test_refcount()'
     " Immediate values
     call assert_equal(-1, test_refcount(1))
     call assert_equal(-1, test_refcount('s'))

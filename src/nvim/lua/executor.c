@@ -1001,11 +1001,11 @@ static bool nlua_state_init(lua_State *const lstate) FUNC_ATTR_NONNULL_ALL
   return true;
 }
 
-/// Initializes global Lua interpreter, or exits Nvim on failure.
+/// Initializes global Lua interpreter, or exits wgvim on failure.
 void nlua_init(char **argv, int argc, int lua_arg0)
 {
 #ifdef NLUA_TRACK_REFS
-  if (os_env_exists("NVIM_LUA_NOTRACK", true)) {
+  if (os_env_exists("WGVIM_LUA_NOTRACK", true)) {
     nlua_track_refs = true;
   }
 #endif
@@ -1128,7 +1128,7 @@ static void nlua_print_event(void **argv)
   msg_multihl(NIL, msg, "lua_print", true, false, NULL, &needs_clear, raw);
 }
 
-/// Implements Lua print() as a Nvim message.
+/// Implements Lua print() as a wgvim message.
 ///
 /// @param  lstate  Lua interpreter state.
 static int nlua_print(lua_State *const lstate)

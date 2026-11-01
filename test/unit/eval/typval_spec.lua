@@ -3297,7 +3297,7 @@ describe('typval.c', function()
 
       local function test_string_fn(input, fn)
         for _, v in ipairs(input) do
-          -- Using to_cstr in place of Neovim allocated string, cannot
+          -- Using to_cstr in place of wgvim allocated string, cannot
           -- tv_clear() that.
           local tv = ffi.gc(typvalt(v[1], v[2]), nil)
           alloc_log:check({})

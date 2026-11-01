@@ -91,17 +91,17 @@ end
 --- Map of client-defined commands overriding the global |vim.lsp.commands|.
 --- @field commands? table<string,fun(command: lsp.Command, ctx: table)>
 ---
---- Daemonize the server process so that it runs in a separate process group from Nvim.
---- Nvim will shutdown the process on exit, but if Nvim fails to exit cleanly this could leave
+--- Daemonize the server process so that it runs in a separate process group from wgvim.
+--- wgvim will shutdown the process on exit, but if wgvim fails to exit cleanly this could leave
 --- behind orphaned server processes.
 --- (default: `true`)
 --- @field detached? boolean
 ---
 --- Decides if/when to force-stop the server after sending the "shutdown" request. See |Client:stop()|.
---- Note: when Nvim itself is exiting,
---- - `false`: Nvim will not force-stop LSP server(s).
---- - `true`: Nvim will force-stop LSP server(s) that did not comply with the "shutdown" request.
---- - `number`: Nvim will wait up to `exit_timeout` milliseconds before performing force-stop.
+--- Note: when wgvim itself is exiting,
+--- - `false`: wgvim will not force-stop LSP server(s).
+--- - `true`: wgvim will force-stop LSP server(s) that did not comply with the "shutdown" request.
+--- - `number`: wgvim will wait up to `exit_timeout` milliseconds before performing force-stop.
 --- (default: `false`)
 --- @field exit_timeout? integer|boolean
 ---
@@ -575,7 +575,7 @@ function Client:initialize()
     -- Information about the client
     -- since 3.15.0
     clientInfo = {
-      name = 'Neovim',
+      name = 'wgvim',
       version = tostring(vim.version()),
     },
     -- The rootPath of the workspace. Is null if no folder is open.

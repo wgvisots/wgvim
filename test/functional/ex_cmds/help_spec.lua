@@ -338,7 +338,7 @@ describe(':help', function()
     -- creates the help buffer there instead.
     eq(1000, fn.win_getid())
     command('quit')
-    -- Before #9773, Nvim would crash on quitting the help window.
+    -- Before #9773, wgvim would crash on quitting the help window.
     eq(1002, fn.win_getid())
   end)
 

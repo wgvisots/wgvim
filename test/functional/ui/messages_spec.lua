@@ -305,14 +305,14 @@ describe('ui/ext_messages', function()
             { '81 ' },
             { 'guibg=', 18, 'Directory' },
             {
-              'LightBlue\n\tLast set from Lua (run Nvim with -V1 for more details)\nDiffChange     ',
+              'LightBlue\n\tLast set from Lua (run wgvim with -V1 for more details)\nDiffChange     ',
             },
             { 'xxx', 4, 'DiffChange' },
             { ' ' },
             { 'ctermbg=', 18, 'Directory' },
             { '225 ' },
             { 'guibg=', 18, 'Directory' },
-            { 'LightMagenta\n\tLast set from Lua (run Nvim with -V1 for more details)' },
+            { 'LightMagenta\n\tLast set from Lua (run wgvim with -V1 for more details)' },
           },
           kind = 'list_cmd',
         },
@@ -396,7 +396,7 @@ describe('ui/ext_messages', function()
     feed(':help<CR>:tselect<CR>')
     screen:expect({
       grid = [[
-        ^*help.txt*      Nvim     |
+        ^*help.txt*      wgvim     |
                                  |
         {3:help.txt [Help][-][RO]   }|
         line                     |
@@ -1084,7 +1084,7 @@ describe('ui/ext_messages', function()
       ]],
       messages = {
         {
-          content = { { 'Type  :qa  and press <Enter> to exit Nvim' } },
+          content = { { 'Type  :qa  and press <Enter> to exit wgvim' } },
           history = true,
           kind = '',
         },
@@ -1134,7 +1134,7 @@ describe('ui/ext_messages', function()
       ]],
       msg_history = {
         { kind = 'echomsg', content = { { 'howdy' } } },
-        { kind = '', content = { { 'Type  :qa  and press <Enter> to exit Nvim' } } },
+        { kind = '', content = { { 'Type  :qa  and press <Enter> to exit wgvim' } } },
         { kind = 'echoerr', content = { { 'bork', 9, 'ErrorMsg' } } },
         {
           kind = 'emsg',
@@ -2228,11 +2228,11 @@ describe('ui/builtin messages', function()
                                                                                       |
       {MATCH:.*}|
                         {1:────────────────────────────────────────────}                  |
-                        Nvim is open source and freely distributable                  |
+                        wgvim is open source and freely distributable                  |
                                   https://neovim.io/#chat                             |
                         {1:────────────────────────────────────────────}                  |
                         type  {18::}{25:help nvim}{18:<Enter>}     if you are new!                   |
-                        type  {18::}{25:checkhealth}{18:<Enter>}   to optimize Nvim                  |
+                        type  {18::}{25:checkhealth}{18:<Enter>}   to optimize wgvim                  |
                         type  {18::}{25:q}{18:<Enter>}             to exit                           |
                         type  {18::}{25:help}{18:<Enter>}          for help                          |
                         {1:────────────────────────────────────────────}                  |
@@ -2298,11 +2298,11 @@ describe('ui/ext_messages', function()
       {1:~                                                                               }|
       {1:~{MATCH: +}}{26:NVIM {MATCH:%S+}}{1:{MATCH: +}}|
       {1:~                 ────────────────────────────────────────────                  }|
-      {1:~                 }Nvim is open source and freely distributable{1:                  }|
+      {1:~                 }wgvim is open source and freely distributable{1:                  }|
       {1:~                           }https://neovim.io/#chat{1:                             }|
       {1:~                 ────────────────────────────────────────────                  }|
       {1:~                 }type  {18::}{25:help nvim}{18:<Enter>}     if you are new! {1:                  }|
-      {1:~                 }type  {18::}{25:checkhealth}{18:<Enter>}   to optimize Nvim{1:                  }|
+      {1:~                 }type  {18::}{25:checkhealth}{18:<Enter>}   to optimize wgvim{1:                  }|
       {1:~                 }type  {18::}{25:q}{18:<Enter>}             to exit         {1:                  }|
       {1:~                 }type  {18::}{25:help}{18:<Enter>}          for help        {1:                  }|
       {1:~                 ────────────────────────────────────────────                  }|
@@ -2338,11 +2338,11 @@ describe('ui/ext_messages', function()
         {1:~                                                                               }|
         {1:~{MATCH: +}}{26:NVIM {MATCH:%S+}}{1:{MATCH: +}}|
         {1:~                 ────────────────────────────────────────────                  }|
-        {1:~                 }Nvim is open source and freely distributable{1:                  }|
+        {1:~                 }wgvim is open source and freely distributable{1:                  }|
         {1:~                           }https://neovim.io/#chat{1:                             }|
         {1:~                 ────────────────────────────────────────────                  }|
         {1:~                 }type  {18::}{25:help nvim}{18:<Enter>}     if you are new! {1:                  }|
-        {1:~                 }type  {18::}{25:checkhealth}{18:<Enter>}   to optimize Nvim{1:                  }|
+        {1:~                 }type  {18::}{25:checkhealth}{18:<Enter>}   to optimize wgvim{1:                  }|
         {1:~                 }type  {18::}{25:q}{18:<Enter>}             to exit         {1:                  }|
         {1:~                 }type  {18::}{25:help}{18:<Enter>}          for help        {1:                  }|
         {1:~                 ────────────────────────────────────────────                  }|
@@ -2379,11 +2379,11 @@ describe('ui/ext_messages', function()
                                                                                         |
         {MATCH: +}{26:NVIM {MATCH:%S+}}{MATCH: +}|
                           {1:────────────────────────────────────────────}                  |
-                          Nvim is open source and freely distributable                  |
+                          wgvim is open source and freely distributable                  |
                                     https://neovim.io/#chat                             |
                           {1:────────────────────────────────────────────}                  |
                           type  {18::}{25:help nvim}{18:<Enter>}     if you are new!                   |
-                          type  {18::}{25:checkhealth}{18:<Enter>}   to optimize Nvim                  |
+                          type  {18::}{25:checkhealth}{18:<Enter>}   to optimize wgvim                  |
                           type  {18::}{25:q}{18:<Enter>}             to exit                           |
                           type  {18::}{25:help}{18:<Enter>}          for help                          |
                           {1:────────────────────────────────────────────}                  |
@@ -2513,11 +2513,11 @@ it('ui/ext_multigrid supports intro screen', function()
       {1:~                                                                               }|
       {1:~{MATCH: +}}{26:NVIM {MATCH:%S+}}{1:{MATCH: +}}|
       {1:~                 ────────────────────────────────────────────                  }|
-      {1:~                 }Nvim is open source and freely distributable{1:                  }|
+      {1:~                 }wgvim is open source and freely distributable{1:                  }|
       {1:~                           }https://neovim.io/#chat{1:                             }|
       {1:~                 ────────────────────────────────────────────                  }|
       {1:~                 }type  {18::}{25:help nvim}{18:<Enter>}     if you are new! {1:                  }|
-      {1:~                 }type  {18::}{25:checkhealth}{18:<Enter>}   to optimize Nvim{1:                  }|
+      {1:~                 }type  {18::}{25:checkhealth}{18:<Enter>}   to optimize wgvim{1:                  }|
       {1:~                 }type  {18::}{25:q}{18:<Enter>}             to exit         {1:                  }|
       {1:~                 }type  {18::}{25:help}{18:<Enter>}          for help        {1:                  }|
       {1:~                 ────────────────────────────────────────────                  }|
@@ -2570,7 +2570,7 @@ end)
 
 describe('ui/msg_puts_printf', function()
   it('output multibyte characters correctly', function()
-    skip(not t.translations_enabled(), 'N/A: Nvim not built with ENABLE_TRANSLATIONS')
+    skip(not t.translations_enabled(), 'N/A: wgvim not built with ENABLE_TRANSLATIONS')
     local screen
     local cmd = ''
     local build_dir = t.paths.test_build_dir
@@ -3962,7 +3962,7 @@ describe('progress-message', function()
           end,
         })
 
-        -- XXX: $NVIM_TEST + v:testing = slow_io_ns() treats all file I/O as "slow".
+        -- XXX: $WGVIM_TEST + v:testing = slow_io_ns() treats all file I/O as "slow".
         vim.v.testing = 1
         vim.cmd[cmd_](fname_)
         vim.v.testing = 0
@@ -3997,7 +3997,7 @@ describe('progress-message', function()
         local proc = cmd_
           and vim.system({ 'sh', '-c', ('%s "$1" >/dev/null'):format(cmd_), 'sh', fname_ })
 
-        -- XXX: $NVIM_TEST + v:testing = slow_io_ns() treats all file I/O as "slow".
+        -- XXX: $WGVIM_TEST + v:testing = slow_io_ns() treats all file I/O as "slow".
         vim.v.testing = 1
         local ok, err = pcall(vim.cmd.write, { fname_, bang = true })
         vim.v.testing = 0

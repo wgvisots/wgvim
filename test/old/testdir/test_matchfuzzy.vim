@@ -75,14 +75,14 @@ func Test_matchfuzzy()
   call assert_equal([], matchfuzzy(l, 'day', {'text_cb' : {v -> 1}}))
   call assert_fails("let x = matchfuzzy(l, 'day', {'text_cb' : {a, b -> 1}})", 'E119:')
   call assert_equal([], matchfuzzy(l, 'cam'))
-  " Nvim's callback implementation is different, so E6000 is expected instead,
+  " wgvim's callback implementation is different, so E6000 is expected instead,
   " call assert_fails("let x = matchfuzzy(l, 'cam', {'text_cb' : []})", 'E921:')
   call assert_fails("let x = matchfuzzy(l, 'cam', {'text_cb' : []})", 'E6000:')
   call assert_fails("let x = matchfuzzy(l, 'foo', {'key' : 123})", 'E475: Invalid value for argument key: 123')
   call assert_fails("let x = matchfuzzy(l, 'foo', {'key' : []})", 'E730:')
   call assert_fails("let x = matchfuzzy(l, 'cam', v:_null_dict)", 'E1297:')
   call assert_fails("let x = matchfuzzy(l, 'foo', {'key' : v:_null_string})", 'E475:')
-  " Nvim doesn't have null functions
+  " wgvim doesn't have null functions
   " call assert_fails("let x = matchfuzzy(l, 'foo', {'text_cb' : test_null_function()})", 'E475:')
   " matches with same score should not be reordered
   let l = [#{text: 'abc', id: 1}, #{text: 'abc', id: 2}, #{text: 'abc', id: 3}]
@@ -105,7 +105,7 @@ func Test_matchfuzzy()
 
   " Test in latin1 encoding
   let save_enc = &encoding
-  " Nvim supports utf-8 encoding only
+  " wgvim supports utf-8 encoding only
   " set encoding=latin1
   call assert_equal(['abc'], matchfuzzy(['abc'], 'abc'))
   let &encoding = save_enc
@@ -172,14 +172,14 @@ func Test_matchfuzzypos()
   call assert_equal([[], [], []], matchfuzzypos(l, 'day', {'text_cb' : {v -> 1}}))
   call assert_fails("let x = matchfuzzypos(l, 'day', {'text_cb' : {a, b -> 1}})", 'E119:')
   call assert_equal([[], [], []], matchfuzzypos(l, 'cam'))
-  " Nvim's callback implementation is different, so E6000 is expected instead,
+  " wgvim's callback implementation is different, so E6000 is expected instead,
   " call assert_fails("let x = matchfuzzypos(l, 'cam', {'text_cb' : []})", 'E921:')
   call assert_fails("let x = matchfuzzypos(l, 'cam', {'text_cb' : []})", 'E6000:')
   call assert_fails("let x = matchfuzzypos(l, 'foo', {'key' : 123})", 'E475: Invalid value for argument key: 123')
   call assert_fails("let x = matchfuzzypos(l, 'foo', {'key' : []})", 'E730:')
   call assert_fails("let x = matchfuzzypos(l, 'cam', v:_null_dict)", 'E1297:')
   call assert_fails("let x = matchfuzzypos(l, 'foo', {'key' : v:_null_string})", 'E475:')
-  " Nvim doesn't have null functions
+  " wgvim doesn't have null functions
   " call assert_fails("let x = matchfuzzypos(l, 'foo', {'text_cb' : test_null_function()})", 'E475:')
 
   " case match

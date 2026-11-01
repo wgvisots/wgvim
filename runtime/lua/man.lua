@@ -677,7 +677,7 @@ function M.goto_tag(pattern, _, _)
   return ret
 end
 
---- Called when Nvim is invoked as $MANPAGER.
+--- Called when wgvim is invoked as $MANPAGER.
 function M.init_pager()
   if fn.getline(1):match('^%s*$') then
     api.nvim_buf_set_lines(0, 0, 1, false, {})

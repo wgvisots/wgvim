@@ -81,7 +81,7 @@ describe('exit:', function()
     }) do
       os.remove(testlog)
       -- Not --headless: a server that lost its UI is not headless. #42097
-      n.clear({ args_rm = { '--headless' }, env = { NVIM_LOG_FILE = testlog } })
+      n.clear({ args_rm = { '--headless' }, env = { WGVIM_LOG_FILE = testlog } })
       n.api.nvim_ui_attach(80, 20, {})
       n.api.nvim_ui_detach()
       command(('autocmd VimLeavePre * %s'):format(loop))

@@ -297,9 +297,9 @@ func Test_execute_cmd_with_null()
   call assert_fails('execute v:_null_dict', 'E731:')
   call assert_fails('execute v:_null_blob', 'E976:')
   execute v:_null_string
-  " Nvim doesn't have null partials
+  " wgvim doesn't have null partials
   " call assert_fails('execute test_null_partial()', 'E729:')
-  " Nvim doesn't have test_unknown()
+  " wgvim doesn't have test_unknown()
   " call assert_fails('execute test_unknown()', 'E908:')
   if has('job')
     call assert_fails('execute test_null_job()', 'E908:')
@@ -578,7 +578,7 @@ func Test_setreg_basic()
   call Assert_reg('=', 'v', "abc/\n", "['abc/\n']", "\"abc/\n\"", "['\"abc/\n\"']")
 
   " System clipboard
-  if has('clipboard') && !has('nvim')  " Nvim: clipboard update is delayed
+  if has('clipboard') && !has('nvim')  " wgvim: clipboard update is delayed
     new | only!
     call setline(1, ['clipboard contents', 'something else'])
     " Save and restore system clipboard.

@@ -53,7 +53,7 @@ endfunc
 
 func Test_help_errors()
   call assert_fails('help doesnotexist', 'E149:')
-  " Nvim: `:help!` is DWIM, not an error.
+  " wgvim: `:help!` is DWIM, not an error.
   " call assert_fails('help!', 'E478:')
   if has('multi_lang')
     call assert_fails('help help@xy', 'E661:')

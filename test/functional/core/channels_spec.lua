@@ -558,7 +558,7 @@ describe('channels', function()
     end)
   end)
 
-  it('no stack-buffer-overflow with Nvim exit during connection #39387', function()
+  it('no stack-buffer-overflow with wgvim exit during connection #39387', function()
     local nvim0 = n.get_session()
     -- Need a valid pipe so that connecting to it doesn't fail immediately.
     local server = fn.serverstart()

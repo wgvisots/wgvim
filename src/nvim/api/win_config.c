@@ -53,7 +53,7 @@
 ///   relative to a position in some other window. See |api-floatwin|.
 ///   - Floats must specify `width` and `height`.
 /// - Specify `external` to create an external window. External windows are displayed as separate
-///   top-level windows managed by the |ui-multigrid| UI (not Nvim).
+///   top-level windows managed by the |ui-multigrid| UI (not wgvim).
 /// - If `relative` and `external` are omitted, a normal "split" window is created.
 ///   - The `win` key decides which window to split. If nil or 0, the split will be adjacent to
 ///     the current window. If -1, a top-level split will be created.
@@ -160,7 +160,7 @@
 ///   - split: Split direction: "left", "right", "above", "below".
 ///   - style: (optional) Configure the appearance of the window:
 ///       - ""         No special style.
-///       - "minimal"  Nvim will display the window with many UI options
+///       - "minimal"  wgvim will display the window with many UI options
 ///                    disabled. This is useful when displaying a temporary
 ///                    float where the text should not be edited. Disables
 ///                    'number', 'relativenumber', 'cursorline', 'cursorcolumn',

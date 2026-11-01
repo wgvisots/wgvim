@@ -3752,7 +3752,7 @@ void msg_delay(uint64_t ms, bool ignoreinput)
     ms = 100;
   }
 
-  DLOG("%" PRIu64 " ms%s", ms, nvim_testing ? " (skipped by NVIM_TEST)" : "");
+  DLOG("%" PRIu64 " ms%s", ms, nvim_testing ? " (skipped by WGVIM_TEST)" : "");
   ui_flush();
   os_delay(ms, ignoreinput);
 }

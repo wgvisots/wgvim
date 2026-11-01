@@ -34,7 +34,7 @@ local assert_log = t.assert_log
 
 local testlog = 'Xtest-tui-log'
 
--- Using this to have 'notermguicolors' in Nvim instances without starting a timer
+-- Using this to have 'notermguicolors' in wgvim instances without starting a timer
 -- that causes delay on exit with ASAN/TSAN.
 local env_notermguicolors = { COLORTERM = 'xterm-256color' }
 
@@ -46,7 +46,7 @@ describe('TUI', function()
     local addr_in_use = api.nvim_get_vvar('servername')
     local screen = tt.setup_child_nvim(
       { '--listen', addr_in_use, '-u', 'NONE', '-i', 'NONE' },
-      { extra_rows = 10, cols = 60, env = { NVIM_LOG_FILE = testlog } }
+      { extra_rows = 10, cols = 60, env = { WGVIM_LOG_FILE = testlog } }
     )
     finally(function()
       os.remove(testlog)
@@ -274,7 +274,7 @@ describe('TUI :detach', function()
     child_session:request('nvim_command', 'autocmd ChanInfo * let g:info_event = deepcopy(v:event)')
 
     feed_data('\027\027:detach!\013')
-    screen:expect({ any = vim.pesc('Nvim will continue running') })
+    screen:expect({ any = vim.pesc('wgvim will continue running') })
 
     info.detach = true
     retry(nil, nil, function()
@@ -300,7 +300,7 @@ describe('TUI :detach', function()
     --
     -- On Windows this also exercises console hand-off in rpc_close_event(), which must finish
     -- before the :terminal closes the console (client exit), else the server dies with it. So defer
-    -- this Nvim's job-exit handling (`vim.wait(fast_only=true)`) until the server drops the UI.
+    -- this wgvim's job-exit handling (`vim.wait(fast_only=true)`) until the server drops the UI.
     n.exec_lua(function(pid, addr)
       vim.uv.kill(pid, 'sigkill')
       local chan = vim.fn.sockconnect('pipe', addr, { rpc = true })
@@ -315,7 +315,7 @@ describe('TUI :detach', function()
       eq(2, ({ n.connect(child_server):request('nvim_eval', '1+1') })[2])
     end)
 
-    -- Nvim self-exits when the last (not first/any) detach=false channel closes. #42250
+    -- wgvim self-exits when the last (not first/any) detach=false channel closes. #42250
     local c1, c2 = n.connect(child_server), n.connect(child_server)
     local c1_id = ({ c1:request('nvim_get_api_info') })[2][1]
     c1:request('nvim_chan_set', 0, { detach = false })
@@ -460,7 +460,7 @@ describe('TUI :restart', function()
     }, {
       env = vim.tbl_extend('force', env_notermguicolors, {
         -- Ignore logs, because assert_restarted may log "connection refused" while it retries.
-        NVIM_LOG_FILE = testlog,
+        WGVIM_LOG_FILE = testlog,
       }),
     })
     finally(function()
@@ -535,7 +535,7 @@ describe('TUI :restart', function()
     }, {
       env = vim.tbl_extend('force', env_notermguicolors, {
         -- Ignore logs, because assert_restarted may log "connection refused" while it retries.
-        NVIM_LOG_FILE = testlog,
+        WGVIM_LOG_FILE = testlog,
       }),
     })
     finally(function()
@@ -924,7 +924,7 @@ describe('TUI :restart', function()
       {5:-- TERMINAL --}                                    |
     ]])
 
-    -- 'laststatus' should be 0 in the new Nvim and FileType event should be triggered.
+    -- 'laststatus' should be 0 in the new wgvim and FileType event should be triggered.
     feed_data(':restart! set nowrap | edit test/functional/fixtures/bigfile.txt\r')
     screen:expect([[
       ^0000;<control>;Cc;0;BN;;;;;N;NULL;;;;             |
@@ -1131,7 +1131,7 @@ describe('TUI', function()
     child_exec_lua = tt.make_lua_executor(child_session)
   end)
 
-  -- Wait for mode in the child Nvim (avoid "typeahead race" #10826).
+  -- Wait for mode in the child wgvim (avoid "typeahead race" #10826).
   local function wait_for_mode(mode)
     retry(nil, nil, function()
       local _, m = child_session:request('nvim_get_mode')
@@ -1139,7 +1139,7 @@ describe('TUI', function()
     end)
   end
 
-  -- Assert buffer contents in the child Nvim.
+  -- Assert buffer contents in the child wgvim.
   local function expect_child_buf_lines(expected)
     assert(type({}) == type(expected))
     retry(nil, nil, function()
@@ -1365,7 +1365,7 @@ describe('TUI', function()
 
   it('interprets ESC+key as ALT chord in i_CTRL-V', function()
     -- Vim represents ALT/META by setting the "high bit" of the modified key:
-    -- ALT+j inserts "ê". Nvim does not (#3982).
+    -- ALT+j inserts "ê". wgvim does not (#3982).
     feed_data('i\022\027j')
     screen:expect([[
       <M-j>^                                             |
@@ -3022,7 +3022,7 @@ describe('TUI', function()
     child_session:request('nvim_set_option_value', 'cursorline', true, {})
     -- Use full screen message so that redrawing afterwards is more deterministic.
     child_session:notify('nvim_command', 'intro')
-    screen:expect({ any = 'Nvim is open source and freely distributable' })
+    screen:expect({ any = 'wgvim is open source and freely distributable' })
     -- Going to top-left corner needs 3 bytes.
     -- Setting underline attribute needs 9 bytes.
     -- A Ꝩ character takes 3 bytes.
@@ -3081,16 +3081,16 @@ describe('TUI', function()
       vim.o.ruler = false
       vim.o.showcmd = false
       vim.o.termsync = false
-      vim.o.titlestring = '%t%( %M%) - Nvim'
+      vim.o.titlestring = '%t%( %M%) - wgvim'
       vim.o.title = true
     ]])
     retry(nil, nil, function()
-      eq('[No Name] - Nvim', api.nvim_buf_get_var(0, 'term_title'))
+      eq('[No Name] - wgvim', api.nvim_buf_get_var(0, 'term_title'))
       eq({ true, 326 }, { child_session:request('nvim_win_get_height', 0) })
     end)
     -- Use full screen message so that redrawing afterwards is more deterministic.
     child_session:notify('nvim_command', 'intro')
-    screen:expect({ any = 'Nvim is open source and freely distributable' })
+    screen:expect({ any = 'wgvim is open source and freely distributable' })
     -- Going to top-left corner needs 3 bytes.
     -- A Ꝩ character takes 3 bytes.
     -- The whole line needs 3 + 3 * 21842 = 65529 bytes.
@@ -3107,7 +3107,7 @@ describe('TUI', function()
       {5:-- TERMINAL --}                                                     |
     ]])
     retry(nil, nil, function()
-      eq('[No Name] + - Nvim', api.nvim_buf_get_var(0, 'term_title'))
+      eq('[No Name] + - wgvim', api.nvim_buf_get_var(0, 'term_title'))
     end)
   end)
 
@@ -3137,7 +3137,7 @@ describe('TUI', function()
   it('no assert failure on deadly signal #21896', function()
     exec_lua([[vim.uv.kill(vim.fn.jobpid(vim.bo.channel), 'sigterm')]])
     screen:expect(is_os('win') and { any = '%[Process exited 1%]' } or [[
-      Nvim: Caught deadly signal 'SIGTERM'              |
+      wgvim: Caught deadly signal 'SIGTERM'              |
       ^                                                  |
       [Process exited 1]                                |
                                                         |*3
@@ -3158,7 +3158,7 @@ describe('TUI', function()
     local _, server_pid = child_session:request('nvim_call_function', 'getpid', {})
     exec_lua([[vim.uv.kill(..., 'sigterm')]], server_pid)
     if not is_os('win') then
-      screen:expect({ any = vim.pesc([[Nvim: Caught deadly signal 'SIGTERM']]) })
+      screen:expect({ any = vim.pesc([[wgvim: Caught deadly signal 'SIGTERM']]) })
     end
     screen:expect({ any = vim.pesc('[Process exited 1]') })
   end)
@@ -3271,7 +3271,7 @@ describe('TUI', function()
       ^                                                  |
       {100:~                                                 }|*3
       {3:[No Name]                                         }|
-      Type  :qa  and press <Enter> to exit Nvim         |
+      Type  :qa  and press <Enter> to exit wgvim         |
       {5:-- TERMINAL --}                                    |
     ]])
   end)
@@ -3634,7 +3634,7 @@ describe('TUI', function()
         nvim_prog
       ),
       nil,
-      { VIMRUNTIME = os.getenv('VIMRUNTIME'), NVIM_LOG_FILE = testlog }
+      { VIMRUNTIME = os.getenv('VIMRUNTIME'), WGVIM_LOG_FILE = testlog }
     )
     feed_data(':w testF\n:q\n')
     screen:expect([[
@@ -3774,14 +3774,14 @@ describe('TUI', function()
 
   it('missing DSR response does not lead to hit-enter prompt #38877', function()
     local child_server = n.new_pipename()
-    exec_lua('vim.uv.os_unsetenv("NVIM_TEST")')
+    exec_lua('vim.uv.os_unsetenv("WGVIM_TEST")')
     local job = fn.jobstart({ nvim_prog, '--clean', '--listen', child_server }, {
       -- Use pty = true for a PTY without a terminal, so that there is no DSR response.
       pty = true,
       env = {
         VIMRUNTIME = os.getenv('VIMRUNTIME'),
         COLORTERM = 'xterm-256color',
-        NVIM_LOG_FILE = testlog,
+        WGVIM_LOG_FILE = testlog,
       },
     })
     finally(function()
@@ -3815,7 +3815,7 @@ describe('TUI', function()
     local child_server = new_pipename()
     local screen = tt.setup_child_nvim(
       { '--listen', child_server, '--clean', '--cmd', nvim_set .. ' laststatus=2' },
-      { env = vim.tbl_extend('force', env_notermguicolors, { NVIM_LOG_FILE = testlog }) }
+      { env = vim.tbl_extend('force', env_notermguicolors, { WGVIM_LOG_FILE = testlog }) }
     )
     screen:expect({ any = '%[No Name%]' })
     local child_session = n.connect(child_server)
@@ -3841,7 +3841,7 @@ describe('TUI', function()
   it('exits immediately when stdin is closed #35744', { retries = 2 }, function()
     local screen = tt.setup_child_nvim(
       { '--clean', '--cmd', 'set laststatus=2' },
-      { env = vim.tbl_extend('force', env_notermguicolors, { NVIM_LOG_FILE = testlog }) }
+      { env = vim.tbl_extend('force', env_notermguicolors, { WGVIM_LOG_FILE = testlog }) }
     )
     finally(function()
       os.remove(testlog)
@@ -4465,7 +4465,7 @@ describe('TUI', function()
     end)
   end)
 
-  it('uses $NVIM_TERMDEFS to override terminfo', function()
+  it('uses $WGVIM_TERMDEFS to override terminfo', function()
     local logfile = 'Xtest_terminfo_override_verbose_log'
     finally(function()
       os.remove(logfile)
@@ -4483,7 +4483,7 @@ describe('TUI', function()
       max_colors = 999,
     }
 
-    nvim_tui('-V3' .. logfile, { NVIM_TERMDEFS = vim.json.encode(terminfo) })
+    nvim_tui('-V3' .. logfile, { WGVIM_TERMDEFS = vim.json.encode(terminfo) })
 
     assert_log('enter_ca_mode[^\n]*= ' .. terminfo.enter_ca_mode, logfile, 9999)
     assert_log(
@@ -4603,7 +4603,7 @@ describe('TUI', function()
     }, {
       env = {
         VIMRUNTIME = os.getenv('VIMRUNTIME'),
-        -- With COLORTERM=256, Nvim should not query the terminal and should not set 'tgc'
+        -- With COLORTERM=256, wgvim should not query the terminal and should not set 'tgc'
         COLORTERM = '256',
         TERM = 'xterm-256colors',
       },
@@ -4774,9 +4774,9 @@ describe('TUI bg color', function()
 
   before_each(clear)
 
-  it('is properly set in a nested Nvim instance when background=dark', function()
+  it('is properly set in a nested wgvim instance when background=dark', function()
     command('highlight clear Normal')
-    command('set background=dark') -- set outer Nvim background
+    command('set background=dark') -- set outer wgvim background
     local child_server = new_pipename()
     local screen = tt.setup_child_nvim({
       '--clean',
@@ -4794,9 +4794,9 @@ describe('TUI bg color', function()
     end)
   end)
 
-  it('is properly set in a nested Nvim instance when background=light', function()
+  it('is properly set in a nested wgvim instance when background=light', function()
     command('highlight clear Normal')
-    command('set background=light') -- set outer Nvim background
+    command('set background=light') -- set outer wgvim background
     local child_server = new_pipename()
     local screen = tt.setup_child_nvim({
       '--clean',
@@ -4839,7 +4839,7 @@ describe('TUI bg color', function()
   end)
 
   it('sends theme update notifications when background changes #31652', function()
-    command('set background=dark') -- set outer Nvim background
+    command('set background=dark') -- set outer wgvim background
     local child_server = new_pipename()
     local screen = tt.setup_child_nvim({
       '--clean',
@@ -4859,7 +4859,7 @@ describe('TUI bg color', function()
     retry(nil, nil, function()
       eq({ true, 'dark' }, { child_session:request('nvim_eval', '&background') })
     end)
-    command('set background=light') -- set outer Nvim background
+    command('set background=light') -- set outer wgvim background
     retry(nil, nil, function()
       eq({ true, 'light' }, { child_session:request('nvim_eval', '&background') })
     end)
@@ -4868,7 +4868,7 @@ describe('TUI bg color', function()
     eq({ true, 'light' }, { child_session:request('nvim_eval', 'g:background_option_new') })
   end)
 
-  -- Start a headless server (the outer Nvim is its OSC-11-answering terminal),
+  -- Start a headless server (the outer wgvim is its OSC-11-answering terminal),
   -- cleaned up when the test ends, and return its address and a client session.
   local function start_headless(extra)
     local server = new_pipename()
@@ -4886,7 +4886,7 @@ describe('TUI bg color', function()
 
   it('is detected on remote-ui attach to a headless server #30320', function()
     command('highlight clear Normal')
-    command('set background=light') -- outer Nvim acts as a light terminal
+    command('set background=light') -- outer wgvim acts as a light terminal
     local server, session =
       start_headless({ '--cmd', 'colorscheme vim', '--cmd', 'set noswapfile' })
     local screen = tt.setup_child_nvim({ '--remote-ui', '--server', server })
@@ -5087,7 +5087,7 @@ describe('TUI client', function()
       },
     })
     local client_super =
-      n.new_session(true, use_testlog and { env = { NVIM_LOG_FILE = testlog } } or {})
+      n.new_session(true, use_testlog and { env = { WGVIM_LOG_FILE = testlog } } or {})
     finally(function()
       client_super:close()
       server:close()
@@ -5122,7 +5122,7 @@ describe('TUI client', function()
     server:request('nvim_input', ('a'):rep(1000))
     exec_lua([[vim.uv.kill(vim.fn.jobpid(vim.bo.channel), 'sigterm')]])
     screen_client:expect(is_os('win') and { any = '%[Process exited 1%]' } or [[
-      Nvim: Caught deadly signal 'SIGTERM'              |
+      wgvim: Caught deadly signal 'SIGTERM'              |
       ^                                                  |
       [Process exited 1]                                |
                                                         |*3
@@ -5190,7 +5190,7 @@ describe('TUI client', function()
       pending('N/A: missing LuaJIT FFI')
     end
 
-    server:request('nvim_set_option_value', 'titlestring', '%t%( %M%) - Nvim', {})
+    server:request('nvim_set_option_value', 'titlestring', '%t%( %M%) - wgvim', {})
     local bufname = api.nvim_buf_get_name(0)
     local old_title = api.nvim_buf_get_var(0, 'term_title')
     if not is_os('win') then
@@ -5209,7 +5209,7 @@ describe('TUI client', function()
     -- Following escape sequences are not affected.
     server:request('nvim_set_option_value', 'title', true, {})
     retry(nil, nil, function()
-      eq('[No Name] + - Nvim', api.nvim_buf_get_var(0, 'term_title'))
+      eq('[No Name] + - wgvim', api.nvim_buf_get_var(0, 'term_title'))
     end)
   end)
 

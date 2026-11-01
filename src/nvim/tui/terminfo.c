@@ -226,7 +226,7 @@ static const char *fmt(bool val)
 }
 
 /// Dumps termcap info to the messages area.
-/// Serves a similar purpose as Vim `:set termcap` (removed in Nvim).
+/// Serves a similar purpose as Vim `:set termcap` (removed in wgvim).
 ///
 /// @return allocated string
 String terminfo_info_msg(const TerminfoEntry *ti, const char *termname, bool from_db)

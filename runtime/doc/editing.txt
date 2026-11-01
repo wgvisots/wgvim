@@ -1,4 +1,4 @@
-*editing.txt*   Nvim
+*editing.txt*   wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -1537,7 +1537,7 @@ of the same file (without you knowing this).
 
 After a shell command (|:!cmd| |suspend| |:read!| |K|) or |:terminal| job
 exits: timestamps, file modes and file sizes are compared for all buffers
-in a window.  Nvim will run |FileChangedShell| autocommands or display
+in a window.  wgvim will run |FileChangedShell| autocommands or display
 a warning for any files that changed.
 
 							*E321* *E462*
@@ -1545,7 +1545,7 @@ If you want to automatically reload a file when it has been changed outside of
 Vim, set the 'autoread' option.  This doesn't work at the moment you write the
 file though, only when the file wasn't changed inside of Vim.
 
-Nvim uses file system watchers to detect external changes in real-time for
+wgvim uses file system watchers to detect external changes in real-time for
 all loaded buffers when 'autoread' is set.  This means files are reloaded
 promptly without waiting for |FocusGained| or |:checktime|.  The watchers
 are managed automatically: started when a buffer is loaded, restarted after
@@ -1745,7 +1745,7 @@ There are three different types of searching:
 ==============================================================================
 Trusted Files							*trust*
 
-Nvim executes arbitrary code found on the filesystem if 'exrc' is enabled. To
+wgvim executes arbitrary code found on the filesystem if 'exrc' is enabled. To
 prevent executing malicious code, only "trusted files" are executed. You can
 mark a file as trusted or untrusted using the |:trust| command or the
 |vim.secure.read()| function.
@@ -1756,7 +1756,7 @@ mark a file as trusted or untrusted using the |:trust| command or the
 			Manage trusted files. Without ++ options, :trust marks
 			the current buffer (or [file], but see WARNING below)
 			as trusted, keyed on a hash of its contents. The trust
-			list is stored on disk, Nvim will re-use it after
+			list is stored on disk, wgvim will re-use it after
 			restarting.
 
 			WARNING: `:trust [file]` has a TOCTOU risk, so for
@@ -1775,7 +1775,7 @@ mark a file as trusted or untrusted using the |:trust| command or the
 ==============================================================================
 Log Files							*log-files*
 
-Nvim keeps log files in `stdpath("log")`. See |standard-path| for where that
+wgvim keeps log files in `stdpath("log")`. See |standard-path| for where that
 location is on your system.
 
 :log [logname]						*:log* *E5200*
@@ -1788,7 +1788,7 @@ location is on your system.
 
 Examples: >
 	:log nvim
-<		Open the general |log| file for Nvim. >
+<		Open the general |log| file for wgvim. >
 	:log lsp
 <		Open the |lsp-log| file. >
 	:log nvim-pack

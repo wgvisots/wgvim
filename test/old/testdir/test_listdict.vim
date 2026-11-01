@@ -1062,9 +1062,9 @@ func Test_reduce()
   call assert_equal(42, reduce(v:_null_blob, function('add'), 42))
 
   " should not crash
-  " Nvim doesn't have null functions
+  " wgvim doesn't have null functions
   " call assert_fails('echo reduce([1], test_null_function())', 'E1132:')
-  " Nvim doesn't have null partials
+  " wgvim doesn't have null partials
   " call assert_fails('echo reduce([1], test_null_partial())', 'E1132:')
 
   " did cause double free
@@ -1364,7 +1364,7 @@ func Test_deep_nested_list()
   call assert_fails('let m = deepcopy(deep_list)', 'E698:')
   call assert_fails('lockvar 110 deep_list', 'E743:')
   call assert_fails('unlockvar 110 deep_list', 'E743:')
-  " Nvim implements :echo very differently
+  " wgvim implements :echo very differently
   " call assert_fails('let x = execute("echo deep_list")', 'E724:')
   call test_garbagecollect_now()
   unlet deep_list
@@ -1384,7 +1384,7 @@ func Test_deep_nested_dict()
   call assert_fails('let m = deepcopy(deep_dict)', 'E698:')
   call assert_fails('lockvar 110 deep_dict', 'E743:')
   call assert_fails('unlockvar 110 deep_dict', 'E743:')
-  " Nvim implements :echo very differently
+  " wgvim implements :echo very differently
   " call assert_fails('let x = execute("echo deep_dict")', 'E724:')
   call test_garbagecollect_now()
   unlet deep_dict
@@ -1508,7 +1508,7 @@ func Test_indexof()
   call assert_equal(-1, indexof([1, 2, 3], {_, v -> "v == 2"}))
   call assert_equal(-1, indexof(v:_null_list, {i, v -> v == 'a'}))
   call assert_equal(-1, indexof(l, v:_null_string))
-  " Nvim doesn't have null functions
+  " wgvim doesn't have null functions
   " call assert_equal(-1, indexof(l, test_null_function()))
   call assert_equal(-1, indexof(l, ""))
   call assert_fails('let i = indexof(l, " ")', 'E15:')

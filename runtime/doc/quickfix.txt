@@ -1,4 +1,4 @@
-*quickfix.txt*  Nvim
+*quickfix.txt*  wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -1632,7 +1632,7 @@ of such communication.
 Two commands, "SpotBugsRemoveBufferAutocmd" and "SpotBugsDefineBufferAutocmd",
 are provided to toggle actions for buffer-local autocommands.  For example, to
 also run actions on any |BufWritePost| and |Signal| event, add these lines to
-`~/.config/nvim/after/ftplugin/java.vim`: >vim
+`~/.config/wgvim/after/ftplugin/java.vim`: >vim
 
 	if exists(':SpotBugsDefineBufferAutocmd') == 2
 		SpotBugsDefineBufferAutocmd BufWritePost Signal

@@ -1,4 +1,4 @@
-*syntax.txt*	Nvim
+*syntax.txt*	wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -128,14 +128,14 @@ automatically with ":syntax enable", do this:
 
 1. Create your user runtime directory.	You would normally use the first item
    of the 'runtimepath' option.  Example for Unix: >
-	mkdir ~/.config/nvim
+	mkdir ~/.config/wgvim
 
 2. Create a directory in there called "syntax".  For Unix: >
-	mkdir ~/.config/nvim/syntax
+	mkdir ~/.config/wgvim/syntax
 
 3. Write the Vim syntax file.  Or download one from the internet.  Then write
    it in your syntax directory.  For example, for the "mine" syntax: >
-	:w ~/.config/nvim/syntax/mine.vim
+	:w ~/.config/wgvim/syntax/mine.vim
 
 Now you can start using your syntax file manually: >
 	:set syntax=mine
@@ -155,7 +155,7 @@ add a few items or change the highlighting, follow these steps:
 1. Create your user directory from 'runtimepath', see above.
 
 2. Create a directory in there called "after/syntax".  For Unix: >
-	mkdir -p ~/.config/nvim/after/syntax
+	mkdir -p ~/.config/wgvim/after/syntax
 
 3. Write a Vim script that contains the commands you want to use.  For
    example, to change the colors for the C syntax: >
@@ -163,15 +163,15 @@ add a few items or change the highlighting, follow these steps:
 
 4. Write that file in the "after/syntax" directory.  Use the name of the
    syntax, with ".vim" added.  For our C syntax: >
-	:w ~/.config/nvim/after/syntax/c.vim
+	:w ~/.config/wgvim/after/syntax/c.vim
 
 That's it.  The next time you edit a C file the Comment color will be
 different.  You don't even have to restart Vim.
 
 If you have multiple files, you can use the filetype as the directory name.
 All the "*.vim" files in this directory will be used, for example:
-	~/.config/nvim/after/syntax/c/one.vim
-	~/.config/nvim/after/syntax/c/two.vim
+	~/.config/wgvim/after/syntax/c/one.vim
+	~/.config/wgvim/after/syntax/c/two.vim
 
 
 REPLACING AN EXISTING SYNTAX FILE			*mysyntaxfile-replace*
@@ -671,7 +671,7 @@ highlighting for cErrInParen and cErrInBracket.
 
 If you want to use folding in your C files, you can add these lines in a file
 in the "after" directory in 'runtimepath'.  For Unix this would be
-~/.config/nvim/after/syntax/c.vim. >
+~/.config/wgvim/after/syntax/c.vim. >
     syn sync fromstart
     set foldmethod=syntax
 
@@ -1980,7 +1980,7 @@ manually: >
 	:set ft=log
 
 To enable this automatically for "*.log" files, add the following to your
-personal `filetype.vim` file (usually located in `~/.config/nvim/filetype.vim`
+personal `filetype.vim` file (usually located in `~/.config/wgvim/filetype.vim`
 on Unix, see also |new-filetype|): >
 
 	augroup filetypedetect
@@ -3277,7 +3277,7 @@ their syntax rule names and listing them with: >
 
 You may wish to embed languages into sh.  I'll give an example courtesy of
 Lorance Stinson on how to do this with awk as an example.  Put the following
-file into $HOME/.config/nvim/after/syntax/sh/awkembed.vim: >
+file into $HOME/.config/wgvim/after/syntax/sh/awkembed.vim: >
 
     " AWK Embedding:
     " ==============
@@ -3615,7 +3615,7 @@ syntax highlighting script handles this with the following logic:
 	For example, I use Luxi Mono Bold; it doesn't support subscript
 	characters for "hklmnpst", so I put >
 		let g:tex_subscripts= "[0-9aeijoruvx,+-/().]"
-<	in ~/.config/nvim/ftplugin/tex/tex.vim in order to avoid having
+<	in ~/.config/wgvim/ftplugin/tex/tex.vim in order to avoid having
 	inscrutable utf-8 glyphs appear.
 
 					*tex-matchcheck* *g:tex_matchcheck*
@@ -5022,7 +5022,7 @@ is mostly used, because it looks better.
 ==============================================================================
 13. Highlight command			*:highlight* *:hi* *E28* *E411* *E415*
 
-Nvim uses a range of highlight groups which fall into two categories: Editor
+wgvim uses a range of highlight groups which fall into two categories: Editor
 interface and syntax highlighting. In rough order of importance, these are
 - basic editor |highlight-groups|
 - standard syntax |group-name|s (in addition, syntax files can define
@@ -5055,7 +5055,7 @@ colorscheme.
 			":colorscheme" in a color scheme script.
 
 			To customize a color scheme use another name, e.g.
-			"~/.config/nvim/colors/mine.vim", and use `:runtime` to
+			"~/.config/wgvim/colors/mine.vim", and use `:runtime` to
 			load the original color scheme: >
 				runtime colors/evening.vim
 				hi Statement ctermfg=Blue guifg=Blue
@@ -5319,7 +5319,7 @@ guisp={color-name}					*guisp*
 	    Black	White
 	    Orange	Purple		Violet
 
-	Colors which define Nvim's default color scheme:
+	Colors which define wgvim's default color scheme:
 	    NvimDarkBlue    NvimLightBlue
 	    NvimDarkCyan    NvimLightCyan
 	    NvimDarkGray1   NvimLightGray1
@@ -5724,7 +5724,7 @@ To test your color setup, a file has been included in the Vim distribution.
 To use it, execute this command: >
    :runtime syntax/colortest.vim
 
-Nvim uses 256-color and |true-color| terminal capabilities wherever possible.
+wgvim uses 256-color and |true-color| terminal capabilities wherever possible.
 
 ==============================================================================
 18. When syntax is slow					*:synti* *:syntime*

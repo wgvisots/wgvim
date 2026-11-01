@@ -634,7 +634,7 @@ static inline int convert_to_json_string(garray_T *const gap, const char *const 
     //    utf_printable and thus not checked specially).
     // 2. Code point is not printable according to utf_printable().
     // This is done to make resulting values displayable on screen also not from
-    // Neovim.
+    // wgvim.
 #define ENCODE_RAW(ch) \
   ((ch) >= 0x20 && utf_printable(ch))
     for (size_t i = 0; i < utf_len;) {

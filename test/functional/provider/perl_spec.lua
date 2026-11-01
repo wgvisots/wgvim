@@ -86,11 +86,11 @@ describe('perl provider', function()
       package main;
       use strict;
       use warnings;
-      use Neovim::Ext;
-      use Neovim::Ext::MsgPack::RPC;
+      use wgvim::Ext;
+      use wgvim::Ext::MsgPack::RPC;
 
-      my $session = Neovim::Ext::MsgPack::RPC::socket_session($ENV{NVIM});
-      my $nvim = Neovim::Ext::from_session($session);
+      my $session = wgvim::Ext::MsgPack::RPC::socket_session($ENV{NVIM});
+      my $nvim = wgvim::Ext::from_session($session);
       $nvim->command('let g:job_out = "hello"');
       1;
     ]]
@@ -109,7 +109,7 @@ describe('perl provider', function()
       package TestPlugin;
       use strict;
       use warnings;
-      use parent qw(Neovim::Ext::Plugin);
+      use parent qw(wgvim::Ext::Plugin);
 
       __PACKAGE__->register;
 
@@ -124,11 +124,11 @@ describe('perl provider', function()
       package main;
       use strict;
       use warnings;
-      use Neovim::Ext;
-      use Neovim::Ext::MsgPack::RPC;
+      use wgvim::Ext;
+      use wgvim::Ext::MsgPack::RPC;
 
-      my $session = Neovim::Ext::MsgPack::RPC::socket_session($ENV{NVIM});
-      my $nvim = Neovim::Ext::from_session($session);
+      my $session = wgvim::Ext::MsgPack::RPC::socket_session($ENV{NVIM});
+      my $nvim = wgvim::Ext::from_session($session);
       my $plugin = TestPlugin->new($nvim);
       $plugin->test_command();
       1;

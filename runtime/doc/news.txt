@@ -1,11 +1,11 @@
-*news.txt*    Nvim
+*news.txt*    wgvim
 
 
                             NVIM REFERENCE MANUAL
 
 
 ==============================================================================
-Notable changes since Nvim 0.12                                 *news*
+Notable changes since wgvim 0.12                                 *news*
 
 For changes in the previous release, see |news-0.12|.
 
@@ -17,7 +17,7 @@ BREAKING CHANGES IN HEAD OR EXPERIMENTAL                    *news-breaking-dev*
               ====== Remove this section before release. ======
 
 The following changes to UNRELEASED features were made during the development
-cycle (Nvim HEAD, the "master" branch).
+cycle (wgvim HEAD, the "master" branch).
 
 EVENTS
 
@@ -114,7 +114,7 @@ EDITOR
   • |:visual| is |:edit|: it does not switch to reading stdin as Normal-mode
     commands, and ":global/pat/visual" does not enter Normal mode per
     matching line.
-  • Commands that wait for typed input (|input()|, |getchar()|, …) stop Nvim
+  • Commands that wait for typed input (|input()|, |getchar()|, …) stop wgvim
     at end-of-input instead of consuming the next stdin line.
   • An empty line is a no-op instead of advancing the cursor (or failing
     with |E501| at end-of-file).
@@ -247,7 +247,7 @@ API
   event context (e.g. |vim.uv| callbacks).
 • |nvim_create_autocmd()| callback |event-args| provide `win`.
 • |nvim_chan_set()| sets channel properties. With `detach=false`, any RPC
-  channel can enable Nvim "self-exit on channel-close" behavior.
+  channel can enable wgvim "self-exit on channel-close" behavior.
 
 BUILD
 
@@ -261,7 +261,7 @@ BUILD
   (empty string) to assume that target binaries can run on the host during the
   build process (e.g. if target is x86 on a x86_64 system, or if emulation set
   up with binfmt or similar).
-• zig build: Nvim can now be built to produce a WebAssembly binary via
+• zig build: wgvim can now be built to produce a WebAssembly binary via
   "-Dtarget=wasm32-emscripten", which can run inside a web browser. A basic
   browser-based demo for running it is also included. Still very
   experimental.
@@ -310,9 +310,9 @@ EDITOR
 • |:marks| gained tab-completion.
 • |:restart| saves/restores the current session (window layout, buffers, …).
   • |:restart!| (with a bang "!") does not save/restore the session.
-• |ZR| restarts Nvim (|:restart|).
+• |ZR| restarts wgvim (|:restart|).
 • |:detach| with range "%" detaches all UIs except the current one.
-• |:detach!| (with bang "!") marks the current UI as detachable: Nvim will
+• |:detach!| (with bang "!") marks the current UI as detachable: wgvim will
   continue running if the UI disconnects unexpectedly (e.g. if you
   accidentally close your terminal, ssh connection lost, etc.).
   Use |:connect| to reattach.
@@ -370,7 +370,7 @@ LSP
     item's own values instead of replacing them.
     https://microsoft.github.io/language-server-protocol/specification/#completionItemApplyKinds
   • Completion supports a `completionProvider` registered with
-    `client/registerCapability` instead of declared at `initialize`. Nvim does
+    `client/registerCapability` instead of declared at `initialize`. wgvim does
     not advertise `completion.dynamicRegistration` by default; set it in
     |vim.lsp.Config| `capabilities` to opt in.
     https://microsoft.github.io/language-server-protocol/specification/#client_registerCapability
@@ -453,7 +453,7 @@ OPTIONS
   (e.g. `vim.wo.foldexpr`, `vim.bo.indentexpr`). Reading such an option:
   • ...from Lua, gets the function itself.
   • ...from Vimscript/RPC, gets a human-readable `"<Lua …>"` hint string.
-• 'ttyfast' can be disabled during startup by setting |$NVIM_NOTTYFAST|.
+• 'ttyfast' can be disabled during startup by setting |$WGVIM_NOTTYFAST|.
 • 'scrolloffpad' allows vertically centering cursor at the end of file.
 • 'shortmess' flag |shm-u| silences undo/redo messages.
 • 'statusline' supports |stl-%0{| to insert the expression result verbatim.
@@ -483,7 +483,7 @@ PERFORMANCE
   on shutdown.
 • |treesitter-highlight| performance on large injection-heavy files improves
   by 50% to 100% by reusing edited child-tree ranges.
-• Nvim architecture allows pure-Lua implementations of some `vim.fn`
+• wgvim architecture allows pure-Lua implementations of some `vim.fn`
   functions, which skips the Vimscript <=> Lua "bridge" (no data
   conversion/marshalling) entirely, if the `vim.fn` function is called from
   Lua.
@@ -532,8 +532,8 @@ TREESITTER
 TUI
 
 • The TUI will re-query the terminal's background color when resuming from
-  a suspended state, and Nvim will update 'background' accordingly.
-• User can override the builtin "terminfo" via |$NVIM_TERMDEFS|. This is
+  a suspended state, and wgvim will update 'background' accordingly.
+• User can override the builtin "terminfo" via |$WGVIM_TERMDEFS|. This is
   similar to Vim's |t_xx| options.
 
 UI
@@ -555,7 +555,7 @@ VIMSCRIPT
 
 • `fnamemodify(':h')` preserves logical roots for more path formats.
 • |v:exitreason| is set before |QuitPre|.
-• |v:startreason| indicates whether Nvim started normally or by |:restart|.
+• |v:startreason| indicates whether wgvim started normally or by |:restart|.
 • |v:starttime| is the process start time (nanoseconds since UNIX epoch).
 • |v:useractive| indicates user activity.
 • |serverlist()| with `info=true` returns details for each server (own + peers).
@@ -610,7 +610,7 @@ These existing features changed their behavior.
   cursor on the text it is on while edits move around it.
 • 'tagfunc' is now also used for :tag completion.
 • Some character clusters are restored to occupy two cells like they
-  did prior to Nvim 0.11. These include Thai syllables like สำ and
+  did prior to wgvim 0.11. These include Thai syllables like สำ and
   half-width Katakana with voicing marks ｶﾞ. The TUI renders these in
   a safe way which also supports terminals which consider these to be
   single-width.

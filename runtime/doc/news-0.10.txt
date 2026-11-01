@@ -1,11 +1,11 @@
-*news-0.10.txt*    Nvim
+*news-0.10.txt*    wgvim
 
 
                             NVIM REFERENCE MANUAL
 
 
 ==============================================================================
-Notable changes since Nvim 0.9                                  *news-0.10*
+Notable changes since wgvim 0.9                                  *news-0.10*
 
 For changes in the previous release, see |news-0.9|.
 
@@ -21,9 +21,9 @@ These changes may require adaptations in your config or plugins.
     rather than just those from setting the `buffer` to display in the window.
 
 • Defaults:
-  • Default color scheme has been updated to be "Nvim branded" and accessible.
+  • Default color scheme has been updated to be "wgvim branded" and accessible.
     Use `:colorscheme vim` to revert to the old legacy color scheme.
-    • These Nvim specific highlight groups are now defined in a meaningfully
+    • These wgvim specific highlight groups are now defined in a meaningfully
       different way and might need an update:
       • |hl-FloatBorder| is linked to |hl-NormalFloat| instead of |hl-WinSeparator|.
       • |hl-NormalFloat| is not linked to |hl-Pmenu|.
@@ -35,11 +35,11 @@ These changes may require adaptations in your config or plugins.
       defined by default. To account for this, define all attributes of
       highlight groups explicitly. Alternatively, use `:colorscheme vim` or
       `:source $VIMRUNTIME/colors/vim.lua` to restore previous definitions.
-  • 'termguicolors' is enabled by default when Nvim is able to determine that
+  • 'termguicolors' is enabled by default when wgvim is able to determine that
     the host terminal emulator supports 24-bit color.
 
 • Editor:
-  • When switching windows, |CursorMoved| autocommands trigger when Nvim is
+  • When switching windows, |CursorMoved| autocommands trigger when wgvim is
     back on the main loop rather than immediately. This is more compatible
     with Vim.
   • "#" followed by a digit no longer stands for a function key at the start
@@ -93,7 +93,7 @@ These changes may require adaptations in your config or plugins.
 
 • Lua:
   • |-l| ensures output ends with a newline if the script prints messages and
-    doesn't cause Nvim to exit.
+    doesn't cause wgvim to exit.
   • Removed functions from the |vim.json| module:
     • Unnecessary, undocumented functions which caused global side-effects.
     • `vim.json.null` is redundant with `vim.NIL`.
@@ -109,7 +109,7 @@ These changes may require adaptations in your config or plugins.
     • 'backspace' no longer supports number values. Instead:
       • for `backspace=0` set `backspace=` (empty)
       • for `backspace=1` set `backspace=indent,eol`
-      • for `backspace=2` set `backspace=indent,eol,start` (default behavior in Nvim)
+      • for `backspace=2` set `backspace=indent,eol,start` (default behavior in wgvim)
       • for `backspace=3` set `backspace=indent,eol,nostop`
     • 'backupdir' and 'directory' will no longer remove a `>` at the start of
       the option.
@@ -123,7 +123,7 @@ These changes may require adaptations in your config or plugins.
     a scope, which means they now behave the same way as string options.
 
 • Plugins:
-  • |:TOhtml| has been rewritten in Lua to support Nvim-specific decorations,
+  • |:TOhtml| has been rewritten in Lua to support wgvim-specific decorations,
     and many options have been removed.
 
 • Treesitter:
@@ -132,7 +132,7 @@ These changes may require adaptations in your config or plugins.
     full list is documented in |treesitter-highlight-groups|.
 
 • TUI:
-  • In some cases, the cursor in the Nvim |TUI| used to blink even without
+  • In some cases, the cursor in the wgvim |TUI| used to blink even without
     configuring 'guicursor' as mentioned in |cursor-blinking|. This was a bug
     that has now been fixed. If your cursor has stopped blinking, add the
     following (or similar, adapted to user preference) to your |config| file: >vim
@@ -212,7 +212,7 @@ The following new features were added.
   • Better cmdline completion for string option value. |complete-set-option|
     • Try it with `:set listchars=<Tab>`
   • By default, the swapfile "ATTENTION" |E325| dialog is skipped if the
-    swapfile is owned by a running Nvim process, instead of prompting. If you
+    swapfile is owned by a running wgvim process, instead of prompting. If you
     always want the swapfile dialog, delete the default SwapExists handler:
     `autocmd! nvim.swapfile`. |default-autocmds|
   • Navigating the |jumplist| with CTRL+O, CTRL+I behaves more intuitively
@@ -241,7 +241,7 @@ The following new features were added.
     text edits.
   • LSP client now supports the `positionEncoding` server capability. If a server
     responds with the `positionEncoding` capability in its initialization
-    response, Nvim automatically sets the client's `offset_encoding` field.
+    response, wgvim automatically sets the client's `offset_encoding` field.
   • Dynamic registration of LSP capabilities. An implication of this change is
     that checking a client's `server_capabilities` is no longer a sufficient
     indicator to see if a server supports a feature. Instead use
@@ -330,12 +330,12 @@ The following new features were added.
   • Cursor movement, insertion with [count] and |screenpos()| are now faster.
 
 • Plugins:
-  • Nvim now includes |commenting| support.
+  • wgvim now includes |commenting| support.
   • |:Man| supports the `:hide` modifier to open page in the current window.
   • |:Man| respects 'wrapmargin'
 
 • Startup:
-  • |$NVIM_APPNAME| can be set to a relative path instead of only a name.
+  • |$WGVIM_APPNAME| can be set to a relative path instead of only a name.
   • |--startuptime| reports startup times for both processes (TUI + server) as
     separate sections.
 
@@ -444,7 +444,7 @@ These existing features changed their behavior.
     ensures that all matching nodes are returned as a table. The default option
     `all=false` returns only a single node, breaking captures with quantifiers
     like `(comment)+ @comment`; it is only provided for backward compatibility
-    and will be removed after Nvim 0.10.
+    and will be removed after wgvim 0.10.
   • |vim.treesitter.query.add_predicate()| and
     |vim.treesitter.query.add_directive()| now accept an options table rather
     than a boolean "force" argument. To force a predicate or directive to

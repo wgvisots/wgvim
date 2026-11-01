@@ -10,14 +10,14 @@
 set background=dark
 
 " hi clear
-source $VIMRUNTIME/colors/vim.lua " Nvim: revert to Vim default color scheme
+source $VIMRUNTIME/colors/vim.lua " wgvim: revert to Vim default color scheme
 let g:colors_name = 'darkblue'
 
 let s:t_Co = &t_Co
 let s:tgc = has('termguicolors') && &termguicolors
 
 let g:terminal_ansi_colors = ['#000000', '#8b0000', '#90f020', '#ffa500', '#00008b', '#8b008b', '#008b8b', '#c0c0c0', '#808080', '#ffa0a0', '#90f020', '#ffff60', '#0030ff', '#ff00ff', '#90fff0', '#ffffff']
-" Nvim uses g:terminal_color_{0-15} instead
+" wgvim uses g:terminal_color_{0-15} instead
 for i in range(g:terminal_ansi_colors->len())
   let g:terminal_color_{i} = g:terminal_ansi_colors[i]
 endfor

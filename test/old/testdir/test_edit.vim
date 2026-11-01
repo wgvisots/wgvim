@@ -2079,7 +2079,7 @@ endfunc
 
 " Test for 'hkmap' and 'hkmapp'
 func Test_edit_hkmap()
-  throw "Skipped: Nvim does not support 'hkmap'"
+  throw "Skipped: wgvim does not support 'hkmap'"
   CheckFeature rightleft
   if has('win32') && !has('gui')
     " Test fails on the MS-Windows terminal version

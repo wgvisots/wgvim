@@ -16,7 +16,7 @@ func Test_Rand()
   " using /dev/urandom or used time, result is different each time
   call assert_notequal(s, srand())
 
-  " Nvim does not support test_srand_seed
+  " wgvim does not support test_srand_seed
   " call test_srand_seed(123456789)
   " call assert_equal(4284103975, rand())
   " call assert_equal(1001954530, rand())
