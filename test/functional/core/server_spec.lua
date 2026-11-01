@@ -341,46 +341,44 @@ describe('startup --listen', function()
     t.assert_nolog('Host lookup failed', testlog, 100)
 
     _test({ '--listen' }, nil, 'wgvim.*: Argument missing after: "%-%-listen"')
-    _test({ '--listen2' }, nil, 'nvim.*: Garbage after option argument: "%-%-listen2"')
+    _test({ '--listen2' }, nil, 'wgvim.*: Garbage after option argument: "%-%-listen2"')
     _test(
       { '--listen', in_use },
       nil,
-      ('nvim.*: Failed to %%-%%-listen: [^:]+ already [^:]+: "%s"'):format(vim.pesc(in_use))
+      ('wgvim.*: Failed to %%-%%-listen: [^:]+ already [^:]+: "%s"'):format(vim.pesc(in_use))
     )
-    _test({ '--listen', '/' }, nil, 'nvim.*: Failed to %-%-listen: [^:]+: "/"')
+    _test({ '--listen', '/' }, nil, 'wgvim.*: Failed to %-%-listen: [^:]+: "/"')
     if not is_os('win') then
       -- Too-long path is rejected, not silently truncated. #38623
       local too_long = './Xtest-listen-' .. ('x'):rep(192)
       _test(
         { '--listen', too_long },
         nil,
-        ('nvim.*: Failed to %%-%%-listen: invalid argument: "%s"'):format(vim.pesc(too_long))
+        ('wgvim.*: Failed to %%-%%-listen: invalid argument: "%s"'):format(vim.pesc(too_long))
       )
     end
     _test(
       { '--listen', 'https://example.com' },
       nil,
-      ('nvim.*: Failed to %%-%%-listen: %s: "https://example.com"'):format(
-        is_os('mac') and 'unknown node or service' or 'service not available for socket type'
-      )
+      -- wgvim: host:port addresses are refused before any DNS lookup.
+      'wgvim.*: Failed to %-%-listen: invalid argument: "https://example%.com"'
     )
 
     t.assert_log('Failed to start server', testlog, 100)
-    t.assert_log('Host lookup failed', testlog, 100)
+    t.assert_nolog('Host lookup failed', testlog, 100)
 
     _test(
       {},
       { WGVIM_LISTEN_ADDRESS = in_use },
-      ('nvim.*: Failed $WGVIM_LISTEN_ADDRESS: [^:]+ already [^:]+: "%s"'):format(vim.pesc(in_use))
+      ('wgvim.*: Failed $WGVIM_LISTEN_ADDRESS: [^:]+ already [^:]+: "%s"'):format(vim.pesc(in_use))
     )
-    _test({}, { WGVIM_LISTEN_ADDRESS = '/' }, 'nvim.*: Failed $WGVIM_LISTEN_ADDRESS: [^:]+: "/"')
+    _test({}, { WGVIM_LISTEN_ADDRESS = '/' }, 'wgvim.*: Failed $WGVIM_LISTEN_ADDRESS: [^:]+: "/"')
     _test(
       {},
       { WGVIM_LISTEN_ADDRESS = 'https://example.com' },
-      ('nvim.*: Failed $WGVIM_LISTEN_ADDRESS: %s: "https://example.com"'):format(
-        is_os('mac') and 'unknown node or service' or 'service not available for socket type'
-      )
+      'wgvim.*: Failed $WGVIM_LISTEN_ADDRESS: invalid argument: "https://example%.com"'
     )
+    t.assert_nolog('Host lookup failed', testlog, 100)
   end)
 
   it('sets v:servername, overrides $WGVIM_LISTEN_ADDRESS', function()

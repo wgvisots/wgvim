@@ -15,7 +15,7 @@ set(ENV{VIMRUNTIME} ${ROOT_DIR}/runtime)
 set(ENV{LC_ALL} "en_US.UTF-8")
 set(TEST_XDG_PREFIX ${BUILD_DIR}/Xtest_xdg${TEST_SUFFIX})
 unset(ENV{XDG_DATA_DIRS})
-unset(ENV{NVIM})  # Clear $WGVIM in case tests are running from wgvim. #11009
+unset(ENV{WGVIM})  # Clear $WGVIM in case tests are running from wgvim. #11009
 unset(ENV{TMUX})  # wgvim TUI shouldn't think it's running in tmux. #34173
 
 # Prepare for running tests in ${TEST_XDG_PREFIX}.

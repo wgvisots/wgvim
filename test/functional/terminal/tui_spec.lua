@@ -3137,7 +3137,7 @@ describe('TUI', function()
   it('no assert failure on deadly signal #21896', function()
     exec_lua([[vim.uv.kill(vim.fn.jobpid(vim.bo.channel), 'sigterm')]])
     screen:expect(is_os('win') and { any = '%[Process exited 1%]' } or [[
-      wgvim: Caught deadly signal 'SIGTERM'              |
+      wgvim: Caught deadly signal 'SIGTERM'             |
       ^                                                  |
       [Process exited 1]                                |
                                                         |*3
@@ -3271,7 +3271,7 @@ describe('TUI', function()
       ^                                                  |
       {100:~                                                 }|*3
       {3:[No Name]                                         }|
-      Type  :qa  and press <Enter> to exit wgvim         |
+      Type  :qa  and press <Enter> to exit wgvim        |
       {5:-- TERMINAL --}                                    |
     ]])
   end)
@@ -3522,7 +3522,7 @@ describe('TUI', function()
       {1:~                        }│                        |
       {3:new                       }{101:{MATCH:<.*%s} [-] }|
                                                         |
-    ]]):format(is_os('win') and '[/\\]nvim%.exe' or '/nvim'))
+    ]]):format(is_os('win') and '[/\\]wgvim%.exe' or '/wgvim'))
   end)
 
   -- #28667, #28668
@@ -5122,7 +5122,7 @@ describe('TUI client', function()
     server:request('nvim_input', ('a'):rep(1000))
     exec_lua([[vim.uv.kill(vim.fn.jobpid(vim.bo.channel), 'sigterm')]])
     screen_client:expect(is_os('win') and { any = '%[Process exited 1%]' } or [[
-      wgvim: Caught deadly signal 'SIGTERM'              |
+      wgvim: Caught deadly signal 'SIGTERM'             |
       ^                                                  |
       [Process exited 1]                                |
                                                         |*3

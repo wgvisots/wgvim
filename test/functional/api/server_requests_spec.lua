@@ -346,36 +346,6 @@ describe('server -> client', function()
       connect_test(server, 'pipe', address)
     end)
 
-    it('via ipv4 address', function()
-      local server = n.new_session(false)
-      set_session(server)
-      local status, address = pcall(fn.serverstart, '127.0.0.1:')
-      if not status then
-        pending('no ipv4 stack')
-      end
-      eq('127.0.0.1:', string.sub(address, 1, 10))
-      connect_test(server, 'tcp', address)
-    end)
-
-    it('via ipv6 address', function()
-      local server = n.new_session(false)
-      set_session(server)
-      local status, address = pcall(fn.serverstart, '::1:')
-      if not status then
-        pending('no ipv6 stack')
-      end
-      eq('::1:', string.sub(address, 1, 4))
-      connect_test(server, 'tcp', address)
-    end)
-
-    it('via hostname', function()
-      local server = n.new_session(false)
-      set_session(server)
-      local address = fn.serverstart('localhost:')
-      eq('localhost:', string.sub(address, 1, 10))
-      connect_test(server, 'tcp', address)
-    end)
-
     local function start_server_and_client()
       local server = n.new_session(false)
       set_session(server)

@@ -19,7 +19,7 @@ local nvim_prog = n.nvim_prog
 local is_os = t.is_os
 local mkdir = t.mkdir
 
-local nvim_prog_basename = is_os('win') and 'nvim.exe' or 'nvim'
+local nvim_prog_basename = is_os('win') and 'wgvim.exe' or 'wgvim'
 
 local link_limit = is_os('win') and 64 or (is_os('mac') or is_os('bsd')) and 33 or 41
 
@@ -766,7 +766,7 @@ describe('vim.fs', function()
     it('works with environment variables', function()
       local xdg_config_home = test_build_dir .. '/.config'
       eq(
-        xdg_config_home .. '/nvim',
+        xdg_config_home .. '/wgvim',
         exec_lua(function()
           return vim._with({ env = { XDG_CONFIG_HOME = xdg_config_home } }, function()
             return vim.fs.normalize('$XDG_CONFIG_HOME/wgvim')

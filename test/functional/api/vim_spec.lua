@@ -1798,7 +1798,7 @@ describe('API', function()
       local xhome = 'Xhome_api'
       local xconfig = ('%s/Xconfig'):format(xhome)
       local xdata = ('%s/Xdata'):format(xhome)
-      local autoload_folder = ('%s/nvim/autoload'):format(xconfig)
+      local autoload_folder = ('%s/wgvim/autoload'):format(xconfig)
       local autoload_file = ('%s/testload.vim'):format(autoload_folder)
       mkdir_p(autoload_folder)
       write_file(autoload_file, [[let testload#value = 2]])

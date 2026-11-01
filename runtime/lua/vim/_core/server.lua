@@ -54,7 +54,7 @@ function M.serverlist(opts, addrs)
   -- TODO: support Windows named pipes.
   local root = vim.fs.normalize(vim.fn.stdpath('run') .. '/..')
   local socket_paths = vim.fs.find(function(name, _)
-    return name:match('nvim.*')
+    return name:match('wgvim.*') -- server_address_new() names sockets <appname>.<pid>.<n>
   end, { path = root, type = 'socket', limit = math.huge })
 
   for _, socket in ipairs(socket_paths) do

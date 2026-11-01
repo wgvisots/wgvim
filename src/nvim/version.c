@@ -4191,9 +4191,9 @@ static void do_intro_line(int row, char *mesg, bool colon, bool is_logo)
   }
 
   // Try highlighting full line:
-  // - Version starts with "NVIM".
+  // - Version starts with "WGVIM" (the prefix of NVIM_VERSION_LONG).
   // - Separator line consists from ─ (UTF-8: E2 94 80).
-  bool is_version = mesg[0] == 'N' && mesg[1] == 'V' && mesg[2] == 'I' && mesg[3] == 'M';
+  bool is_version = strncmp(mesg, "WGVIM ", 6) == 0;
   bool is_sep = utfc_ptr2len(mesg) == 3 && utf_ptr2char(mesg) == 0x2500;
   if (is_version || is_sep) {
     int clen = is_sep ? 3 : 1;
