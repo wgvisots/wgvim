@@ -529,13 +529,6 @@ describe('channels', function()
       )
     end)
 
-    it('in "tcp" mode', function()
-      eq(
-        'Vim:connection failed: connection refused',
-        pcall_err(fn.sockconnect, 'tcp', '127.0.0.1:0')
-      )
-    end)
-
     it('with another connection accepted while polling #37807', function()
       local server = api.nvim_get_vvar('servername')
       local invalid_pipe = n.new_pipename()

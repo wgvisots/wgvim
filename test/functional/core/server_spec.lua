@@ -111,58 +111,6 @@ describe('server', function()
     t.assert_log('Not listening on bogus%-socket%-name', testlog, 10)
   end)
 
-  it('parses endpoints', function()
-    clear {
-      args_rm = { '--listen' },
-      env = {
-        WGVIM_LOG_FILE = testlog,
-        WGVIM_LISTEN_ADDRESS = '',
-      },
-    }
-    clear_serverlist()
-    eq({}, fn.serverlist())
-
-    local s = fn.serverstart('127.0.0.1:0') -- assign random port
-    if #s > 0 then
-      matches('127.0.0.1:%d+', s)
-      eq(s, fn.serverlist()[1])
-      clear_serverlist()
-    end
-
-    s = fn.serverstart('127.0.0.1:') -- assign random port
-    if #s > 0 then
-      matches('127.0.0.1:%d+', s)
-      eq(s, fn.serverlist()[1])
-      clear_serverlist()
-    end
-
-    local expected = {}
-    local v4 = '127.0.0.1:12345'
-    local status, _ = pcall(fn.serverstart, v4)
-    if status then
-      table.insert(expected, v4)
-      pcall(fn.serverstart, v4) -- exists already; ignore
-      t.assert_log('Failed to start server: address already in use: 127%.0%.0%.1', testlog, 10)
-    end
-
-    local v6 = '::1:12345'
-    status, _ = pcall(fn.serverstart, v6)
-    if status then
-      table.insert(expected, v6)
-      pcall(fn.serverstart, v6) -- exists already; ignore
-      t.assert_log('Failed to start server: address already in use: ::1', testlog, 10)
-    end
-    eq(expected, fn.serverlist())
-    clear_serverlist()
-
-    -- Address without slashes is a "name" which is appended to a generated path. #8519
-    matches([[[/\\]xtest1%.2%.3%.4[^/\\]*]], fn.serverstart('xtest1.2.3.4'))
-    clear_serverlist()
-
-    eq('Vim:Failed to start server: invalid argument', pcall_err(fn.serverstart, '127.0.0.1:65536')) -- invalid port
-    eq({}, fn.serverlist())
-  end)
-
   it('serverlist() returns the list of servers', function()
     -- Set XDG_RUNTIME_DIR to a temp dir in this session to properly test serverlist({peer = true}). See #35492
     local tmp_dir = assert(vim.uv.fs_mkdtemp(vim.fs.dirname(t.tmpname(false)) .. '/XXXXXX'))

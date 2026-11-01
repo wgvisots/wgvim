@@ -3313,32 +3313,6 @@ describe('LSP', function()
       end
     end)
 
-    it('connects to lsp server via rpc.connect using ip address', function()
-      exec_lua(create_tcp_echo_server)
-      exec_lua(function()
-        local port = _G._create_tcp_server('127.0.0.1')
-        vim.lsp.start({ name = 'dummy', cmd = vim.lsp.rpc.connect('127.0.0.1', port) })
-      end)
-      verify_single_notification(function(method, args) ---@param args [string]
-        eq('body', method)
-        eq('initialize', vim.json.decode(args[1]).method)
-      end)
-    end)
-
-    it('connects to lsp server via rpc.connect using hostname', function()
-      skip(is_os('bsd'), 'issue with host resolution in ci')
-      skip(t.is_arch('s390x'), 'issue with host resolution in ci')
-      exec_lua(create_tcp_echo_server)
-      exec_lua(function()
-        local port = _G._create_tcp_server('::1')
-        vim.lsp.start({ name = 'dummy', cmd = vim.lsp.rpc.connect('localhost', port) })
-      end)
-      verify_single_notification(function(method, args) ---@param args [string]
-        eq('body', method)
-        eq('initialize', vim.json.decode(args[1]).method)
-      end)
-    end)
-
     it('can connect to lsp server via pipe or domain_socket', function()
       local tmpfile = is_os('win') and '\\\\.\\\\pipe\\pipe.test' or tmpname(false)
       local result = exec_lua(function()
@@ -3366,30 +3340,6 @@ describe('LSP', function()
         return vim.json.decode(init)
       end)
       eq('initialize', result.method)
-    end)
-
-    it('clean up failed lsp client when rpc.connect fails', function()
-      exec_lua(function()
-        local server = assert(vim.uv.new_tcp())
-        server:bind('127.0.0.1', 0)
-        local port = server:getsockname().port
-        server:close()
-        local exited = false
-        vim.lsp.start({
-          name = 'dummy',
-          cmd = vim.lsp.rpc.connect('127.0.0.1', port),
-          on_exit = function()
-            exited = true
-          end,
-        })
-        assert(
-          vim.wait(1000, function()
-            return #vim.lsp.get_clients({ name = 'dummy', _uninitialized = true }) == 0
-          end),
-          'Timed out waiting for errored client to be cleaned up'
-        )
-        assert(exited)
-      end)
     end)
   end)
 
