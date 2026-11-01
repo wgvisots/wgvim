@@ -1354,7 +1354,7 @@ static inline ParserPosition recol_pos(const ParserPosition pos, const size_t ne
 }
 
 /// Get highlight group name
-#define HL(g) (is_invalid ? "NvimInvalid" #g : "wgvim" #g)
+#define HL(g) (is_invalid ? "NvimInvalid" #g : "Nvim" #g)
 
 /// Highlight current token with the given group
 #define HL_CUR_TOKEN(g) \
