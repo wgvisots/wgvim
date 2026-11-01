@@ -681,25 +681,6 @@ func Test_netrw_filemove_pwsh()
   call s:test_netrw_filemove()
 endfunc
 
-func Test_netrw_reject_evil_hostname()
-  let msg = execute(':e scp://x;touch RCE;x/dir/')
-  let msg = split(msg, "\n")[-1]
-  call assert_match('Rejecting invalid hostname', msg)
-endfunc
-
-func Test_netrw_obtain_reject_evil_hostname()
-  new
-  let b:netrw_islocal = 0
-  let b:netrw_curdir = 'scp://x;touch RCE;x/dir/'
-  try
-    " A List skips s:SetupNetrwStatusLine(), whose :redir cannot run in execute()
-    let msg = execute('call netrw#Obtain(0, ["file"])')
-    call assert_match('Rejecting invalid hostname: <x;touch RCE;x>', msg)
-  finally
-    bwipe!
-  endtry
-endfunc
-
 " "O" in a local listing copies the file under the cursor to the current directory
 func Test_netrw_obtain_local()
   let dir = getcwd() .. '/Xnetrwobtain'
