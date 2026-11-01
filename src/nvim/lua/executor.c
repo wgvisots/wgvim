@@ -1042,6 +1042,40 @@ static void nlua_disable_ffi(lua_State *lstate)
   lua_pop(lstate, 2);
 }
 
+static int nlua_loadlib_disabled(lua_State *lstate)
+{
+  const char *path = luaL_optstring(lstate, 1, "");
+  WLOG("package.loadlib(\"%s\") was attempted and refused (native Lua modules are disabled)", path);
+  return luaL_error(lstate,
+                    "wgvim: loading native Lua modules (.so) is disabled because native code "
+                    "bypasses the editor's restrictions (see SECURITY-AUDIT.md): %s", path);
+}
+
+/// Stops Lua from loading native code: package.loadlib() raises an error, package.cpath is
+/// empty, and the C and all-in-one searchers are removed from package.loaders. Built-in
+/// modules (luv, lpeg, mpack, ...) are linked into the binary and unaffected.
+/// Must run right after luaL_openlibs(), before anything is inserted into package.loaders.
+static void nlua_disable_native_modules(lua_State *lstate)
+{
+  lua_getglobal(lstate, "package");
+
+  lua_pushcfunction(lstate, nlua_loadlib_disabled);
+  lua_setfield(lstate, -2, "loadlib");
+
+  lua_pushstring(lstate, "");
+  lua_setfield(lstate, -2, "cpath");
+
+  // Fresh LuaJIT/Lua 5.1 state: loaders = { preload, lua, c, croot }. Keep the first two.
+  lua_getfield(lstate, -1, "loaders");
+  if (lua_istable(lstate, -1)) {
+    for (int i = (int)lua_objlen(lstate, -1); i > 2; i--) {
+      lua_pushnil(lstate);
+      lua_rawseti(lstate, -2, i);
+    }
+  }
+  lua_pop(lstate, 2);
+}
+
 void nlua_init(char **argv, int argc, int lua_arg0)
 {
 #ifdef NLUA_TRACK_REFS
@@ -1057,6 +1091,7 @@ void nlua_init(char **argv, int argc, int lua_arg0)
   }
   luaL_openlibs(lstate);
   nlua_disable_ffi(lstate);
+  nlua_disable_native_modules(lstate);
   if (!nlua_state_init(lstate)) {
     fprintf(stderr, _("E970: Failed to initialize builtin Lua modules\n"));
 #ifdef EXITFREE
@@ -1090,6 +1125,7 @@ static lua_State *nlua_init_state(bool thread)
   // Add in the lua standard libraries
   luaL_openlibs(lstate);
   nlua_disable_ffi(lstate);
+  nlua_disable_native_modules(lstate);
 
   // print
   lua_pushcfunction(lstate, &nlua_print);

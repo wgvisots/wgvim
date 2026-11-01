@@ -723,8 +723,18 @@ list(APPEND NVIM_GENERATED_FOR_HEADERS
   "${GENERATED_OPTION_VARS}"
 )
 
+# wgvim: SHA256 of each bundled tree-sitter parser, checked before dlopen().
+set(GENERATED_TS_PARSER_HASHES ${GENERATED_DIR}/ts_parser_hashes.generated.h)
+file(GLOB TS_BUNDLED_PARSERS ${DEPS_PREFIX}/lib/wgvim/parser/*.so)
+add_custom_command(OUTPUT ${GENERATED_TS_PARSER_HASHES}
+  COMMAND ${CMAKE_COMMAND} -D PARSER_DIR=${DEPS_PREFIX}/lib/wgvim/parser
+    -D OUTPUT=${GENERATED_TS_PARSER_HASHES}
+    -P ${PROJECT_SOURCE_DIR}/cmake/GenerateParserHashes.cmake
+  DEPENDS ${PROJECT_SOURCE_DIR}/cmake/GenerateParserHashes.cmake ${TS_BUNDLED_PARSERS})
+
 list(APPEND NVIM_GENERATED_FOR_SOURCES
   "${GENERATED_API_DISPATCH}"
+  "${GENERATED_TS_PARSER_HASHES}"
   "${GENERATED_EX_CMDS_DEFS}"
   "${GENERATED_EVENTS_NAMES_MAP}"
   "${GENERATED_FUNCS}"

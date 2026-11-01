@@ -31,8 +31,9 @@ in `NOTICE`. How each DONE row was tested is in the commit message.
 | 12 | OSC 52 clipboard (writes an escape sequence to the terminal) | `runtime/plugin/osc52.lua` | No | Keep; local terminal output only |
 | 13 | Telemetry / update checks / phone-home | whole tree | n/a | **None found** in the editor. (LSP protocol constants mention `telemetry/event`; that is for servers, which are out of scope.) |
 | 14 | LuaJIT `ffi`: Lua can call libc directly, including `socket()`/`connect()` | built into LuaJIT; nothing in `runtime/` or `src/` uses it | No | **DONE** (`nlua_disable_ffi` in `src/nvim/lua/executor.c`): removed from the main state and from worker-thread states; `require('ffi')` raises "wgvim: the LuaJIT 'ffi' library is disabled …" every time and the attempt is written to the log (WRN). Third-party plugins that use `ffi` will fail with that message |
-
 | 15 | `'exrc'`: runs `.nvim.lua` / `.nvimrc` / `.exrc` from the current and parent directories (gated by the `:trust` prompt, but a trusted file can add the project to `runtimepath` and load further unchecked code) | `src/nvim/main.c`, `runtime/lua/vim/_core/exrc.lua` | Yes (`'exrc'`, without trust) | **DONE**: `'exrc'` is `immutable` (setting it gives E519), the startup code that sourced the files is removed, and `vim/_core/exrc.lua` is deleted. `:trust` / `vim.secure` remain for plugins that use them |
+| 16 | Tree-sitter parsers: any `parser/<lang>.so` on `runtimepath`, or any path passed to `vim.treesitter.language.add()`, was `dlopen()`ed (native code runs immediately, bypassing rows 6 and 14) | `runtime/lua/vim/treesitter/language.lua`, `src/nvim/lua/treesitter.c` | No | **DONE**: only `<libdir>/parser/*.so` is searched; the C loader resolves symlinks, refuses anything outside that directory, refuses names not bundled at build time, and checks the SHA256 against hashes compiled into the binary (`cmake/GenerateParserHashes.cmake`). Residual: the file is hashed, then opened by path, so the install directory must be writable only by root. WASM parsers are not compiled in (`ENABLE_WASMTIME=OFF`) |
+| 17 | Native Lua modules: `package.loadlib()`, `package.cpath`, and `require` of `lua/*.so` from `runtimepath` | LuaJIT, `runtime/lua/vim/_init_packages.lua`, `vim/loader.lua` | No | **DONE** (`nlua_disable_native_modules` in `executor.c`, main and thread states): `package.loadlib` raises an error and logs WRN, `package.cpath` is empty, the C searchers are removed. Built-in modules (luv, lpeg, mpack, …) are linked in and unaffected; plugins that ship compiled `.so` helpers will not load |
 
 ## Limits of what the editor can enforce
 
@@ -44,8 +45,8 @@ the editor is still a programming environment. On the final build:
   Tested: `require('ffi')` fails with a clear message in the main state and in threads.
 - `io.popen`, `os.execute`, `:!`, `jobstart()` and `vim.system()` start other programs,
   which have their own network access.
-- Native modules: `package.loadlib()` and `require` of a `.so` found on `package.cpath`
-  run arbitrary native code. (Expected from how Lua works; not separately tested.)
+- Native code from Lua: blocked (rows 16 and 17), but a program started with `:!` or
+  `jobstart()` is native code too, so this does not change the sandbox conclusion below.
 
 So these changes remove accidental and built-in network use; they are **not** a
 sandbox. Treat plugins and any `init.lua` as trusted code, and enforce "no network"
@@ -53,9 +54,6 @@ at the OS level (network namespace, container without a network, or firewall rul
 
 ## Related findings (not network)
 
-- **Parsers are loaded from `parser/*.so` on the runtimepath.** Any directory on
-  `runtimepath` can therefore execute native code in the editor. Audit where the
-  runtimepath is built from and what is writable.
 - Dead `ZIG_BUILD` branches remain in `cmake.config/versiondef.h.in` and
   `src/nvim/os/lang.c`; docs still describe removed scripts (`MAINTAIN.md`,
   `runtime/doc/dev_vimpatch.txt`).
