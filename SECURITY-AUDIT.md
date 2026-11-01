@@ -66,6 +66,14 @@ at the OS level (network namespace, container without a network, or firewall rul
   (providers), `pack.txt` (`vim.pack`), the `vim.net` and spell-file download sections,
   `'exrc'`, automatic `v:servername`, and `lsp/*.lua` lookup on 'runtimepath'.
 - The per-user temp directory is still named `nvim.<user>` (cosmetic).
+- Test coverage (see `COVERAGE.md`): functional tests cover 78.7% of lines; the parsers of
+  untrusted input are among the least covered — `spellfile.c` 33% (spell files; Vim
+  CVE-2026-45130 was here), `vterm/state.c` 59% (`:terminal` output), `tui/termkey` ~69%
+  (terminal input). The old-style Vim tests raise the combined figure to 92.4%. These are the
+  first candidates for more tests or fuzzing.
+- Debug builds only: 22 functional tests that draw the tab line fail because the tab's window
+  count is drawn as "A" instead of the digit. It happens with `WGVIM_HARDENING=OFF` too and
+  not in Release builds; not yet diagnosed (check against an upstream Debug build).
 
 ## Reviewed, no change needed
 
