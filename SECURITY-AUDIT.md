@@ -39,6 +39,7 @@ in `NOTICE`. How each DONE row was tested is in the commit message.
 | 20 | LSP server configs: any `lsp/<name>.lua` on `runtimepath` could define the command `vim.lsp.enable()` runs | `runtime/lua/vim/lsp.lua` | No | **DONE**: `lsp/*.lua` is read only from `stdpath('config')` (incl. `after/`) and `$VIMRUNTIME`. Configs set with `vim.lsp.config()` in Lua (your clangd setup) are unaffected |
 | 21 | Compiler/linker hardening came from the build host's compiler defaults (e.g. Ubuntu), not from the build system; a plain RHEL 9 `gcc` build would lack most of it | `src/nvim/CMakeLists.txt`, `cmake.deps/CMakeLists.txt` | n/a | **DONE** (option `WGVIM_HARDENING`, default ON; each flag only if supported): editor gets PIE, `_FORTIFY_SOURCE=3` (2 on GCC < 12), `-fstack-protector-strong`, `-fstack-clash-protection`, `-fcf-protection=full`, `-ftrivial-auto-var-init=zero`, `-fno-strict-overflow`, `-z relro -z now -z noexecstack -z separate-code`. Dependencies and parsers get stack protector, stack-clash, CET, `_FORTIFY_SOURCE=2`, full RELRO. Verified with `readelf`: PIE, BIND_NOW, RELRO, non-executable stack, x86 SHSTK. IBT is not marked on the final binary because LuaJIT's hand-written assembly VM (`lj_vm.o`) has no IBT markers; parsers have both IBT and SHSTK. Side effect: `-z now` exposed a latent bug in the cpp parser build (C99 made `static_assert` an undefined function call); parsers are now built as C11 |
 | 22 | Unit-test code compiled into the shipped binary (`UNIT_TESTING`: writable global `malloc`/`free` function pointers in `memory.c`, plus test fixtures) | `src/nvim/CMakeLists.txt` | n/a | **DONE**: unit tests removed (they required ffi inside the editor, row 14); the fixtures and `UNIT_TESTING` are no longer built into `wgvim`. Coverage now comes from the functional tests (`-D ENABLE_GCOV=ON`) |
+| 23 | Bugs found by fuzzing (`test/fuzz/`, libFuzzer + ASan/UBSan) in the parsers of terminal output (`vterm`) and terminal input (`termkey`) | `src/nvim/vterm/{state,parser}.c`, `src/nvim/tui/termkey/{termkey,driver-csi}.c` | n/a | **DONE**: (a) `ESC [ b` (REP) with no preceding character looped forever and froze the editor — 3 bytes printed in `:terminal` were enough, and the frozen editor ignored SIGTERM; (b) `termkey` read `c0[-1]` out of bounds for a CSI-u key with a missing/negative code (from the outer terminal); (c) a non-digit CSI parameter byte tripped an `assert` (abort in debug builds); (d) signed-integer overflows on huge CSI/OSC numbers (UB); (e) left shift of a negative value in DECRQSS handling (UB). All fixed; each input is kept in `test/fuzz/corpus/` and (a) has a functional regression test |
 
 ## Limits of what the editor can enforce
 
@@ -79,9 +80,12 @@ at the OS level (network namespace, container without a network, or firewall rul
 
 - Temp files: the per-user temp directory is created 0700 and its owner and mode are
   checked before use (`vim_mktempdir()` in `src/nvim/fileio.c`).
-- `:terminal` escape sequences: only OSC 8 (hyperlinks), OSC 10/11 (colour queries, answered
-  from 'background') and OSC 133 (prompt marks) are handled; terminal programs cannot set
-  the clipboard (no OSC 52 handling in `:terminal`).
+- `:terminal` escape sequences: OSC 8 (hyperlinks), OSC 10/11 (colour queries, answered from
+  'background') and OSC 133 (prompt marks) are handled. **Correction (2026-11-01):** OSC 52 *is*
+  handled — a program running in `:terminal` can **set** the system clipboard
+  (`term_selection_set()` in `terminal.c`); reading it is disabled. Output of an untrusted
+  program (e.g. `cat` of a downloaded file) can therefore replace what you paste next. Open
+  decision: keep, or drop the `.set` callback.
 - `'modelineexpr'` is off by default and options that take expressions or function names
   (including `'complete'`) are marked as needing it; this covers Vim CVE-2026-34982.
 

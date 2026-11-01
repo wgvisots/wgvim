@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <limits.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -579,8 +580,14 @@ TermKeyResult termkey_interpret_csi_param(TermKeyCsiParam param, int *paramp, in
       continue;
     }
 
-    assert(c >= '0' && c <= '9');
-    arg = (10 * arg) + (c - '0');
+    // wgvim: parse_csi() passes any parameter byte 0x30-0x3F here, so '<', '=', '>', '?' can
+    // arrive from the terminal. That used to trip an assert (abort in debug builds) and, with
+    // long digit strings, overflow `int` (UB). Reject non-digits and saturate. Found by
+    // test/fuzz/termkey_fuzzer.
+    if (c < '0' || c > '9') {
+      return TERMKEY_RES_ERROR;
+    }
+    arg = arg > (INT_MAX - (c - '0')) / 10 ? INT_MAX : (10 * arg) + (c - '0');
   }
 
   if (length == 0) {

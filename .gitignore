@@ -81,3 +81,11 @@ tags
 /contrib/result-*
 
 CMakeUserPresets.json
+
+# wgvim: extra build dirs and fuzzer output
+/build-*/
+crash-*
+timeout-*
+leak-*
+oom-*
+fuzz-*.log
