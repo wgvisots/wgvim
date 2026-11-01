@@ -1,8 +1,9 @@
 // wgvim: libFuzzer harness for the built-in terminal emulator (src/nvim/vterm).
 //
 // Feeds arbitrary bytes, as if printed by a program running in :terminal, through the same
-// configuration terminal.c uses (UTF-8, altscreen, reflow, scrollback callbacks, OSC 52
-// selection callbacks, unrecognised-sequence fallbacks), with a resize and keyboard/mouse
+// configuration terminal.c uses (UTF-8, altscreen, reflow, scrollback callbacks,
+// unrecognised-sequence fallbacks), plus libvterm's OSC 52 selection decoder (which wgvim's
+// terminal.c no longer enables, but which stays fuzzed in case it is turned back on), with a resize and keyboard/mouse
 // input part-way through. Every screen cell is read back at the end.
 //
 // Build: see test/fuzz/README.md (cmake -D WGVIM_FUZZ=ON with clang).

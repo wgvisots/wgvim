@@ -106,8 +106,12 @@ struct VTermState {
 
   // lineinfo will == lineinfos[0] or lineinfos[1], depending on altscreen
   VTermLineInfo *lineinfo;
+// wgvim: a double-width line on a 1-column terminal had width 0, so cursor clamping
+// (UBOUND(pos.col, THISROWWIDTH - 1)) set pos.col to -1 and later erases/scrolls indexed the screen
+// buffer at column -1. Found by test/fuzz/vterm_fuzzer. A row is always at least one cell wide.
 #define ROWWIDTH(state, \
-                 row) ((state)->lineinfo[(row)].doublewidth ? ((state)->cols / 2) : (state)->cols)
+                 row) ((state)->lineinfo[(row)].doublewidth && (state)->cols > 1 \
+                       ? ((state)->cols / 2) : (state)->cols)
 #define THISROWWIDTH(state) ROWWIDTH(state, (state)->pos.row)
 
   // Mouse state

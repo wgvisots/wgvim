@@ -49,6 +49,15 @@ static void decode_utf8(VTermEncoding *enc, void *data_, uint32_t cp[], int *cpi
     } else if (c >= 0x20 && c < 0x7f) {
       if (data->bytes_remaining) {
         cp[(*cpi)++] = UNICODE_INVALID;
+        // wgvim: this branch can emit two codepoints, but the loop only guarantees room for one:
+        // with one slot left, an ASCII byte after an incomplete UTF-8 sequence wrote one element
+        // past the end of the caller's buffer (heap overflow in vt->tmpbuffer, from :terminal
+        // output). Stop here; the byte is decoded on the next call. Found by
+        // test/fuzz/vterm_fuzzer.
+        if (*cpi >= cplen) {
+          data->bytes_remaining = 0;
+          return;
+        }
       }
 
       cp[(*cpi)++] = c;

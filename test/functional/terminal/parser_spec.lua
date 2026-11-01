@@ -15,6 +15,39 @@ local NUL = string.char(0x00)
 describe(':terminal', function()
   before_each(clear)
 
+  -- wgvim: memory-safety bugs in the terminal emulator found by test/fuzz/vterm_fuzzer. Each was
+  -- reachable by a program printing to :terminal.
+  it('CSI with more than 32 parameters does not overflow (wgvim, found by fuzzing)', function()
+    local chan = api.nvim_open_term(0, {})
+    api.nvim_chan_send(chan, '\027[' .. string.rep('1;', 20000) .. 'mafter\n')
+    assert_alive()
+    t.retry(nil, 1000, function()
+      t.eq('after', api.nvim_buf_get_lines(0, 0, 1, true)[1])
+    end)
+  end)
+
+  it('restoring a saved cursor after the terminal shrank stays on screen (wgvim)', function()
+    local chan = api.nvim_open_term(0, {})
+    api.nvim_win_set_height(0, 30)
+    api.nvim_chan_send(chan, '\027[28;5H\0277') -- move to row 28, save cursor (ESC 7)
+    n.poke_eventloop()
+    api.nvim_win_set_height(0, 5) -- shrink below the saved row
+    n.poke_eventloop()
+    api.nvim_chan_send(chan, '\0278' .. string.rep('x', 200) .. '\n') -- restore (ESC 8), print
+    assert_alive()
+  end)
+
+  it('a scroll region larger than the shrunk terminal is reset (wgvim)', function()
+    local chan = api.nvim_open_term(0, {})
+    api.nvim_win_set_height(0, 30)
+    api.nvim_chan_send(chan, '\027[20;28r') -- DECSTBM rows 20-28
+    n.poke_eventloop()
+    api.nvim_win_set_height(0, 5)
+    n.poke_eventloop()
+    api.nvim_chan_send(chan, string.rep('line\n', 50))
+    assert_alive()
+  end)
+
   it('REP (CSI b) with no preceding character does not hang (wgvim, found by fuzzing)', function()
     local chan = api.nvim_open_term(0, {})
     -- Before the fix, combine_width was 0 here and the REP loop never advanced.

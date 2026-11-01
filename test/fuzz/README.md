@@ -4,7 +4,7 @@ libFuzzer harnesses for code that parses untrusted bytes:
 
 | Harness | Code under test | Input it models |
 |---|---|---|
-| `vterm_fuzzer.c` | `src/nvim/vterm` (terminal emulator) | Output of a program running in `:terminal`, configured as `terminal.c` does (UTF-8, altscreen, reflow, scrollback, OSC 52 selection, fallbacks), with a resize and keyboard/mouse input part-way |
+| `vterm_fuzzer.c` | `src/nvim/vterm` (terminal emulator) | Output of a program running in `:terminal`, configured as `terminal.c` does (UTF-8, altscreen, reflow, scrollback, fallbacks; plus libvterm's OSC 52 decoder), with a resize and keyboard/mouse input part-way |
 | `termkey_fuzzer.c` | `src/nvim/tui/termkey` (terminal input parser) | Bytes from the terminal wgvim runs in (keys, mouse, paste, OSC/DCS/APC replies), configured as `tui/input.c` does, pushed in chunks |
 
 Seed inputs are in `corpus/<name>/`. The first bytes of each input are a small header (sizes,
@@ -38,6 +38,15 @@ A crash or hang writes `crash-*` / `timeout-*` next to the current directory (or
 
 ## Findings so far
 
-- `vterm`: REP (`ESC [ b`) with no preceding character looped forever, freezing the editor
-  (it then ignored SIGTERM). A program only had to print three bytes in `:terminal`. Fixed in
-  `src/nvim/vterm/state.c`; regression test in `test/functional/terminal/parser_spec.lua`.
+All fixed; details in SECURITY-AUDIT.md row 23. Crash inputs are kept in `corpus/` (`regress-*`).
+
+- vterm: REP (`ESC [ b`) with no preceding character looped forever and froze the editor.
+- vterm: a CSI with more than 32 parameters overflowed `args[]` on the heap (editor SIGSEGV
+  from `:terminal` output).
+- vterm: one-past-the-end write in the UTF-8 decoder; cursor restore (`ESC 8`) after a resize
+  writing outside the screen; inverted scroll region after a resize (negative `memmove`); column
+  −1 with double-width lines on a 1-column terminal; integer overflows in CSI/OSC numbers and
+  cursor arithmetic; negative left shift in DECRQSS.
+- termkey: stack buffer overflow in CSI subparameter parsing; uninitialized pointer read for
+  `ESC [ u`; out-of-bounds `c0[-1]` read for negative CSI-u key codes; assert on non-digit CSI
+  parameter bytes.

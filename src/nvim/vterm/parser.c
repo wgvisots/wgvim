@@ -9,6 +9,8 @@
 
 #include "vterm/parser.c.generated.h"
 
+#define VTERM_CSI_ARG_MAX 65535L
+
 #undef DEBUG_PARSER
 
 static bool is_intermed(uint8_t c)
@@ -246,14 +248,14 @@ size_t vterm_input_write(VTerm *vt, const char *bytes, size_t len)
         if (vt->parser.v.csi.args[vt->parser.v.csi.argi] == CSI_ARG_MISSING) {
           vt->parser.v.csi.args[vt->parser.v.csi.argi] = 0;
         }
-        // wgvim: saturate instead of overflowing `long` (UB) on absurdly long numbers; found by
-        // test/fuzz/vterm_fuzzer. Values stay below CSI_ARG_MISSING and the CSI_ARG_FLAG_MORE bit.
+        // wgvim: clamp numeric CSI arguments to 65535 (xterm's limit). Unbounded values first
+        // overflowed `long` here, and values near INT_MAX then overflowed the `int` cursor and
+        // count arithmetic in state.c (e.g. pos.col + count), wrapping negative and leading to
+        // out-of-bounds reads/writes in the screen buffer. Found by test/fuzz/vterm_fuzzer.
         long *argp = &vt->parser.v.csi.args[vt->parser.v.csi.argi];
-        long digit = c - '0';
-        if (*argp > (long)((CSI_ARG_MISSING - 1 - digit) / 10)) {
-          *argp = (long)(CSI_ARG_MISSING - 1);
-        } else {
-          *argp = *argp * 10 + digit;
+        *argp = *argp * 10 + (c - '0');
+        if (*argp > VTERM_CSI_ARG_MAX) {
+          *argp = VTERM_CSI_ARG_MAX;
         }
         break;
       }
@@ -262,8 +264,15 @@ size_t vterm_input_write(VTerm *vt, const char *bytes, size_t len)
         c = ';';
       }
       if (c == ';') {
-        vt->parser.v.csi.argi++;
-        vt->parser.v.csi.args[vt->parser.v.csi.argi] = CSI_ARG_MISSING;
+        // wgvim: bound the argument index. Without this check every ';' advanced argi, so a CSI
+        // sequence with more than CSI_ARGS_MAX (32) parameters wrote attacker-chosen values past
+        // the end of args[] into the rest of the VTerm heap object (and beyond): a program
+        // printing "ESC [" followed by many "1;" in :terminal crashed the editor (SIGSEGV).
+        // Extra parameters are now dropped. Found by test/fuzz/vterm_fuzzer.
+        if (vt->parser.v.csi.argi < CSI_ARGS_MAX - 1) {
+          vt->parser.v.csi.argi++;
+          vt->parser.v.csi.args[vt->parser.v.csi.argi] = CSI_ARG_MISSING;
+        }
         break;
       }
 
