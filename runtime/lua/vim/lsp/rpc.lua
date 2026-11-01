@@ -1,6 +1,6 @@
 local log = require('vim.lsp.log')
 local protocol = require('vim.lsp.protocol')
-local net_transport = require('vim.net._transport')
+local net_transport = require('vim.lsp._transport')
 local strbuffer = require('vim._core.stringbuffer')
 local validate = vim.validate
 
@@ -616,19 +616,23 @@ end
 ---
 ---  - a named pipe (windows)
 ---  - a domain socket (unix)
----  - a host and port via TCP
+---
+--- wgvim: connecting to a host and port via TCP is not supported.
 ---
 --- Return a function that can be passed to the `cmd` field for
 --- |vim.lsp.start()|.
 ---
----@param host_or_path string host to connect to or path to a pipe/domain socket
----@param port integer? TCP port to connect to. If absent the first argument must be a pipe
+---@param host_or_path string path to a pipe/domain socket
+---@param port integer? Not supported in wgvim; passing a port is an error
 ---@return fun(dispatchers: vim.lsp.rpc.Dispatchers): vim.lsp.rpc.Client
 function M.connect(host_or_path, port)
   log.info('Connecting RPC client', { host_or_path = host_or_path, port = port })
 
   validate('host_or_path', host_or_path, 'string')
   validate('port', port, 'number', true)
+  if port ~= nil then
+    error('wgvim: TCP connections are disabled; use a pipe or Unix-domain socket path', 0)
+  end
 
   return function(dispatchers)
     validate('dispatchers', dispatchers, 'table', true)
@@ -649,7 +653,7 @@ end
 
 --- Starts an LSP server process and create an LSP RPC client object to
 --- interact with it. Communication with the spawned process happens via stdio. For
---- communication via TCP, spawn a process manually and use |vim.lsp.rpc.connect()|
+--- communication via a socket, spawn a process manually and use |vim.lsp.rpc.connect()|
 ---
 --- @param cmd string[] Command to start the LSP server.
 --- @param dispatchers? vim.lsp.rpc.Dispatchers

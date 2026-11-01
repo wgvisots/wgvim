@@ -90,13 +90,13 @@ function TransportRun:terminate()
   sysobj:kill(15)
 end
 
---- Transport backed by an existing `uv.uv_pipe_t` or `uv.uv_tcp_t` connection.
+--- Transport backed by a `uv.uv_pipe_t` connection (named pipe or Unix-domain socket).
+--- wgvim: TCP connections were removed.
 ---
 --- @class (private, exact) vim.net.TransportConnect : vim.net.Transport
 --- @field private host_or_path string
---- @field private port? integer
 --- @field private log vim.Log
---- @field private handle? uv.uv_pipe_t|uv.uv_tcp_t
+--- @field private handle? uv.uv_pipe_t
 --- Connect returns a PublicClient synchronously so the caller
 --- can immediately send messages before the connection is established.
 --- These messages are buffered in `msgbuf`.
@@ -108,9 +108,11 @@ end
 local TransportConnect = {}
 
 function TransportConnect.new(host_or_path, port, log)
+  if port ~= nil then
+    error('wgvim: TCP connections are disabled; use a pipe or Unix-domain socket path', 0)
+  end
   return setmetatable({
     host_or_path = host_or_path,
-    port = port,
     log = log,
     connected = false,
     -- size should be enough because the client can't really do anything until initialization is done
@@ -124,15 +126,12 @@ end
 --- @param on_exit? fun(code: integer, signal: integer)
 function TransportConnect:listen(on_read, on_exit)
   self.on_exit = on_exit
-  self.handle = (
-    self.port and assert(uv.new_tcp(), 'Could not create new TCP socket')
-    or assert(uv.new_pipe(false), 'Pipe could not be opened.')
-  )
+  self.handle = assert(uv.new_pipe(false), 'Pipe could not be opened.')
 
   --- @param err string?
   local function on_connect(err)
     if err then
-      local address = not self.port and self.host_or_path or (self.host_or_path .. ':' .. self.port)
+      local address = self.host_or_path
       vim.schedule(function()
         vim.notify(
           string.format('Could not connect to %s, reason: %s', address, vim.inspect(err)),
@@ -153,14 +152,7 @@ function TransportConnect:listen(on_read, on_exit)
     end
   end
 
-  if not self.port then
-    self.handle:connect(self.host_or_path, on_connect)
-    return
-  end
-
-  local info = uv.getaddrinfo(self.host_or_path, nil)
-  local resolved_host = info and info[1] and info[1].addr or self.host_or_path
-  self.handle:connect(resolved_host, self.port, on_connect)
+  self.handle:connect(self.host_or_path, on_connect)
 end
 
 function TransportConnect:write(msg)
