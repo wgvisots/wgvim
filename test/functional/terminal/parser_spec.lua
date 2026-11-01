@@ -15,6 +15,18 @@ local NUL = string.char(0x00)
 describe(':terminal', function()
   before_each(clear)
 
+  it('REP (CSI b) with no preceding character does not hang (wgvim, found by fuzzing)', function()
+    local chan = api.nvim_open_term(0, {})
+    -- Before the fix, combine_width was 0 here and the REP loop never advanced.
+    api.nvim_chan_send(chan, '\027[b')
+    api.nvim_chan_send(chan, '\027c\027[5b')  -- also right after a full reset (RIS)
+    api.nvim_chan_send(chan, 'x\027[3b\n')  -- normal case still repeats
+    assert_alive()
+    t.retry(nil, 1000, function()
+      t.eq('xxxx', api.nvim_buf_get_lines(0, 0, 1, true)[1])
+    end)
+  end)
+
   it('handles invalid OSC terminators #30084', function()
     local chan = api.nvim_open_term(0, {})
     api.nvim_chan_send(chan, '\027]8;;https://example.com\027\\Example\027]8;;\027\n')

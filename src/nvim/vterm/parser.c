@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -245,8 +246,15 @@ size_t vterm_input_write(VTerm *vt, const char *bytes, size_t len)
         if (vt->parser.v.csi.args[vt->parser.v.csi.argi] == CSI_ARG_MISSING) {
           vt->parser.v.csi.args[vt->parser.v.csi.argi] = 0;
         }
-        vt->parser.v.csi.args[vt->parser.v.csi.argi] *= 10;
-        vt->parser.v.csi.args[vt->parser.v.csi.argi] += c - '0';
+        // wgvim: saturate instead of overflowing `long` (UB) on absurdly long numbers; found by
+        // test/fuzz/vterm_fuzzer. Values stay below CSI_ARG_MISSING and the CSI_ARG_FLAG_MORE bit.
+        long *argp = &vt->parser.v.csi.args[vt->parser.v.csi.argi];
+        long digit = c - '0';
+        if (*argp > (long)((CSI_ARG_MISSING - 1 - digit) / 10)) {
+          *argp = (long)(CSI_ARG_MISSING - 1);
+        } else {
+          *argp = *argp * 10 + digit;
+        }
         break;
       }
       if (c == ':') {
@@ -285,10 +293,14 @@ size_t vterm_input_write(VTerm *vt, const char *bytes, size_t len)
       if (c >= '0' && c <= '9') {
         if (vt->parser.v.osc.command == -1) {
           vt->parser.v.osc.command = 0;
-        } else {
-          vt->parser.v.osc.command *= 10;
         }
-        vt->parser.v.osc.command += c - '0';
+        // wgvim: saturate instead of overflowing `int` (UB) on a huge OSC number; found by
+        // test/fuzz/vterm_fuzzer. No real OSC command is anywhere near INT_MAX.
+        if (vt->parser.v.osc.command > (INT_MAX - (c - '0')) / 10) {
+          vt->parser.v.osc.command = INT_MAX;
+        } else {
+          vt->parser.v.osc.command = vt->parser.v.osc.command * 10 + (c - '0');
+        }
         break;
       }
       if (c == ';') {

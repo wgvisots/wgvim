@@ -17,7 +17,8 @@ Origin
   Snapshot taken    commit d2993065640e1ef93a05b655c76ecabbea5f33f3
                     "fix(ui): ui_attach handler resets v:count #42619"
                     (as found on master of github.com/wgvisots/wgvim on 2026-10-31;
-                    it has not been compared against neovim/neovim)
+                    confirmed on 2026-11-01 to exist in github.com/neovim/neovim,
+                    committed 2026-10-31)
   Vim               https://www.vim.org  (Bram Moolenaar and the Vim contributors),
                     from which Neovim is derived.
 
@@ -49,6 +50,10 @@ Modifications made for wgvim
     or publish to the network were removed.
   * A tree-sitter parser for C++ (tree-sitter-cpp 0.23.4) was added, with C++ and
     MATLAB highlight queries under runtime/queries/.
+  * runtime/spell/en.utf-8.spl is Neovim's English spell file, unchanged: its
+    SHA256 (fecabdc949b6a39d32c0899fa2545eab25e63f2ed0a33c4ad1511426384d3070)
+    matches neovim/neovim at the snapshot commit. It was loaded and exercised
+    (spellbadword, spellsuggest, ]s) under AddressSanitizer/UBSan with no findings.
   * Further changes (removal of network-capable code, security fixes) are listed
     in the git history.
 

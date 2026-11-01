@@ -932,6 +932,34 @@ set_target_properties(
 target_compile_definitions(libnvim PRIVATE MAKE_LIB)
 target_link_libraries(libnvim PRIVATE main_lib PUBLIC libuv)
 
+# wgvim: libFuzzer harnesses for untrusted-input parsers (test/fuzz, see its README.md).
+# Configure a separate build with clang: cmake -B build-fuzz -D CMAKE_C_COMPILER=clang
+#   -D CMAKE_BUILD_TYPE=RelWithDebInfo -D WGVIM_FUZZ=ON -D WGVIM_HARDENING=OFF
+# then: cmake --build build-fuzz --target fuzzers
+option(WGVIM_FUZZ "Build libFuzzer harnesses (requires clang)" OFF)
+if(WGVIM_FUZZ)
+  if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
+    message(FATAL_ERROR "WGVIM_FUZZ requires clang (libFuzzer)")
+  endif()
+  # Instrument all editor code for coverage feedback and ASan/UBSan.
+  target_compile_options(main_lib INTERFACE
+    -fsanitize=fuzzer-no-link,address,undefined -fno-sanitize-recover=undefined
+    -fno-omit-frame-pointer -g)
+  target_link_options(main_lib INTERFACE -fsanitize=address,undefined)
+  set(WGVIM_FUZZERS vterm termkey)
+  foreach(f ${WGVIM_FUZZERS})
+    add_executable(${f}_fuzzer EXCLUDE_FROM_ALL ${PROJECT_SOURCE_DIR}/test/fuzz/${f}_fuzzer.c)
+    target_include_directories(${f}_fuzzer PRIVATE
+      $<TARGET_PROPERTY:main_lib,INTERFACE_INCLUDE_DIRECTORIES>)
+    target_compile_definitions(${f}_fuzzer PRIVATE
+      $<TARGET_PROPERTY:main_lib,INTERFACE_COMPILE_DEFINITIONS>)
+    target_compile_options(${f}_fuzzer PRIVATE -fsanitize=fuzzer,address,undefined -g)
+    target_link_libraries(${f}_fuzzer PRIVATE libnvim -fsanitize=fuzzer,address,undefined)
+    list(APPEND WGVIM_FUZZER_TARGETS ${f}_fuzzer)
+  endforeach()
+  add_custom_target(fuzzers DEPENDS ${WGVIM_FUZZER_TARGETS})
+endif()
+
 #-------------------------------------------------------------------------------
 # Lint
 #-------------------------------------------------------------------------------

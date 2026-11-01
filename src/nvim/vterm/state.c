@@ -1381,6 +1381,12 @@ static int on_csi(const char *leader, const long args[], int argcount, const cha
     break;
 
   case 0x62: {  // REP - ECMA-48 8.3.103
+    // wgvim: with no preceding graphic character (e.g. right after reset), combine_width is 0
+    // and the loop below never advanced: a program printing "ESC [ b" in :terminal hung the
+    // editor (found by test/fuzz/vterm_fuzzer). REP then has nothing to repeat.
+    if (state->combine_width <= 0) {
+      break;
+    }
     const int row_width = THISROWWIDTH(state);
     count = CSI_ARG_COUNT(args[0]);
     col = state->pos.col + count;
@@ -2015,7 +2021,10 @@ static void request_status_string(VTermState *state, VTermStringFragment frag)
     return;
   }
 
-  switch (tmp[0] | tmp[1] << 8 | tmp[2] << 16) {
+  // wgvim: unsigned, so a byte >= 0x80 in the request does not left-shift a negative value (UB;
+  // found by test/fuzz/vterm_fuzzer). Such requests match no case either way.
+  switch ((unsigned char)tmp[0] | (unsigned)(unsigned char)tmp[1] << 8
+          | (unsigned)(unsigned char)tmp[2] << 16) {
   case 'm': {
     // Query SGR
     long args[20];

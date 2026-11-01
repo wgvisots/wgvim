@@ -716,6 +716,12 @@ static TermKeyResult parse_utf8(const unsigned char *bytes, size_t len, int *cp,
 
 static void emit_codepoint(TermKey *tk, int codepoint, TermKeyKey *key)
 {
+  // wgvim: a CSI-u sequence with a missing or negative key code (e.g. "ESC [ ; 5 u") arrives as a
+  // negative codepoint, which passed the "< 0x20" test below and read tk->c0[-1] out of bounds.
+  // Found by test/fuzz/termkey_fuzzer.
+  if (codepoint < 0) {
+    codepoint = UNICODE_INVALID;
+  }
   if (codepoint == 0) {
     // ASCII NUL = Ctrl-Space
     key->type = TERMKEY_TYPE_KEYSYM;
