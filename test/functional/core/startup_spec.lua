@@ -62,7 +62,7 @@ describe('startup', function()
       { term = true }
     )
     screen:expect([[
-      ^Cannot attach UI of :terminal child to its parent. (Unset $WGVIM to skip this check) |
+      ^Cannot attach UI of :terminal child to its parent. (Unset $WGVIM to skip this check)|
       [Process exited 1]                                                                  |
                                                                                           |
     ]])
@@ -155,7 +155,7 @@ describe('startup', function()
     it('failure modes', function()
       -- nvim -l <empty>
       local proc = n.spawn_wait('-l')
-      matches('nvim%.?e?x?e?: Argument missing after: "%-l"', proc.stderr)
+      matches('wgvim%.?e?x?e?: Argument missing after: "%-l"', proc.stderr)
       eq(1, proc.status)
     end)
 
@@ -804,15 +804,15 @@ describe('startup', function()
 
   it('fails on --embed with -es/-Es/-l', function()
     matches(
-      'nvim[.exe]*: %-%-embed conflicts with %-es/%-Es/%-l',
+      'wgvim[.exe]*: %-%-embed conflicts with %-es/%-Es/%-l',
       n.spawn_wait('--embed', '-es').stderr
     )
     matches(
-      'nvim[.exe]*: %-%-embed conflicts with %-es/%-Es/%-l',
+      'wgvim[.exe]*: %-%-embed conflicts with %-es/%-Es/%-l',
       n.spawn_wait('--embed', '-Es').stderr
     )
     matches(
-      'nvim[.exe]*: %-%-embed conflicts with %-es/%-Es/%-l',
+      'wgvim[.exe]*: %-%-embed conflicts with %-es/%-Es/%-l',
       n.spawn_wait('--embed', '-l', 'foo.lua').stderr
     )
   end)
@@ -1242,7 +1242,7 @@ describe('startup', function()
     ok(
       startswith(
         rtp,
-        'test/functional/fixtures/nvim,test/functional/fixtures/pack/*/start/*,test/functional/fixtures/start/*,test/functional/fixtures,test/functional/fixtures/middle,'
+        'test/functional/fixtures/wgvim,test/functional/fixtures/pack/*/start/*,test/functional/fixtures/start/*,test/functional/fixtures,test/functional/fixtures/middle,'
       ),
       'startswith(…)',
       'rtp=' .. rtp
@@ -1386,9 +1386,9 @@ describe('sysinit', function()
     rmdir(xhome)
 
     mkdir(xdgdir)
-    mkdir(('%s/nvim'):format(xdgdir))
+    mkdir(('%s/wgvim'):format(xdgdir))
     write_file(
-      ('%s/nvim/sysinit.vim'):format(xdgdir),
+      ('%s/wgvim/sysinit.vim'):format(xdgdir),
       [[
       let g:loaded = get(g:, "loaded", 0) + 1
       let g:xdg = 1
@@ -1454,13 +1454,13 @@ describe('user config init', function()
   local xhome = 'Xhome'
   local xconfig = ('%s/Xconfig'):format(xhome)
   local xdata = ('%s/Xdata'):format(xhome)
-  local init_lua_path = ('%s/nvim/init.lua'):format(xconfig)
+  local init_lua_path = ('%s/wgvim/init.lua'):format(xconfig)
   local xenv = { XDG_CONFIG_HOME = xconfig, XDG_DATA_HOME = xdata }
 
   before_each(function()
     rmdir(xhome)
 
-    mkdir_p(('%s/nvim'):format(xconfig))
+    mkdir_p(('%s/wgvim'):format(xconfig))
     mkdir_p(xdata)
 
     write_file(init_lua_path, [[vim.g.lua_rc = 1]])
@@ -1524,7 +1524,7 @@ describe('user config init', function()
           vim.g.exrc_file = '---'
         ]]
       )
-      mkdir_p(('%s/%s'):format(xstate, is_os('win') and 'wgvim-data' or 'nvim'))
+      mkdir_p(('%s/%s'):format(xstate, is_os('win') and 'wgvim-data' or 'wgvim'))
     end)
 
     after_each(function()
@@ -1670,7 +1670,7 @@ describe('user config init', function()
   describe('VIMRC also exists', function()
     before_each(function()
       write_file(
-        ('%s/nvim/init.vim'):format(xconfig),
+        ('%s/wgvim/init.vim'):format(xconfig),
         [[
           let g:vim_rc = 1
         ]]
@@ -1681,7 +1681,7 @@ describe('user config init', function()
       clear { args_rm = { '-u' }, env = xenv }
       eq(1, eval('g:lua_rc'))
       t.matches(
-        'E5422: Conflicting configs: "Xhome.Xconfig.nvim.init.lua" "Xhome.Xconfig.nvim.init.vim"',
+        'E5422: Conflicting configs: "Xhome.Xconfig.wgvim.init.lua" "Xhome.Xconfig.wgvim.init.vim"',
         eval('v:errmsg')
       )
     end)
@@ -1694,7 +1694,7 @@ describe('user config init', function()
       -- Remove init.lua from XDG_CONFIG_HOME so nvim falls back to XDG_CONFIG_DIRS
       os.remove(init_lua_path)
       rmdir(xdgdir)
-      mkdir_p(('%s/nvim'):format(xdgdir))
+      mkdir_p(('%s/wgvim'):format(xdgdir))
     end)
 
     after_each(function()
@@ -1702,18 +1702,18 @@ describe('user config init', function()
     end)
 
     it('loads init.lua from XDG_CONFIG_DIRS when no config in XDG_CONFIG_HOME', function()
-      write_file(('%s/nvim/init.lua'):format(xdgdir), [[vim.g.xdg_config_dirs_lua = 1]])
+      write_file(('%s/wgvim/init.lua'):format(xdgdir), [[vim.g.xdg_config_dirs_lua = 1]])
       clear {
         args_rm = { '-u' },
         env = { XDG_CONFIG_HOME = xconfig, XDG_DATA_HOME = xdata, XDG_CONFIG_DIRS = xdgdir },
       }
       eq(1, eval('g:xdg_config_dirs_lua'))
-      eq(fn.fnamemodify(('%s/nvim/init.lua'):format(xdgdir), ':p'), eval('$MYVIMRC'))
+      eq(fn.fnamemodify(('%s/wgvim/init.lua'):format(xdgdir), ':p'), eval('$MYVIMRC'))
     end)
 
     it('prefers init.lua over init.vim, shows E5422', function()
-      write_file(('%s/nvim/init.lua'):format(xdgdir), [[vim.g.xdg_lua = 1]])
-      write_file(('%s/nvim/init.vim'):format(xdgdir), [[let g:xdg_vim = 1]])
+      write_file(('%s/wgvim/init.lua'):format(xdgdir), [[vim.g.xdg_lua = 1]])
+      write_file(('%s/wgvim/init.vim'):format(xdgdir), [[let g:xdg_vim = 1]])
       clear {
         args_rm = { '-u' },
         env = { XDG_CONFIG_HOME = xconfig, XDG_DATA_HOME = xdata, XDG_CONFIG_DIRS = xdgdir },
@@ -1724,7 +1724,7 @@ describe('user config init', function()
     end)
 
     it('falls back to init.vim when no init.lua', function()
-      write_file(('%s/nvim/init.vim'):format(xdgdir), [[let g:xdg_vim = 1]])
+      write_file(('%s/wgvim/init.vim'):format(xdgdir), [[let g:xdg_vim = 1]])
       clear {
         args_rm = { '-u' },
         env = { XDG_CONFIG_HOME = xconfig, XDG_DATA_HOME = xdata, XDG_CONFIG_DIRS = xdgdir },
@@ -1736,7 +1736,7 @@ describe('user config init', function()
       local appname = 'mytestapp'
       mkdir_p(('%s/%s'):format(xdgdir, appname))
       -- Also create nvim/ with a config that should NOT be loaded
-      write_file(('%s/nvim/init.lua'):format(xdgdir), [[vim.g.wrong = 1]])
+      write_file(('%s/wgvim/init.lua'):format(xdgdir), [[vim.g.wrong = 1]])
       write_file(('%s/%s/init.lua'):format(xdgdir, appname), [[vim.g.appname_lua = 1]])
       clear {
         args_rm = { '-u' },
@@ -1762,7 +1762,7 @@ describe('runtime:', function()
 
   setup(function()
     rmdir(xhome)
-    mkdir_p(('%s/nvim'):format(xconfig))
+    mkdir_p(('%s/wgvim'):format(xconfig))
     mkdir_p(xdata)
   end)
 
@@ -1771,7 +1771,7 @@ describe('runtime:', function()
   end)
 
   it('loads plugin/*.lua from XDG config home', function()
-    local plugin_folder_path = ('%s/nvim/plugin'):format(xconfig)
+    local plugin_folder_path = ('%s/wgvim/plugin'):format(xconfig)
     local plugin_file_path = ('%s/plugin.lua'):format(plugin_folder_path)
     mkdir_p(plugin_folder_path)
     finally(function()
@@ -1785,7 +1785,7 @@ describe('runtime:', function()
   end)
 
   it('loads plugin/*.lua from start packages', function()
-    local plugin_path = ('%s/nvim/pack/category/start/test_plugin'):format(xconfig)
+    local plugin_path = ('%s/wgvim/pack/category/start/test_plugin'):format(xconfig)
     local plugin_folder_path = ('%s/plugin'):format(plugin_path)
     local plugin_file_path = ('%s/plugin.lua'):format(plugin_folder_path)
     local profiler_file = 'test_startuptime.log'
@@ -1816,7 +1816,7 @@ describe('runtime:', function()
   end)
 
   it('loads plugin/*.lua from site packages', function()
-    local nvimdata = is_os('win') and 'wgvim-data' or 'nvim'
+    local nvimdata = is_os('win') and 'wgvim-data' or 'wgvim'
     local plugin_path = ('%s/%s/site/pack/xa/start/yb'):format(xdata, nvimdata)
     local plugin_folder_path = ('%s/plugin'):format(plugin_path)
     local plugin_after_path = ('%s/after/plugin'):format(plugin_path)
@@ -1837,7 +1837,7 @@ describe('runtime:', function()
   end)
 
   it('no crash setting &rtp in plugins with :packloadall called before #18315', function()
-    local plugin_folder_path = ('%s/nvim/plugin'):format(xconfig)
+    local plugin_folder_path = ('%s/wgvim/plugin'):format(xconfig)
     mkdir_p(plugin_folder_path)
     finally(function()
       rmdir(plugin_folder_path)
@@ -1865,7 +1865,7 @@ describe('runtime:', function()
   end)
 
   it("loads ftdetect/*.{vim,lua} respecting 'rtp' order", function()
-    local rtp_folder = ('%s/nvim'):format(xconfig)
+    local rtp_folder = ('%s/wgvim'):format(xconfig)
     local after_rtp_folder = ('%s/after'):format(rtp_folder)
     local ftdetect_folder = ('%s/ftdetect'):format(rtp_folder)
     local after_ftdetect_folder = ('%s/ftdetect'):format(after_rtp_folder)

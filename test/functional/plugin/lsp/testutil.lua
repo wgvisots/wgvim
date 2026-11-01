@@ -22,12 +22,11 @@ function M.clear_notrace()
 end
 
 M.create_tcp_echo_server = function()
-  --- Create a TCP server that echos the first message it receives.
-  --- @param host string
-  --- @return integer
-  function _G._create_tcp_server(host)
+  --- Create a Unix-domain-socket server (wgvim has no TCP) that reports the first message it receives.
+  --- @return string path of the socket
+  function _G._create_tcp_server()
     local uv = vim.uv
-    local server = assert(uv.new_tcp())
+    local server = assert(uv.new_pipe(false))
     local on_read = require('vim.lsp.rpc').create_read_loop(
       function(body)
         vim.rpcnotify(1, 'body', body)
@@ -37,10 +36,11 @@ M.create_tcp_echo_server = function()
         vim.rpcnotify(1, 'error', err, code)
       end
     )
-    server:bind(host, 0)
+    local path = vim.fn.tempname()
+    server:bind(path)
     server:listen(127, function(e)
       assert(not e, e)
-      local socket = assert(uv.new_tcp())
+      local socket = assert(uv.new_pipe(false))
       server:accept(socket)
       socket:read_start(function(err, chunk)
         on_read(err, chunk)
@@ -50,12 +50,12 @@ M.create_tcp_echo_server = function()
         server:close()
       end)
     end)
-    return server:getsockname().port
+    return path
   end
   function _G._send_msg_to_server(msg)
-    local port = _G._create_tcp_server('127.0.0.1')
-    local client = assert(vim.uv.new_tcp())
-    client:connect('127.0.0.1', port, function()
+    local path = _G._create_tcp_server()
+    local client = assert(vim.uv.new_pipe(false))
+    client:connect(path, function()
       client:write(msg, function()
         client:shutdown()
         client:close()
