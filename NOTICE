@@ -51,3 +51,13 @@ Modifications made for wgvim
     MATLAB highlight queries under runtime/queries/.
   * Further changes (removal of network-capable code, security fixes) are listed
     in the git history.
+
+TODO (provenance still to be recorded)
+--------------------------------------
+  * runtime/queries/cpp/*.scm and runtime/queries/matlab/*.scm were supplied by the
+    wgvim maintainers. Their upstream source repository, commit/tag and licence
+    have NOT been recorded yet. Find them (they appear to be nvim-treesitter
+    queries, which would be Apache-2.0, but that is unconfirmed) and record here:
+    project URL, commit, licence, and any local edits.
+  * deps/tree-sitter-cpp-0.23.4.tar.gz: record the download URL and the date it
+    was fetched (the SHA256 is pinned in cmake.deps/deps.txt).
