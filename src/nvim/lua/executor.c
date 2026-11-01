@@ -1002,6 +1002,46 @@ static bool nlua_state_init(lua_State *const lstate) FUNC_ATTR_NONNULL_ALL
 }
 
 /// Initializes global Lua interpreter, or exits wgvim on failure.
+/// wgvim: the LuaJIT "ffi" library lets Lua call any libc function (including socket() and
+/// connect()), which would bypass every other network restriction. It is disabled: require("ffi")
+/// raises this error and the attempt is written to the log.
+static int nlua_ffi_disabled(lua_State *lstate)
+{
+  WLOG("require('ffi') was attempted and refused (the LuaJIT ffi library is disabled in wgvim)");
+
+  // require() stores a "loading" marker in package.loaded.ffi before calling this loader and
+  // leaves it there when the loader raises. Clear it, or every later require("ffi") would fail
+  // with a vague "loop or previous error loading module" message instead of this one.
+  lua_getglobal(lstate, "package");
+  lua_getfield(lstate, -1, "loaded");
+  lua_pushnil(lstate);
+  lua_setfield(lstate, -2, "ffi");
+  lua_pop(lstate, 2);
+
+  return luaL_error(lstate,
+                    "wgvim: the LuaJIT 'ffi' library is disabled because it gives Lua direct "
+                    "access to libc, including network sockets (see SECURITY-AUDIT.md)");
+}
+
+/// Removes LuaJIT's ffi library from a freshly opened Lua state and makes require("ffi") fail
+/// with an explanation. Must run right after luaL_openlibs().
+static void nlua_disable_ffi(lua_State *lstate)
+{
+  lua_getglobal(lstate, "package");
+
+  // package.loaded.ffi = nil
+  lua_getfield(lstate, -1, "loaded");
+  lua_pushnil(lstate);
+  lua_setfield(lstate, -2, "ffi");
+  lua_pop(lstate, 1);
+
+  // package.preload.ffi = <function that raises the error>; preload is searched first.
+  lua_getfield(lstate, -1, "preload");
+  lua_pushcfunction(lstate, nlua_ffi_disabled);
+  lua_setfield(lstate, -2, "ffi");
+  lua_pop(lstate, 2);
+}
+
 void nlua_init(char **argv, int argc, int lua_arg0)
 {
 #ifdef NLUA_TRACK_REFS
@@ -1016,6 +1056,7 @@ void nlua_init(char **argv, int argc, int lua_arg0)
     os_exit(1);
   }
   luaL_openlibs(lstate);
+  nlua_disable_ffi(lstate);
   if (!nlua_state_init(lstate)) {
     fprintf(stderr, _("E970: Failed to initialize builtin Lua modules\n"));
 #ifdef EXITFREE
@@ -1048,6 +1089,7 @@ static lua_State *nlua_init_state(bool thread)
 
   // Add in the lua standard libraries
   luaL_openlibs(lstate);
+  nlua_disable_ffi(lstate);
 
   // print
   lua_pushcfunction(lstate, &nlua_print);

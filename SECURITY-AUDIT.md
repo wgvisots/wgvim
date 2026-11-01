@@ -30,17 +30,20 @@ in `NOTICE`. How each DONE row was tested is in the commit message.
 | 11 | `:checkhealth` runs `curl --version` | `runtime/lua/vim/health/health.lua` | No | **DONE** `1197d43`: probes removed |
 | 12 | OSC 52 clipboard (writes an escape sequence to the terminal) | `runtime/plugin/osc52.lua` | No | Keep; local terminal output only |
 | 13 | Telemetry / update checks / phone-home | whole tree | n/a | **None found** in the editor. (LSP protocol constants mention `telemetry/event`; that is for servers, which are out of scope.) |
-| 14 | LuaJIT `ffi`: Lua can call libc directly, including `socket()`/`connect()` | built into LuaJIT; nothing in `runtime/` or `src/` uses it | No | **Decision needed**: it can be disabled after `luaL_openlibs` (`src/nvim/lua/executor.c`); only third-party plugins that use `ffi` would break |
+| 14 | LuaJIT `ffi`: Lua can call libc directly, including `socket()`/`connect()` | built into LuaJIT; nothing in `runtime/` or `src/` uses it | No | **DONE** (`nlua_disable_ffi` in `src/nvim/lua/executor.c`): removed from the main state and from worker-thread states; `require('ffi')` raises "wgvim: the LuaJIT 'ffi' library is disabled …" every time and the attempt is written to the log (WRN). Third-party plugins that use `ffi` will fail with that message |
 
 ## Limits of what the editor can enforce
 
 Removing the network API closes the *ordinary* routes, but Lua code running inside
-the editor is a full programming environment. Tested on the final build:
+the editor is still a programming environment. On the final build:
 
-- `uv.new_tcp`, `uv.new_udp` and `uv.getaddrinfo` are gone, but through LuaJIT's `ffi`
-  a script can still call `socket()` (row 14).
+- `uv.new_tcp`, `uv.new_udp` and `uv.getaddrinfo` are gone, and LuaJIT's `ffi` is
+  disabled (it could call `socket()` directly; that was demonstrated before it was removed).
+  Tested: `require('ffi')` fails with a clear message in the main state and in threads.
 - `io.popen`, `os.execute`, `:!`, `jobstart()` and `vim.system()` start other programs,
   which have their own network access.
+- Native modules: `package.loadlib()` and `require` of a `.so` found on `package.cpath`
+  run arbitrary native code. (Expected from how Lua works; not separately tested.)
 
 So these changes remove accidental and built-in network use; they are **not** a
 sandbox. Treat plugins and any `init.lua` as trusted code, and enforce "no network"
