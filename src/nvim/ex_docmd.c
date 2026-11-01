@@ -5060,9 +5060,13 @@ static void ex_restart(exarg_T *eap)
   }
 
   // Get the new server's initial address. On Windows this is the temporary self-generated address.
-  MAXSIZE_TEMP_ARRAY(servername_args, 1);
-  ADD_C(servername_args, CSTR_AS_OBJ("servername"));
-  Object result = rpc_send_call(channel->id, "nvim_get_vvar", servername_args, &result_mem, &err);
+  // wgvim: servers no longer listen automatically, so ask the new server to start one (in the
+  // private 0700 run directory) if it was not given --listen; the UI reattaches through it.
+  MAXSIZE_TEMP_ARRAY(servername_args, 2);
+  ADD_C(servername_args,
+        CSTR_AS_OBJ("return vim.v.servername ~= '' and vim.v.servername or vim.fn.serverstart()"));
+  ADD_C(servername_args, ARRAY_OBJ((Array)ARRAY_DICT_INIT));
+  Object result = rpc_send_call(channel->id, "nvim_exec_lua", servername_args, &result_mem, &err);
   if (ERROR_SET(&err)) {
     goto fail_2;
   }

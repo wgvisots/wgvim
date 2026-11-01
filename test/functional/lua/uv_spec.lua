@@ -141,7 +141,7 @@ describe('vim.uv', function()
         _G.is_fast = vim.in_fast_event()
         timer:close()
         _G.value = vim.fn.has('nvim-0.5')
-        _G.unvalue = vim.fn.has('python3')
+        _G.unvalue = vim.fn.has('clipboard') -- a provider check (wgvim: only clipboard remains)
       end)
     end)
 

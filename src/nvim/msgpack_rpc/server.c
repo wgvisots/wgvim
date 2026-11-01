@@ -39,11 +39,6 @@ bool server_init(const char *listen_addr)
   TriState user_arg = kTrue;  // User-provided --listen arg.
   ga_init(&watchers, sizeof(SocketWatcher *), 1);
 
-  // TODO(justinmk): this is for log_spec. Can remove this after nvim_log #7062 is merged.
-  if (os_env_exists(ENV_TEST_LOG, false)) {
-    ELOG("test log message");
-  }
-
   // $WGVIM_LISTEN_ADDRESS (deprecated)
   if (!listen_addr || listen_addr[0] == '\0') {
     if (os_env_exists(ENV_LISTEN, true)) {
@@ -75,6 +70,11 @@ bool server_init(const char *listen_addr)
   ok = false;
 
 end:
+  // TODO(justinmk): this is for log_spec. Can remove this after nvim_log #7062 is merged.
+  if (os_env_exists(ENV_TEST_LOG, false)) {
+    ELOG("test log message");
+  }
+
   if (os_env_exists(ENV_LISTEN, false)) {
     // Unset $WGVIM_LISTEN_ADDRESS, it's a liability hereafter. It is "input only", it must not be
     // leaked to child jobs or :terminal.

@@ -49,13 +49,19 @@ describe('server', function()
       env = { WGVIM_LOG_FILE = testlog, XDG_RUNTIME_DIR = '/non-existent-dir/subdir//' },
     }
 
-    if is_os('win') then
-      -- Windows pipes have a special namespace and thus aren't decided by $XDG_RUNTIME_DIR.
-      matches('nvim', api.nvim_get_vvar('servername'))
-    else
-      eq('', api.nvim_get_vvar('servername'))
-      t.assert_log('Failed to start server%: no such file or directory', testlog, 100)
-    end
+    -- wgvim: no server is started automatically, so a broken $XDG_RUNTIME_DIR is not even
+    -- touched at startup.
+    eq('', api.nvim_get_vvar('servername'))
+    t.assert_nolog('Failed to start server', testlog, 100)
+  end)
+
+  it('does not listen unless asked (wgvim)', function()
+    clear { args_rm = { '--listen' }, env = { WGVIM_LISTEN_ADDRESS = '' } }
+    eq('', api.nvim_get_vvar('servername'))
+    eq({}, fn.serverlist())
+    local addr = fn.serverstart()
+    matches('wgvim%.%d+%.%d+$', addr)
+    eq(addr, api.nvim_get_vvar('servername'))
   end)
 
   it('serverstart(), serverstop() does not set $WGVIM', function()
