@@ -53,7 +53,7 @@ describe(':Tutor', function()
       {0:  }     :{4:!}dir                   - shows a directory listing                       |
       {0:  }     :{4:!}del FILENAME          - removes file FILENAME                           |
       {0:  }                                                                               |
-      {0:  } 2. {2::w} FILENAME              writes the current wgvim file to disk with       |
+      {0:  } 2. {2::w} FILENAME              writes the current wgvim file to disk with        |
       {0:  }                             name FILENAME.                                    |
       {0:  }                                                                               |
       {0:  } 3. {2:v}  motion  :w FILENAME   saves the Visually selected lines in file         |
@@ -170,11 +170,11 @@ describe(':Tutor', function()
       {0:  }                                                                               |
       {0:  }{3:#}{5: Lesson 2.7: THE UNDO COMMAND}                                                 |
       {0:  }                                                                               |
-      {0:  }{1: Press }{4:u}{1: to undo the last commands, }{4:U}{1: to fix a whole line}                      |
-      {0:  }{1:. }                                                                             |
+      {0:  }{1: Press }{4:u}{1: to undo the last commands, }{4:U}{1: to fix a whole line. }                    |
       {0:  }                                                                               |
       {0:  } 1. Move the cursor to the line below marked {10:✗} and place it on the first error.|
       {0:  }                                                                               |
+      {0:  } 2. Type {4:x} to delete the first unwanted character.                             |
 ]])
 
     feed('<Cmd>310<CR>dd<Cmd>311<CR>2dd')
@@ -201,14 +201,14 @@ describe(':Tutor', function()
       {0:  }                                                                               |
       {0:  }{3:#}{5: Lesson 2.7: THE UNDO COMMAND}                                                 |
       {0:  }                                                                               |
-      {0:  }{1: Press }{4:u}{1: to undo the last commands, }{4:U}{1: to fix a whole line}                      |
-      {0:  }{1:. }                                                                             |
+      {0:  }{1: Press }{4:u}{1: to undo the last commands, }{4:U}{1: to fix a whole line. }                    |
       {0:  }                                                                               |
       {0:  } 1. Move the cursor to the line below marked {10:✗} and place it on the first error.|
       {0:  }                                                                               |
       {0:  } 2. Type {4:x} to delete the first unwanted character.                             |
       {0:  }                                                                               |
       {0:  } 3. Now type {4:u} to undo the last command executed.                              |
+      {0:  }                                                                               |
     ]])
   end)
 
