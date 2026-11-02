@@ -62,13 +62,12 @@ at the OS level (network namespace, container without a network, or firewall rul
 
 ## Related findings (not network)
 
-- Dead `ZIG_BUILD` branches remain in `cmake.config/versiondef.h.in` and
-  `src/nvim/os/lang.c`; docs still describe removed scripts (`MAINTAIN.md`,
-  `runtime/doc/dev_vimpatch.txt`).
+- Dead `ZIG_BUILD` branches removed (2026-11-01). Docs for removed maintainer scripts
+  (`MAINTAIN.md`, `runtime/doc/dev_vimpatch.txt`) are still upstream's.
 - `:help` pages updated (2026-11-01) for the removed features: providers and remote plugins,
   `vim.pack`, `vim.net`, spell-file download, `'exrc'`, `'modelineexpr'`, automatic
   `v:servername`, `lsp/*.lua` lookup, TCP/UDP/DNS in `luvref`, `ffi`. `make lintdoc` passes.
-- The per-user temp directory is still named `nvim.<user>` (cosmetic).
+- The per-user temp directory is now `wgvim.<user>`.
 - Test coverage (see `COVERAGE.md`): functional tests cover 78.7% of lines; the parsers of
   untrusted input are among the least covered — `spellfile.c` 33% (spell files; Vim
   CVE-2026-45130 was here), `vterm/state.c` 59% (`:terminal` output), `tui/termkey` ~69%
@@ -76,7 +75,9 @@ at the OS level (network namespace, container without a network, or firewall rul
   first candidates for more tests or fuzzing.
 - Debug builds only: 22 functional tests that draw the tab line fail because the tab's window
   count is drawn as "A" instead of the digit. It happens with `WGVIM_HARDENING=OFF` too and
-  not in Release builds; not yet diagnosed (check against an upstream Debug build).
+  not in Release builds. Narrowed down (2026-11-01): the digit is formatted correctly into the
+  grid (`screenstring()` is right, and the formatted buffer is "4"), so the wrong character
+  appears on the way to an attached UI. Not fixed; Release builds are unaffected.
 
 ## Reviewed, no change needed
 
