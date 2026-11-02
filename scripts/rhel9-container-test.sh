@@ -97,12 +97,14 @@ if [ "$REBUILD_IMAGE" = 1 ] || ! "$ENGINE" image inspect "$TOOL_IMAGE" >/dev/nul
 FROM $BASE_IMAGE
 # Required: compilers and build tools. ninja is not in the UBI repositories; without it the
 # top-level Makefile uses "Unix Makefiles". gettext provides msgfmt for the translations.
+# Optional: glibc-gconv-extra has the iconv modules (CP1251, GB18030, Shift_JIS, ...) that the
+# 'fileencoding' tests use; the extra langpacks are not in UBI and are skipped.
 RUN dnf -y --setopt=install_weak_deps=0 install \\
       gcc gcc-c++ make cmake gettext binutils git-core \\
       diffutils findutils procps-ng which file tar gzip patch util-linux \\
       glibc-langpack-en \\
  && dnf -y --setopt=install_weak_deps=0 --setopt=strict=0 install \\
-      man-db unzip zip glibc-langpack-de glibc-langpack-fr \\
+      man-db unzip zip glibc-gconv-extra glibc-langpack-de glibc-langpack-fr \\
  && dnf clean all && rm -rf /var/cache/dnf
 RUN useradd --create-home --shell /bin/bash tester
 ENV LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
