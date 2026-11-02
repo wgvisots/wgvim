@@ -1,0 +1,141 @@
+name: CI
+
+on:
+  push:
+    branches: [master, wgvim-hardening]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # Weekly, so the fuzzers get regular fresh time even when nothing is pushed.
+    - cron: '17 4 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# The build itself needs no network: every dependency is a checksummed tarball under deps/. The
+# network is used only to install the compilers (apt, dnf) and to pull the UBI 9 image.
+
+jobs:
+  ubuntu:
+    name: ubuntu (${{ matrix.cc }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        cc: [gcc, clang]
+    env:
+      CC: ${{ matrix.cc }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y ninja-build gettext cmake build-essential clang man-db
+
+      - name: Verify vendored deps
+        run: scripts/verify-deps.sh
+
+      - name: Build
+        run: make CMAKE_BUILD_TYPE=Release
+
+      - name: Check hardening
+        run: scripts/check-hardening.sh build/bin/wgvim build/compile_commands.json
+
+      - name: Smoke test
+        run: scripts/smoke-test.sh build/bin/wgvim
+
+      - name: Lint help pages
+        if: matrix.cc == 'gcc'
+        run: cmake --build build --target lintdoc
+
+      - name: Functional tests
+        run: cmake --build build --target functionaltest
+
+      - name: Old (Vim) tests
+        if: success() || failure()
+        run: make oldtest
+
+      - name: Upload old-test logs
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: oldtest-logs-${{ matrix.cc }}
+          path: |
+            test/old/testdir/*.log
+            test/old/testdir/messages
+          if-no-files-found: ignore
+
+  # The same script you run locally: UBI 9 with its own GCC 11 toolchain, the build and the tests
+  # in a container started with --network none, non-root. podman is preinstalled on the runner.
+  rhel9:
+    name: RHEL 9 (UBI 9 container, offline)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Build and test in UBI 9
+        run: scripts/rhel9-container-test.sh --engine podman --committed --out rhel9-results
+
+      - name: Summary
+        if: success() || failure()
+        run: |
+          f=$(ls -d rhel9-results/*/ | tail -1)summary.txt
+          [ -f "$f" ] || exit 0
+          { echo '```'; cat "$f"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          if [ -s "$(dirname "$f")/functionaltest-failures.txt" ]; then
+            { echo '**Failed functional tests**'; echo '```';
+              cat "$(dirname "$f")/functionaltest-failures.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: success() || failure()
+        with:
+          name: rhel9-results
+          path: rhel9-results
+
+  # libFuzzer + ASan/UBSan on the terminal emulator and the terminal input parser
+  # (test/fuzz/README.md). Replays every corpus input, then fuzzes each harness for a while.
+  fuzz:
+    name: fuzz (${{ matrix.harness }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        harness: [vterm, termkey]
+    env:
+      FUZZ_SECONDS: ${{ github.event_name == 'schedule' && '1800' || '300' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y ninja-build gettext cmake clang-18 libclang-rt-18-dev
+
+      - name: Build fuzzer
+        run: |
+          make deps CMAKE_BUILD_TYPE=Release
+          cmake -S . -B build-fuzz -G Ninja -D CMAKE_C_COMPILER=clang-18 \
+            -D CMAKE_BUILD_TYPE=RelWithDebInfo -D WGVIM_FUZZ=ON -D WGVIM_HARDENING=OFF
+          cmake --build build-fuzz --target ${{ matrix.harness }}_fuzzer
+
+      - name: Replay corpus (including past crash inputs)
+        run: build-fuzz/bin/${{ matrix.harness }}_fuzzer test/fuzz/corpus/${{ matrix.harness }}/* -runs=0
+
+      - name: Fuzz
+        run: |
+          mkdir -p corpus artifacts
+          cp test/fuzz/corpus/${{ matrix.harness }}/* corpus/
+          build-fuzz/bin/${{ matrix.harness }}_fuzzer corpus -max_total_time="$FUZZ_SECONDS" \
+            -timeout=10 -max_len=8192 -print_final_stats=1 -artifact_prefix=artifacts/
+
+      - name: Upload crash inputs
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: fuzz-artifacts-${{ matrix.harness }}
+          path: artifacts

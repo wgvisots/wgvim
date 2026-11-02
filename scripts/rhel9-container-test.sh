@@ -192,50 +192,15 @@ fi
 if [ "$BUILD_OK" = 1 ]; then
   BIN="$SRC/build/bin/wgvim"
   step "hardening check"
-  {
-    echo "# readelf checks on $BIN"
-    readelf -hW "$BIN" | grep -E 'Type:'
-    readelf -lW "$BIN" | grep -E 'GNU_RELRO|GNU_STACK'
-    readelf -dW "$BIN" | grep -E 'BIND_NOW|FLAGS'
-    readelf -nW "$BIN" | grep -iE 'x86 feature|properties' || true
-    echo "# fortified libc calls (__*_chk):"
-    readelf --dyn-syms -W "$BIN" | grep -oE '__[a-z_]+_chk' | sort -u | tr '\n' ' '; echo
-    echo "# stack protector:"
-    readelf --dyn-syms -W "$BIN" | grep -oE '__stack_chk_fail' | sort -u
-    echo "# hardening flags in the compile commands:"
-    grep -oE -- '-D_FORTIFY_SOURCE=[0-9]|-fstack-protector-strong|-fstack-clash-protection|-fcf-protection=full|-ftrivial-auto-var-init=zero|-fno-strict-overflow' \
-      "$SRC/build/compile_commands.json" 2>/dev/null | sort -u
-  } > "$OUT/hardening.txt" 2>&1
-  # Capture readelf output first: "readelf | grep -q" can fail under pipefail (SIGPIPE).
-  EH="$(readelf -hW "$BIN")"; EL="$(readelf -lW "$BIN")"; ED="$(readelf -dW "$BIN")"
-  ES="$(readelf --dyn-syms -W "$BIN")"
-  H=""
-  grep -q 'DYN' <<<"$EH" && H="$H PIE" || H="$H no-PIE!"
-  grep -q GNU_RELRO <<<"$EL" && H="$H RELRO" || H="$H no-RELRO!"
-  grep -qE 'BIND_NOW|FLAGS.*NOW' <<<"$ED" && H="$H BIND_NOW" || H="$H lazy-binding!"
-  grep GNU_STACK <<<"$EL" | grep -q 'RWE' && H="$H exec-stack!" || H="$H NX-stack"
-  grep -q '__stack_chk_fail' <<<"$ES" && H="$H stack-protector" || H="$H no-stack-protector!"
-  grep -qE '__[a-z_]+_chk' <<<"$ES" && H="$H FORTIFY" || H="$H no-FORTIFY!"
-  F="$(grep -oE -- '-D_FORTIFY_SOURCE=[0-9]' "$SRC/build/compile_commands.json" 2>/dev/null | sort | uniq -c | sort -rn | awk 'NR==1 {print $2}')"
-  case "$H" in *'!'*) status "hardening" "CHECK:$H ($F)" ;; *) status "hardening" "ok:$H ($F)" ;; esac
+  as_tester "scripts/check-hardening.sh build/bin/wgvim build/compile_commands.json" \
+    > "$OUT/hardening.txt" 2>&1
+  status "hardening" "$(tail -1 "$OUT/hardening.txt" | sed 's/^hardening: //')"
 
   step "smoke tests"
-  {
-    as_tester "build/bin/wgvim --version"
-    echo "--- v:servername at startup (expected empty):"
-    as_tester "build/bin/wgvim --clean --headless -c 'echo \"[\" .. v:servername .. \"]\"' -c 'qa!' 2>&1"
-    echo
-    echo "--- immutable options (expected E519 twice):"
-    as_tester "build/bin/wgvim --clean --headless -c 'try | set exrc | catch | echo v:exception | endtry' -c 'try | set modelineexpr | catch | echo v:exception | endtry' -c 'qa!' 2>&1"
-    echo
-    echo "--- :checkhealth vim.health (first lines):"
-    as_tester "build/bin/wgvim --clean --headless -c 'checkhealth vim.health' -c 'w! /tmp/health.txt' -c 'qa!' >/dev/null 2>&1; head -40 /tmp/health.txt"
-  } > "$OUT/smoke.log" 2>&1
-  if grep -q '^WGVIM v' "$OUT/smoke.log" && grep -q '^\[\]' "$OUT/smoke.log" \
-     && [ "$(grep -c E519 "$OUT/smoke.log")" -ge 2 ]; then
+  if as_tester "scripts/smoke-test.sh build/bin/wgvim" > "$OUT/smoke.log" 2>&1; then
     status "smoke tests" "ok"
   else
-    status "smoke tests" "FAIL (see smoke.log)"
+    status "smoke tests" "FAIL ($(tail -1 "$OUT/smoke.log" | sed 's/^smoke: FAIL: *//'); see smoke.log)"
   fi
 
   if [ "$RUN_FUNCTIONAL" = 1 ]; then
@@ -271,7 +236,7 @@ fi
 
 # Files written by root inside a docker container would be root-owned on the host.
 [ -n "${HOST_UID:-}" ] && chown -R "$HOST_UID:$HOST_GID" "$OUT" 2>/dev/null
-grep -qE 'FAIL' "$OUT/summary.txt" && exit 1 || exit 0
+grep -qE 'FAIL|CHECK' "$OUT/summary.txt" && exit 1 || exit 0
 INNER
 chmod +x "$WORK_DIR/inner.sh"
 cp "$OUT_DIR/source-version.txt" "$WORK_DIR/" 2>/dev/null || true

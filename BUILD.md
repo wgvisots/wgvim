@@ -33,6 +33,11 @@ container started with `--network none`, checks the hardening of the binary, and
 functional and old tests as a non-root user. Results go to `rhel9-results/<timestamp>/`;
 start with `summary.txt`. See `scripts/rhel9-container-test.sh --help` for options.
 
+`scripts/check-hardening.sh` and `scripts/smoke-test.sh` check a built binary on their own.
+The GitHub workflow (`.github/workflows/ci.yml`) runs all of this on every push and pull
+request: Ubuntu 24.04 builds with GCC and Clang (hardening check, smoke test, help-page lint,
+functional and old tests), the RHEL 9 container script, and the two fuzzers.
+
 ## Building
 
 First make sure you installed the [build prerequisites](#build-prerequisites). Now that you have the dependencies, you can try other build targets explained below.
