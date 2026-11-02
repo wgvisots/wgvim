@@ -89,3 +89,4 @@ timeout-*
 leak-*
 oom-*
 fuzz-*.log
+/rhel9-results/
