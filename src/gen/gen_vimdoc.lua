@@ -469,13 +469,11 @@ local config = {
     section_order = {
       'difftool.lua',
       'editorconfig.lua',
-      'spellfile.lua',
       'tohtml.lua',
       'undotree.lua',
     },
     files = {
       'runtime/lua/editorconfig.lua',
-      'runtime/lua/nvim/spellfile.lua',
       'runtime/pack/dist/opt/nvim.tohtml/lua/tohtml.lua',
       'runtime/pack/dist/opt/nvim.undotree/lua/undotree.lua',
       'runtime/pack/dist/opt/nvim.difftool/lua/difftool.lua',

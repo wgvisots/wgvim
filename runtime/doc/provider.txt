@@ -7,8 +7,8 @@
 ==============================================================================
 Providers					*provider*
 
-wgvim delegates some features to dynamic "providers". This document describes
-the providers and how to install them.
+wgvim delegates some features to dynamic "providers". In wgvim the only
+provider is the clipboard (|provider-clipboard|).
 						*E319*
 Use of a feature requiring a missing provider is an error: >
 
@@ -19,151 +19,22 @@ Run the |:checkhealth| command, and review the sections below.
 				      Type |gO| to see the table of contents.
 
 ==============================================================================
-Python integration				*provider-python*
+Removed providers			*provider-python* *provider-ruby*
+				*provider-perl* *provider-nodejs*
 
-wgvim supports Python |remote-plugin|s and the Vim legacy |python3| and
-|pythonx| interfaces (which are implemented as remote-plugins).
-
-Note: Only the Vim 7.3 legacy interface is supported, not later features such
-as |python-bindeval| (Vim 7.4); use the wgvim API instead. Python 2 is not
-supported.
-
-
-PYTHON QUICKSTART ~
-
-To use Python plugins, you need the "pynvim" module. Run |:checkhealth| to see
-if you already have it (some package managers install the module with wgvim
-itself).
-
-For Python 3 plugins:
-1. Make sure Python 3.9+ is available in your $PATH.
-2. Install either uv (https://docs.astral.sh/uv/) or pipx
-   (https://pipx.pypa.io/stable/).
-3. Install the module: >bash
-   pipx install pynvim
-   # or:
-   uv tool install --upgrade pynvim
-
-The `--upgrade` flag ensures that you get the latest version even if
-a previous version was already installed.
-
-See also |python-virtualenv|.
-
-PYTHON PROVIDER CONFIGURATION ~
-						*g:python3_host_prog*
-Command to start Python 3 (executable, not directory). Setting this makes
-startup faster. Useful for working with virtualenvs. Must be set before any
-check for has("python3").  >vim
-    let g:python3_host_prog = '/path/to/python3'
-<
-						*g:loaded_python3_provider*
-To disable Python 3 support: >vim
-    let g:loaded_python3_provider = 0
-
-
-PYTHON VIRTUALENVS ~
+wgvim does not include the Python 3, Ruby, Perl and Node.js providers. They
+started external interpreters ("hosts") that loaded |remote-plugin|s and other
+code from outside the editor. `has('python3')`, `has('ruby')`, `has('perl')`
+and `has('node')` are 0, and |:python3|, |:ruby|, |:perl| and the related
+commands fail with |E319|. The following variables have no effect:
+					*g:python3_host_prog* *g:loaded_python3_provider*
+					*g:ruby_host_prog* *g:loaded_ruby_provider*
+					*g:perl_host_prog* *g:loaded_perl_provider*
+					*g:node_host_prog* *g:loaded_node_provider*
 						*python-virtualenv*
-Using pynvim 0.6.0+ installed via uv or pipx, wgvim will automatically detect
-pynvim even if other Python virtual environments are activated (technical
-note: via the "pynvim-python" global python tool).  For older pynvim (or older
-wgvim), where detection involved finding the first Python interpreter and
-checking if it could import pynvim, automatic detection would fail when
-another virtual environment is active.  Upgrading to the latest pynvim is the
-recommended solution to this; but if that's not an option, then you can set
-the variable |g:python3_host_prog| in `init.vim` to point to the full path to
-the Python interpreter where `pynvim` is installed, e.g.: >vim
+Use built-in Lua (|lua|) or Vimscript instead. The clipboard provider below
+is unchanged.
 
-  let g:python3_host_prog = '/path/to/pynvim-venv/bin/python'
-<
-See also: https://github.com/zchee/deoplete-jedi/wiki/Setting-up-Python-for-Neovim
-
-==============================================================================
-Ruby integration			      *provider-ruby*
-
-wgvim supports Ruby |remote-plugin|s and the Vim legacy |ruby-vim| interface
-(which is itself implemented as a wgvim remote-plugin).
-
-
-RUBY QUICKSTART ~
-
-To use Ruby plugins with wgvim, install the latest "neovim" RubyGem: >bash
-    gem install neovim
-
-Run |:checkhealth| to see if your system is up-to-date.
-
-
-RUBY PROVIDER CONFIGURATION ~
-						*g:loaded_ruby_provider*
-To disable Ruby support: >vim
-    let g:loaded_ruby_provider = 0
-<
-						*g:ruby_host_prog*
-Command to start the Ruby host. By default this is "neovim-ruby-host". With
-project-local Ruby versions (via tools like RVM or rbenv) setting this can
-avoid the need to install the "neovim" gem in every project.
-
-To use an absolute path (e.g. to an rbenv installation): >vim
-    let g:ruby_host_prog = '~/.rbenv/versions/2.4.1/bin/neovim-ruby-host'
-
-To use the RVM "system" Ruby installation: >vim
-    let g:ruby_host_prog = 'rvm system do neovim-ruby-host'
-
-==============================================================================
-Perl integration				*provider-perl*
-
-wgvim supports Perl |remote-plugin|s on Unix platforms. Support for polling STDIN
-on MS-Windows is currently lacking from all known event loop implementations.
-The Vim legacy |perl-vim| interface is also supported (which is itself
-implemented as a wgvim remote-plugin).
-https://github.com/jacquesg/p5-Neovim-Ext
-
-Note: Only perl versions from 5.22 onward are supported.
-
-PERL QUICKSTART~
-
-To use perl remote-plugins with wgvim, install the "wgvim::Ext" cpan package: >bash
-    cpanm -n wgvim::Ext
-
-Run |:checkhealth| to see if your system is up-to-date.
-
-
-PERL PROVIDER CONFIGURATION~
-						*g:loaded_perl_provider*
-To disable Perl support: >vim
-    :let g:loaded_perl_provider = 0
-<
-						*g:perl_host_prog*
-Command to start the Perl executable. Must be set before any
-check for has("perl").  >vim
-    let g:perl_host_prog = '/path/to/perl'
-<
-==============================================================================
-Node.js integration				*provider-nodejs*
-
-wgvim supports Node.js |remote-plugin|s.
-https://github.com/neovim/node-client/
-
-
-NODEJS QUICKSTART~
-
-To use javascript remote-plugins with wgvim, install the "neovim" npm package: >bash
-    npm install -g neovim
-
-Run |:checkhealth| to see if your system is up-to-date.
-
-
-NODEJS PROVIDER CONFIGURATION~
-						*g:loaded_node_provider*
-To disable Node.js support: >vim
-    :let g:loaded_node_provider = 0
-<
-						*g:node_host_prog*
-Command to start the Node.js host. Setting this makes startup faster.
-
-By default, wgvim searches for "neovim-node-host" using "npm root -g", which
-can be slow. To avoid this, set g:node_host_prog to the host path: >vim
-    let g:node_host_prog = '/usr/local/bin/neovim-node-host'
-<
 ==============================================================================
 Clipboard integration			      *provider-clipboard* *clipboard*
 

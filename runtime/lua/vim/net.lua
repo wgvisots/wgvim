@@ -3,7 +3,10 @@
 -- The upstream implementation of vim.net.request() ran `curl`. This stub keeps the
 -- `vim.net` name defined (other code refers to it) but contains no network code.
 
----@class vim.net
+--- @brief
+--- `vim.net` is REMOVED in wgvim: the editor makes no network requests. |vim.net.request()|
+--- always raises an error, and URLs opened with |:edit| are not downloaded.
+
 local M = {}
 
 --- Always fails: network requests are disabled in wgvim.

@@ -1746,6 +1746,9 @@ uv.stream_get_write_queue_size()              *uv.stream_get_write_queue_size()*
 
 TCP handles are used to represent both TCP streams and servers.
 
+wgvim: the TCP functions in this section are not available; they are removed
+from `vim.uv` at build time because the editor makes no network connections.
+
 uv.new_tcp([{flags}])                                             *uv.new_tcp()*
 
                 Parameters:
@@ -2371,6 +2374,9 @@ uv.tty_get_vterm_state()                              *uv.tty_get_vterm_state()*
 > |uv_handle_t| functions also apply.
 
 UDP handles encapsulate UDP communication for both clients and servers.
+
+wgvim: the UDP functions in this section are not available; they are removed
+from `vim.uv` at build time because the editor makes no network connections.
 
 uv.new_udp([{flags}])                                             *uv.new_udp()*
 
@@ -3688,6 +3694,9 @@ uv.queue_work({work_ctx}, {...})                               *uv.queue_work()*
 
 ==============================================================================
 DNS UTILITY FUNCTIONS                                *luv-dns-utility-functions*
+
+wgvim: the DNS functions in this section are not available; they are removed
+from `vim.uv` at build time because the editor makes no network connections.
 
 uv.getaddrinfo({host}, {service} [, {hints} [, {callback}]])  *uv.getaddrinfo()*
 

@@ -3144,6 +3144,7 @@ func Test_comma_option_key_value()
 endfunc
 
 func Test_insecure_flag_copied_to_new_buffer_indentexpr()
+  throw 'Skipped: wgvim: ''modelineexpr'' is always off (immutable)'
   let modeline = &modeline
   let modelineexpr = &modelineexpr
   "let modelinestrict = &modelinestrict
@@ -3187,6 +3188,7 @@ func Test_insecure_flag_copied_to_new_buffer_indentexpr()
 endfunc
 
 func Test_insecure_flag_not_cleared_by_other_buffer_complete()
+  throw 'Skipped: wgvim: ''modelineexpr'' is always off (immutable)'
   let modeline = &modeline
   let modelineexpr = &modelineexpr
   "let modelinestrict = &modelinestrict

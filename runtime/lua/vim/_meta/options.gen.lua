@@ -2247,8 +2247,6 @@ vim.go.ei = vim.go.eventignore
 --- 	`MenuPopup`,
 --- 	`ModeChanged`,
 --- 	`OptionSet`,
---- 	`PackChanged`,
---- 	`PackChangedPre`,
 --- 	`Progress`,
 --- 	`QuickFixCmdPost`,
 --- 	`QuickFixCmdPre`,
@@ -2311,30 +2309,11 @@ vim.o.et = vim.o.expandtab
 vim.bo.expandtab = vim.o.expandtab
 vim.bo.et = vim.bo.expandtab
 
---- Enables project-local configuration. wgvim will execute any .nvim.lua,
---- .nvimrc, or .exrc file found in the `current-directory` and all parent
---- directories (ordered upwards), if the files are in the `trust` list.
---- Use `:trust` to manage trusted files. See also `vim.secure.read()`.
----
---- Unset 'exrc' to stop further searching of 'exrc' files in parent
---- directories, similar to `editorconfig.root`.
----
---- To get its own location, a Lua exrc file can use `debug.getinfo()`.
---- See `lua-script-location`.
----
---- Compare 'exrc' to `editorconfig`:
---- - 'exrc' can execute any code; editorconfig only specifies settings.
---- - 'exrc' is wgvim-specific; editorconfig works in other editors.
----
---- To achieve project-local LSP configuration:
---- 1. Enable 'exrc'.
---- 2. Place LSP configs at ".nvim/lsp/*.lua" in your project root.
---- 3. Create ".nvim.lua" in your project root directory with this line:
----
---- ```lua
----     vim.cmd[[set runtimepath+=.nvim]]
---- ```
----
+--- DISABLED in wgvim. This option cannot be set (E519). wgvim never
+--- executes project-local .nvim.lua, .nvimrc or .exrc files, because a
+--- trusted file can extend 'runtimepath' and load further unchecked code
+--- from the project. Put project settings in your own config instead, or
+--- use `editorconfig` for settings that cannot run code.
 ---
 --- @type boolean
 vim.o.exrc = false
@@ -4541,9 +4520,10 @@ vim.o.ml = vim.o.modeline
 vim.bo.modeline = vim.o.modeline
 vim.bo.ml = vim.bo.modeline
 
---- When on allow some options that are an expression to be set in the
---- modeline.  Check the option for whether it is affected by
---- 'modelineexpr'.  Also see `modeline`.
+--- DISABLED in wgvim: always off and cannot be set (E519), so neither a
+--- file's modeline nor a plugin can enable it. Options that take an
+--- expression (see each option for "modelineexpr") can therefore never be
+--- set from a modeline.  Also see `modeline`.
 ---
 --- @type boolean
 vim.o.modelineexpr = false
@@ -6584,9 +6564,9 @@ vim.bo.spf = vim.bo.spellfile
 --- encoding is used, Vim doesn't check it.
 --- How the related spell files are found is explained here: `spell-load`.
 ---
---- If the `package-spellfile` plugin is active and you use a language name
---- for which Vim cannot find the .spl file in 'runtimepath' the plugin
---- will ask you if you want to download the file.
+--- If the .spl file for a language cannot be found in 'runtimepath',
+--- wgvim shows a warning; it does not download spell files (see
+--- `spell-SpellFileMissing`).
 ---
 --- After this option has been set successfully, Vim will source the files
 --- "spell/LANG.vim" in 'runtimepath'.  "LANG" is the value of 'spelllang'

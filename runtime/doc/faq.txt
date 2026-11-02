@@ -203,23 +203,8 @@ https://github.com/neovim/neovim/issues/8217#issuecomment-402152307.
 ------------------------------------------------------------------------------
 PYTHON SUPPORT ISN'T WORKING
 
-Run |:checkhealth| in wgvim for automatic diagnosis.
-
-Other hints:
-
-- Read |provider-python| to learn how to install `pynvim`.
-- Be sure you have the latest version of the `pynvim` Python module: >bash
-
-    uv tool install --upgrade pynvim
-<
-  See |provider-python| for other installation options.
-- If you're manually creating a Python virtual environment for the `pynvim` module
-    https://pypi.org/project/pynvim/, you must set `g:python3_host_prog` to
-    the virtualenv's interpreter path.
-- Try with `nvim -u NORC` to make sure your config (|init.vim|) isn't causing a
-    problem. If you get `E117: Unknown function`, that means there's a runtime
-    issue: |faq-runtime|.
-- The python `neovim` module was renamed to `pynvim` (long ago).
+wgvim does not include the Python provider (or any other language provider);
+see |provider-python|. Use Lua or Vimscript instead.
 
 
 ------------------------------------------------------------------------------

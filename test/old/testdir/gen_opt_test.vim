@@ -396,6 +396,7 @@ let test_values = {
       \ 'pyxversion': [[], []],
       "\ wgvim: 'exrc' is immutable (always off)
       \ 'exrc': [[], []],
+      \ 'modelineexpr': [[], []],
       "\ 'rubydll': [[], []],
       "\ 'tcldll': [[], []],
       \ 'term': [[], []],

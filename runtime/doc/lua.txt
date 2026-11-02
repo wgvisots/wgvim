@@ -38,7 +38,8 @@ incompatible, dialects) are not supported. This includes extensions such as
 While wgvim officially only requires Lua 5.1 support, it should be built with
 LuaJIT or a compatible fork on supported platforms for performance reasons.
 LuaJIT also comes with useful extensions such as `ffi`, |lua-profile|, and
-enhanced standard library functions; these cannot be assumed to be available,
+enhanced standard library functions; these cannot be assumed to be available
+(wgvim: `ffi` is disabled, and native Lua modules (.so) cannot be loaded),
 and Lua code in |init.lua| or plugins should check the `jit` global variable
 before using them: >lua
   if jit then
@@ -663,8 +664,8 @@ vim.empty_dict()                                            *vim.empty_dict()*
     or API types. wgvim by default converts an empty table `{}` without this
     metatable to an list/array.
 
-    Note: If numeric keys are present in the table, wgvim ignores the metatable
-    marker and converts the dict to a list/array anyway.
+    Note: If numeric keys are present in the table, wgvim ignores the
+    metatable marker and converts the dict to a list/array anyway.
 
     Return: ~
         (`table`)
@@ -1950,9 +1951,9 @@ vim.str_byteindex({s}, {encoding}, {index}, {strict_indexing})  *vim.str_byteind
     length instead of throwing an error.
 
     Use `"utf-32"` to convert Unicode code-point indices to byte indices.
-    `"utf-8"` is wgvim's native string encoding, so this function is idempotent
-    for that encoding: {index} is already a byte index and is returned
-    unchanged.
+    `"utf-8"` is wgvim's native string encoding, so this function is
+    idempotent for that encoding: {index} is already a byte index and is
+    returned unchanged.
 
     Invalid UTF-8 and NUL is treated like in |vim.str_utfindex()|. An {index}
     in the middle of a UTF-16 sequence is rounded upwards to the end of that
@@ -4585,81 +4586,19 @@ vim.mpack.encode({obj})                                   *vim.mpack.encode()*
 ==============================================================================
 Lua module: vim.net                                                  *vim.net*
 
-vim.net.request.Response                            *vim.net.request.Response*
-
-    Fields: ~
-      • {body}  (`string`) The HTTP body of the request
+`vim.net` is REMOVED in wgvim: the editor makes no network requests.
+|vim.net.request()| always raises an error, and URLs opened with |:edit| are
+not downloaded.
 
 
 vim.net.request({method}, {url}, {opts}, {on_response})    *vim.net.request()*
-    Makes an HTTP request to the given URL, asynchronously passing the result
-    to the specified `on_response`, `outpath` or `outbuf`.
-
-    Examples: >lua
-        -- Write response body to file.
-        vim.net.request('https://neovim.io/charter/', {
-          outpath = 'vision.html',
-        })
-
-        -- Process the response.
-        vim.net.request(
-          'https://api.github.com/repos/neovim/neovim',
-          {},
-          function (err, res)
-            if err then return end
-            local stars = vim.json.decode(res.body).stargazers_count
-            vim.print(('wgvim currently has %d stars'):format(stars))
-          end
-        )
-
-        -- Write to both file and current buffer, but cancel it.
-        local job = vim.net.request('https://neovim.io/charter/', {
-          outpath = 'vision.html',
-          outbuf = 0,
-        })
-        job:close()
-
-        -- Add custom headers in the request.
-        vim.net.request('https://neovim.io/charter/', {
-          headers = { Authorization = 'Bearer XYZ' },
-        })
-
-        -- POST request with body.
-        vim.net.request('POST', 'https://example.com/api', {
-          body = '{"key": "value"}',
-          headers = {['Content-Type'] = 'application/json' }
-        })
-<
+    Always fails: network requests are disabled in wgvim.
 
     Parameters: ~
-      • {method}       (`vim.net.HttpMethod`) (default: GET) The HTTP method
-                       (GET, POST, PUT, PATCH, HEAD, DELETE).
-      • {url}          (`string`) The URL for the request.
-      • {opts}         (`table?`) A table with the following fields:
-                       • {body}? (`string`) Request body for POST/PUT/PATCH
-                         requests.
-                       • {headers}? (`table<string, string>`) Custom headers
-                         to send with the request. Supports basic key/value
-                         headers and empty headers as supported by curl. Does
-                         not support "@filename" style, internal header
-                         deletion ("Header:").
-                       • {outbuf}? (`integer`) Buffer to save the response
-                         body to.
-                       • {outpath}? (`string`) File path to save the response
-                         body to.
-                       • {retry}? (`integer`) Number of retries on transient
-                         failures (default: 3).
-                       • {verbose}? (`boolean`) Enables verbose output.
-      • {on_response}  (`vim.net.request.ResponseFunc?`) Callback invoked on
-                       request completion.
-
-    Overloads: ~
-      • `fun(url: string, opts: vim.net.request.Opts, response: vim.net.request.ResponseFunc)`
-      • `fun(method: vim.net.HttpMethod, url: string, opts: vim.net.request.Opts, response: vim.net.request.ResponseFunc)`
-
-    Return: ~
-        (`{ close: fun() }`) Object with `close()` method which cancels the
-        request.
+      • {method}       (`string`)
+      • {url}          (`string`)
+      • {opts}         (`table?`)
+      • {on_response}  (`function?`)
 
 
 ==============================================================================
