@@ -1929,6 +1929,9 @@ static void osc_selection(VTermState *state, VTermStringFragment frag)
           frag.str++, frag.len--;
         }
 
+        // wgvim: also reset the partial value; it kept growing across "=" padding, and the
+        // bits above 24 later came back as a bogus sextet count (UB in the shift below).
+        x = 0;
         n = 0;
       } else {
         uint8_t b = unbase64one(frag.str[0]);
@@ -1979,7 +1982,7 @@ static void osc_selection(VTermState *state, VTermStringFragment frag)
     }
 
     if (n) {
-      state->tmp.selection.recvpartial = (uint32_t)(n << 24) | x;
+      state->tmp.selection.recvpartial = ((uint32_t)n << 24) | (x & 0x03FFFF);
     }
   }
 }

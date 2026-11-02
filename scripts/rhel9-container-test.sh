@@ -237,12 +237,16 @@ if [ "$BUILD_OK" = 1 ]; then
 fi
 
 # Files written by root inside a docker container would be root-owned on the host.
+# (Only set for docker: under rootless podman, root in the container already is the host user,
+# and a chown to the host uid would map to a different, subordinate uid.)
 [ -n "${HOST_UID:-}" ] && chown -R "$HOST_UID:$HOST_GID" "$OUT" 2>/dev/null
 grep -qE 'FAIL|CHECK' "$OUT/summary.txt" && exit 1 || exit 0
 INNER
 chmod +x "$WORK_DIR/inner.sh"
 cp "$OUT_DIR/source-version.txt" "$WORK_DIR/" 2>/dev/null || true
 
+OWNER_OPTS=()
+[ "$ENGINE" = docker ] && OWNER_OPTS=(-e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)")
 TTY_OPTS=()
 [ "$OPEN_SHELL" = 1 ] && TTY_OPTS=(-it)
 
@@ -252,7 +256,7 @@ set +e
   -e JOBS="$JOBS" -e BUILD_TYPE="$BUILD_TYPE" \
   -e RUN_FUNCTIONAL="$RUN_FUNCTIONAL" -e RUN_OLDTEST="$RUN_OLDTEST" -e OPEN_SHELL="$OPEN_SHELL" \
   -e PARALLEL="$PARALLEL" \
-  -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
+  ${OWNER_OPTS[@]+"${OWNER_OPTS[@]}"} \
   -v "$WORK_DIR:/work:ro,$VOL_OPT" -v "$OUT_DIR:/out:$VOL_OPT" \
   ${TTY_OPTS[@]+"${TTY_OPTS[@]}"} \
   "$TOOL_IMAGE" \
