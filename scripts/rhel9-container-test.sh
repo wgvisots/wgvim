@@ -144,7 +144,7 @@ cat > "$WORK_DIR/inner.sh" <<'INNER'
 set -uo pipefail
 OUT=/out
 SRC=/home/tester/wgvim
-as_tester() { runuser -u tester -- env HOME=/home/tester LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
+as_tester() { runuser -u tester -- env PATH=/usr/local/bin:/usr/bin:/bin HOME=/home/tester LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
                 MAKEFLAGS="-j$JOBS" bash -c "cd $SRC && $1"; }
 status() { printf '%-28s %s\n' "$1" "$2" >> "$OUT/summary.txt"; }
 step() { printf '\n== %s ==\n' "$*"; }
