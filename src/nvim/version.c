@@ -4075,25 +4075,29 @@ bool may_show_intro(void)
 /// @param colon true for ":intro"
 void intro_message(bool colon)
 {
+  // wgvim: a "WG" monogram instead of the Neovim logo, and lines that credit Neovim and Vim and
+  // point to |wgvim| for what this build changes. Keep it at 19 lines (as upstream): longer intros
+  // are not shown in smaller windows.
   static char *(lines[]) = {
-    "│ ╲ ││",
-    "││╲╲││",
-    "││ ╲ │",
+    "╦ ╦╔═╗",
+    "║║║║ ╦",
+    "╚╩╝╚═╝",
     "",
     N_(NVIM_VERSION_LONG),
-    "────────────────────────────────────────────",
-    N_("wgvim is open source and freely distributable"),
-    "Based on Neovim; see NOTICE",
-    "────────────────────────────────────────────",
-    N_("type  :help nvim<Enter>     if you are new! "),
-    N_("type  :checkhealth<Enter>   to optimize wgvim"),
-    N_("type  :q<Enter>             to exit         "),
-    N_("type  :help<Enter>          for help        "),
-    "────────────────────────────────────────────",
-    N_("type  :help news<Enter>     for v%s.%s notes "),
-    "────────────────────────────────────────────",
+    "──────────────────────────────────────────────────",
+    N_("an offline, hardened build of Neovim"),
+    N_("Neovim and Vim are the work of their contributors"),
+    "──────────────────────────────────────────────────",
+    N_("type  :help wgvim<Enter>    for what is different"),
+    N_("type  :help nvim<Enter>     if you are new!      "),
+    N_("type  :checkhealth<Enter>   to optimize wgvim    "),
+    N_("type  :q<Enter>             to exit              "),
+    N_("type  :help<Enter>          for help             "),
+    "──────────────────────────────────────────────────",
+    N_("type  :help credits<Enter>  for who made this    "),
+    "──────────────────────────────────────────────────",
     N_("Help poor children in Uganda!"),
-    N_("type  :help Kuwasha<Enter>  for information "),
+    N_("type  :help Kuwasha<Enter>  for information      "),
   };
 
   // blanklines = screen height - # message lines

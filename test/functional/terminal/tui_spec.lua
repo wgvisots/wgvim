@@ -3022,7 +3022,7 @@ describe('TUI', function()
     child_session:request('nvim_set_option_value', 'cursorline', true, {})
     -- Use full screen message so that redrawing afterwards is more deterministic.
     child_session:notify('nvim_command', 'intro')
-    screen:expect({ any = 'wgvim is open source and freely distributable' })
+    screen:expect({ any = 'an offline, hardened build of Neovim' })
     -- Going to top-left corner needs 3 bytes.
     -- Setting underline attribute needs 9 bytes.
     -- A Ꝩ character takes 3 bytes.
@@ -3090,7 +3090,7 @@ describe('TUI', function()
     end)
     -- Use full screen message so that redrawing afterwards is more deterministic.
     child_session:notify('nvim_command', 'intro')
-    screen:expect({ any = 'wgvim is open source and freely distributable' })
+    screen:expect({ any = 'an offline, hardened build of Neovim' })
     -- Going to top-left corner needs 3 bytes.
     -- A Ꝩ character takes 3 bytes.
     -- The whole line needs 3 + 3 * 21842 = 65529 bytes.
