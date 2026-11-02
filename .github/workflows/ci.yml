@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y ninja-build gettext cmake build-essential clang man-db
+        run: sudo apt-get update && sudo apt-get install -y ninja-build gettext cmake build-essential clang man-db inotify-tools
 
       - name: Verify vendored deps
         run: scripts/verify-deps.sh
@@ -84,12 +84,21 @@ jobs:
       - name: Summary
         if: success() || failure()
         run: |
-          f=$(ls -d rhel9-results/*/ | tail -1)summary.txt
-          [ -f "$f" ] || exit 0
-          { echo '```'; cat "$f"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
-          if [ -s "$(dirname "$f")/functionaltest-failures.txt" ]; then
+          d=$(ls -d rhel9-results/*/ 2>/dev/null | tail -1)
+          [ -n "$d" ] && [ -f "$d/summary.txt" ] || exit 0
+          cat "$d/summary.txt"
+          { echo '```'; cat "$d/summary.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          if [ -s "$d/functionaltest-failures.txt" ]; then
+            echo "::group::Failed functional tests"; cat "$d/functionaltest-failures.txt"; echo
+            sed 's/\x1b\[[0-9;]*m//g' "$d/functionaltest.log" | grep -A10 -E '^(FAILED|ERROR) +[^ ]+ @' | head -300
+            echo "::endgroup::"
             { echo '**Failed functional tests**'; echo '```';
-              cat "$(dirname "$f")/functionaltest-failures.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+              cat "$d/functionaltest-failures.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if grep -q '^old tests .*FAIL' "$d/summary.txt"; then
+            echo "::group::Old tests (end of log)"
+            sed 's/\x1b\[[0-9;]*m//g' "$d/oldtest.log" | grep -E 'Failed|FAILED|Executed|^From ' | tail -60
+            echo "::endgroup::"
           fi
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
