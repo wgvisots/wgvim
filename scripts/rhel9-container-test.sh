@@ -21,6 +21,9 @@
 #   --committed              test the last commit (git archive HEAD) instead of the working tree
 #   --no-functional          skip the functional tests
 #   --no-oldtest             skip the old (Vim) tests
+#   --parallel               run the functional test groups in parallel (faster, but the groups
+#                            share some per-user state and can fail each other; serial is the
+#                            reference result)
 #   --rebuild-image          rebuild the toolchain image even if it exists
 #   --shell                  after the run, open a shell in the (offline) test container
 #   -h, --help               show this help
@@ -38,6 +41,7 @@ BUILD_TYPE="Release"
 SOURCE_MODE="worktree"
 RUN_FUNCTIONAL=1
 RUN_OLDTEST=1
+PARALLEL=0
 REBUILD_IMAGE=0
 OPEN_SHELL=0
 
@@ -54,6 +58,7 @@ while [ $# -gt 0 ]; do
     --committed) SOURCE_MODE="committed"; shift ;;
     --no-functional) RUN_FUNCTIONAL=0; shift ;;
     --no-oldtest) RUN_OLDTEST=0; shift ;;
+    --parallel) PARALLEL=1; shift ;;
     --rebuild-image) REBUILD_IMAGE=1; shift ;;
     --shell) OPEN_SHELL=1; shift ;;
     -h|--help) usage; exit 0 ;;
@@ -201,13 +206,16 @@ if [ "$BUILD_OK" = 1 ]; then
     grep -oE -- '-D_FORTIFY_SOURCE=[0-9]|-fstack-protector-strong|-fstack-clash-protection|-fcf-protection=full|-ftrivial-auto-var-init=zero|-fno-strict-overflow' \
       "$SRC/build/compile_commands.json" 2>/dev/null | sort -u
   } > "$OUT/hardening.txt" 2>&1
+  # Capture readelf output first: "readelf | grep -q" can fail under pipefail (SIGPIPE).
+  EH="$(readelf -hW "$BIN")"; EL="$(readelf -lW "$BIN")"; ED="$(readelf -dW "$BIN")"
+  ES="$(readelf --dyn-syms -W "$BIN")"
   H=""
-  readelf -hW "$BIN" | grep -q 'DYN' && H="$H PIE" || H="$H no-PIE!"
-  readelf -lW "$BIN" | grep -q GNU_RELRO && H="$H RELRO" || H="$H no-RELRO!"
-  readelf -dW "$BIN" | grep -qE 'BIND_NOW|FLAGS.*NOW' && H="$H BIND_NOW" || H="$H lazy-binding!"
-  readelf -lW "$BIN" | grep GNU_STACK | grep -q 'RWE' && H="$H exec-stack!" || H="$H NX-stack"
-  readelf --dyn-syms -W "$BIN" | grep -q '__stack_chk_fail' && H="$H stack-protector" || H="$H no-stack-protector!"
-  readelf --dyn-syms -W "$BIN" | grep -qE '__[a-z_]+_chk' && H="$H FORTIFY" || H="$H no-FORTIFY!"
+  grep -q 'DYN' <<<"$EH" && H="$H PIE" || H="$H no-PIE!"
+  grep -q GNU_RELRO <<<"$EL" && H="$H RELRO" || H="$H no-RELRO!"
+  grep -qE 'BIND_NOW|FLAGS.*NOW' <<<"$ED" && H="$H BIND_NOW" || H="$H lazy-binding!"
+  grep GNU_STACK <<<"$EL" | grep -q 'RWE' && H="$H exec-stack!" || H="$H NX-stack"
+  grep -q '__stack_chk_fail' <<<"$ES" && H="$H stack-protector" || H="$H no-stack-protector!"
+  grep -qE '__[a-z_]+_chk' <<<"$ES" && H="$H FORTIFY" || H="$H no-FORTIFY!"
   F="$(grep -oE -- '-D_FORTIFY_SOURCE=[0-9]' "$SRC/build/compile_commands.json" 2>/dev/null | sort | uniq -c | sort -rn | awk 'NR==1 {print $2}')"
   case "$H" in *'!'*) status "hardening" "CHECK:$H ($F)" ;; *) status "hardening" "ok:$H ($F)" ;; esac
 
@@ -232,16 +240,25 @@ if [ "$BUILD_OK" = 1 ]; then
 
   if [ "$RUN_FUNCTIONAL" = 1 ]; then
     step "functional tests"
-    if as_tester "cmake --build build --target functionaltest-parallel -j $JOBS" \
-         > "$OUT/functionaltest.log" 2>&1; then FT=ok; else FT=FAIL; fi
-    as_tester "cmake --build build --target functionaltest-summary" \
-      > "$OUT/functionaltest-summary.log" 2>&1 || true
-    P=$(sed 's/\x1b\[[0-9;]*m//g' "$OUT/functionaltest.log" | awk '/^PASSED +[0-9]+ tests/ {s+=$2} END {print s+0}')
-    FA=$(sed 's/\x1b\[[0-9;]*m//g' "$OUT/functionaltest.log" | awk '/^ *[0-9]+ FAILED TESTS?/ {s+=$1} END {print s+0}')
-    ER=$(sed 's/\x1b\[[0-9;]*m//g' "$OUT/functionaltest.log" | awk '/^ *[0-9]+ ERRORS?/ {s+=$1} END {print s+0}')
-    sed 's/\x1b\[[0-9;]*m//g' "$OUT/functionaltest.log" | grep -E '^(FAILED|ERROR) +[^ ]+ @ ' \
-      | sort -u > "$OUT/functionaltest-failures.txt" || true
-    status "functional tests" "$FT (passed $P, failed $FA, errors $ER; list in functionaltest-failures.txt)"
+    if [ "$PARALLEL" = 1 ]; then
+      if as_tester "cmake --build build --target functionaltest-parallel -j $JOBS" \
+           > "$OUT/functionaltest.log" 2>&1; then FT=ok; else FT=FAIL; fi
+      as_tester "cmake --build build --target functionaltest-summary" \
+        > "$OUT/functionaltest-summary.log" 2>&1 || true
+      # Counts come from the per-group summaries (the parallel log interleaves the groups).
+      SUM="$(sed 's/\x1b\[[0-9;]*m//g' "$OUT/functionaltest-summary.log")"
+    else
+      if as_tester "cmake --build build --target functionaltest" \
+           > "$OUT/functionaltest.log" 2>&1; then FT=ok; else FT=FAIL; fi
+      SUM="$(sed 's/\x1b\[[0-9;]*m//g' "$OUT/functionaltest.log")"
+    fi
+    P=$(awk '/^PASSED +[0-9]+ tests?/ {s+=$2} END {print s+0}' <<<"$SUM")
+    SK=$(awk '/^ *[0-9]+ SKIPPED TESTS?/ {s+=$1} END {print s+0}' <<<"$SUM")
+    FA=$(awk '/^ *[0-9]+ FAILED TESTS?/ {s+=$1} END {print s+0}' <<<"$SUM")
+    ER=$(awk '/^ *[0-9]+ ERRORS?$/ {s+=$1} END {print s+0}' <<<"$SUM")
+    grep -E '^(FAILED|ERROR) ' <<<"$SUM" | grep -vE '^(FAILED|ERROR) +[0-9]+ (tests?|errors?),' \
+      > "$OUT/functionaltest-failures.txt" || true
+    status "functional tests" "$FT (passed $P, skipped $SK, failed $FA, errors $ER; list in functionaltest-failures.txt)"
   fi
 
   if [ "$RUN_OLDTEST" = 1 ]; then
@@ -267,6 +284,7 @@ set +e
 "$ENGINE" run --rm --network none \
   -e JOBS="$JOBS" -e BUILD_TYPE="$BUILD_TYPE" \
   -e RUN_FUNCTIONAL="$RUN_FUNCTIONAL" -e RUN_OLDTEST="$RUN_OLDTEST" -e OPEN_SHELL="$OPEN_SHELL" \
+  -e PARALLEL="$PARALLEL" \
   -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
   -v "$WORK_DIR:/work:ro$VOL_OPT" -v "$OUT_DIR:/out$VOL_OPT" \
   ${TTY_OPTS[@]+"${TTY_OPTS[@]}"} \
