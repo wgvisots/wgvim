@@ -325,7 +325,7 @@ describe('fileio', function()
 end)
 
 describe('tmpdir', function()
-  local tmproot_pat = [=[.*[/\\]nvim%.[^/\\]+]=]
+  local tmproot_pat = [=[.*[/\\]wgvim%.[^/\\]+]=]
   local testlog = 'Xtest_tmpdir_log'
   local os_tmpdir ---@type string
 
@@ -341,8 +341,8 @@ describe('tmpdir', function()
 
   local function get_tmproot()
     -- Tempfiles typically look like: "…/nvim.<user>/xxx/0".
-    --  - "…/nvim.<user>/xxx/" is the per-process tmpdir, not shared with other Nvims.
-    --  - "…/nvim.<user>/" is the tmpdir root, shared by all Nvims (normally).
+    --  - "…/wgvim.<user>/xxx/" is the per-process tmpdir, not shared with other Nvims.
+    --  - "…/wgvim.<user>/" is the tmpdir root, shared by all Nvims (normally).
     local tmproot = (fn.tempname()):match(tmproot_pat)
     ok(tmproot:len() > 4, 'tmproot like "nvim.foo"', tmproot)
     return tmproot
@@ -357,7 +357,7 @@ describe('tmpdir', function()
 
     -- Test how wgvim handles invalid tmpdir root (by hostile users or accidents).
     --
-    -- "…/nvim.<user>/" is not a directory:
+    -- "…/wgvim.<user>/" is not a directory:
     expect_exit(command, ':qall!')
     rmdir(tmproot)
     write_file(tmproot, '') -- Not a directory, vim_mktempdir() should skip it.
@@ -366,7 +366,7 @@ describe('tmpdir', function()
     -- Assert that broken tmpdir root was handled.
     assert_log('tempdir root not a directory', testlog, 100)
 
-    -- "…/nvim.<user>/" has wrong permissions:
+    -- "…/wgvim.<user>/" has wrong permissions:
     skip(is_os('win'), 'TODO(justinmk): need setfperm/getfperm on Windows. #8244')
     os.remove(testlog)
     os.remove(tmproot)

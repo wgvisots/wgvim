@@ -3401,7 +3401,7 @@ static void vim_mktempdir(void)
   // "repl" has been reported to use "0177".
   mode_t umask_save = umask(0077);
   for (size_t i = 0; i < ARRAY_SIZE(temp_dirs); i++) {
-    // Expand environment variables, leave room for "/tmp/nvim.<user>/XXXXXX/999999999".
+    // Expand environment variables, leave room for "/tmp/wgvim.<user>/XXXXXX/999999999".
     size_t tmplen = expand_env((char *)temp_dirs[i], tmp, TEMP_FILE_PATH_MAXLEN - 64);
     if (!os_isdir(tmp)) {
       if (strequal("$TMPDIR", temp_dirs[i])) {
@@ -3414,13 +3414,13 @@ static void vim_mktempdir(void)
       continue;
     }
 
-    // "/tmp/" exists, now try to create "/tmp/nvim.<user>/".
+    // "/tmp/" exists, now try to create "/tmp/wgvim.<user>/".
     if (!after_pathsep(tmp, tmp + tmplen)) {
       tmplen += (size_t)vim_snprintf(tmp + tmplen, sizeof(tmp) - tmplen, PATHSEPSTR);
       assert(tmplen < sizeof(tmp));
     }
     tmplen += (size_t)vim_snprintf(tmp + tmplen, sizeof(tmp) - tmplen,
-                                   "nvim.%s", user);
+                                   "wgvim.%s", user);
     assert(tmplen < sizeof(tmp));
     os_mkdir(tmp, 0700);  // Always create, to avoid a race.
     bool owned = os_file_owned(tmp);
@@ -3453,7 +3453,7 @@ static void vim_mktempdir(void)
       tmp[tmplen] = NUL;
     }
 
-    // Now try to create "/tmp/nvim.<user>/XXXXXX".
+    // Now try to create "/tmp/wgvim.<user>/XXXXXX".
     // "XXXXXX" is mkdtemp "template", will be replaced with random alphanumeric chars.
     tmplen += (size_t)vim_snprintf(tmp + tmplen, sizeof(tmp) - tmplen, "XXXXXX");
     assert(tmplen < sizeof(tmp));

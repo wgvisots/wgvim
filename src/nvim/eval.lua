@@ -10116,7 +10116,7 @@ M.funcs = {
       <  - If {address} is omitted the name is "nvim". >vim
       	echo serverstart()
       < >
-      	=> /tmp/nvim.bram/oknANW/nvim.15430.5
+      	=> /tmp/wgvim.bram/oknANW/wgvim.15430.5
       <
 
       Example bash command to list all wgvim servers: >bash

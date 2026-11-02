@@ -1423,8 +1423,8 @@ DATA DIRECTORY (DEFAULT) ~
 
 RUN DIRECTORY (DEFAULT) ~
                   *$XDG_RUNTIME_DIR*            wgvim: stdpath("run") >
-    Unix:         /tmp/nvim.user/xxx          /tmp/nvim.user/xxx
-    Windows:      $TMP/nvim.user/xxx          $TMP/nvim.user/xxx
+    Unix:         /tmp/wgvim.user/xxx         /tmp/wgvim.user/xxx
+    Windows:      $TMP/wgvim.user/xxx         $TMP/wgvim.user/xxx
 
 STATE DIRECTORY (DEFAULT) ~
                   *$XDG_STATE_HOME*             wgvim: stdpath("state") >
