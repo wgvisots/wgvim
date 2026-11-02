@@ -26,6 +26,13 @@
 
 See [test/README.md](https://github.com/neovim/neovim/blob/master/test/README.md).
 
+To build and test wgvim on RHEL 9 without installing anything on the host, run
+`scripts/rhel9-container-test.sh` (needs podman or docker). It pulls the UBI 9 image and
+installs the compilers once (the only step that uses the network), then builds wgvim in a
+container started with `--network none`, checks the hardening of the binary, and runs the
+functional and old tests as a non-root user. Results go to `rhel9-results/<timestamp>/`;
+start with `summary.txt`. See `scripts/rhel9-container-test.sh --help` for options.
+
 ## Building
 
 First make sure you installed the [build prerequisites](#build-prerequisites). Now that you have the dependencies, you can try other build targets explained below.
