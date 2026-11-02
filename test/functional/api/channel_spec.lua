@@ -188,7 +188,7 @@ describe('API', function()
 
       -- Make sure wgvim TUI is started (which is after registering SIGHUP handler).
       t.retry(nil, nil, function()
-        matches('wgvim is open source and freely distributable', n.curbuf_contents())
+        matches('an offline, hardened build of Neovim', n.curbuf_contents())
       end)
 
       -- :terminal with args + stopped process (wgvim TUI).

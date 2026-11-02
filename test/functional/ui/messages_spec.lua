@@ -2221,27 +2221,28 @@ describe('ui/builtin messages', function()
     command('set cmdheight=0')
     feed(':intro<CR>')
     screen:expect([[
-                                                                                      |*3
-                                           {16:│} {26:╲} {26:││}                                     |
-                                           {16:││}{26:╲╲││}                                     |
-                                           {16:││} {26:╲} {26:│}                                     |
-                                                                                      |
-      {MATCH:.*}|
-                        {1:────────────────────────────────────────────}                  |
-                       wgvim is open source and freely distributable                  |
-                                Based on Neovim; see NOTICE                           |
-                        {1:────────────────────────────────────────────}                  |
-                        type  {18::}{25:help nvim}{18:<Enter>}     if you are new!                   |
-                       type  {18::}{25:checkhealth}{18:<Enter>}   to optimize wgvim                  |
-                        type  {18::}{25:q}{18:<Enter>}             to exit                           |
-                        type  {18::}{25:help}{18:<Enter>}          for help                          |
-                        {1:────────────────────────────────────────────}                  |
-                        type  {18::}{25:help news}{18:<Enter>}     for v{MATCH:%d+%.%d+} notes{MATCH: *}|
-                        {1:────────────────────────────────────────────}                  |
-                               Help poor children in Uganda!                          |
-                        type  {18::}{25:help Kuwasha}{18:<Enter>}  for information                   |
-                                                                                      |*2
-      ^                                                                                |
+                                                                                                                                                                      |*3
+                                                                                                                           {16:╦} {16:╦╔═╗}                                     |
+                                                                                                                           {16:║║║║} {16:╦}                                     |
+                                                                                                                           {16:╚╩╝╚═╝}                                     |
+                                                                                                                                                                      |
+                                                                                      {MATCH:.*}|
+                                                                                                     {1:──────────────────────────────────────────────────}               |
+                                                                                                            an offline, hardened build of Neovim                      |
+                                                                                                     Neovim and Vim are the work of their contributors                |
+                                                                                                     {1:──────────────────────────────────────────────────}               |
+                                                                                                     type  {18::}{25:help wgvim}{18:<Enter>}    for what is different                |
+                                                                                                     type  {18::}{25:help nvim}{18:<Enter>}     if you are new!                      |
+                                                                                                     type  {18::}{25:checkhealth}{18:<Enter>}   to optimize wgvim                    |
+                                                                                                     type  {18::}{25:q}{18:<Enter>}             to exit                              |
+                                                                                                     type  {18::}{25:help}{18:<Enter>}          for help                             |
+                                                                                                     {1:──────────────────────────────────────────────────}               |
+                                                                                                     type  {18::}{25:help credits}{18:<Enter>}  for who made this                    |
+                                                                                                     {1:──────────────────────────────────────────────────}               |
+                                                                                                               Help poor children in Uganda!                          |
+                                                                                                     type  {18::}{25:help Kuwasha}{18:<Enter>}  for information                      |
+                                                                                                                                                                      |
+                                                                                      ^                                                                                |
     ]])
     feed('<CR>')
     assert_alive()
@@ -2292,25 +2293,26 @@ describe('ui/ext_messages', function()
     local introscreen = [[
       ^                                                                                |
       {1:~                                                                               }|*2
-      {1:~                                    }{16:│} {26:╲} {26:││}{1:                                     }|
-      {1:~                                    }{16:││}{26:╲╲││}{1:                                     }|
-      {1:~                                    }{16:││} {26:╲} {26:│}{1:                                     }|
+      {1:~                                    }{16:╦} {16:╦╔═╗}{1:                                     }|
+      {1:~                                    }{16:║║║║} {16:╦}{1:                                     }|
+      {1:~                                    }{16:╚╩╝╚═╝}{1:                                     }|
       {1:~                                                                               }|
       {1:~{MATCH: +}}{26:WGVIM {MATCH:%S+}}{1:{MATCH: +}}|
-      {1:~                 ────────────────────────────────────────────                  }|
-      {1:~                }wgvim is open source and freely distributable{1:                  }|
-      {1:~                         }Based on Neovim; see NOTICE{1:                           }|
-      {1:~                 ────────────────────────────────────────────                  }|
-      {1:~                 }type  {18::}{25:help nvim}{18:<Enter>}     if you are new! {1:                  }|
-      {1:~                }type  {18::}{25:checkhealth}{18:<Enter>}   to optimize wgvim{1:                  }|
-      {1:~                 }type  {18::}{25:q}{18:<Enter>}             to exit         {1:                  }|
-      {1:~                 }type  {18::}{25:help}{18:<Enter>}          for help        {1:                  }|
-      {1:~                 ────────────────────────────────────────────                  }|
-      {1:~                 }type  {18::}{25:help news}{18:<Enter>}     for v{MATCH:%d+%.%d+} notes {1:{MATCH: +}}|
-      {1:~                 ────────────────────────────────────────────                  }|
+      {1:~              ──────────────────────────────────────────────────               }|
+      {1:~                     }an offline, hardened build of Neovim{1:                      }|
+      {1:~              }Neovim and Vim are the work of their contributors{1:                }|
+      {1:~              ──────────────────────────────────────────────────               }|
+      {1:~              }type  {18::}{25:help wgvim}{18:<Enter>}    for what is different{1:                }|
+      {1:~              }type  {18::}{25:help nvim}{18:<Enter>}     if you are new!      {1:                }|
+      {1:~              }type  {18::}{25:checkhealth}{18:<Enter>}   to optimize wgvim    {1:                }|
+      {1:~              }type  {18::}{25:q}{18:<Enter>}             to exit              {1:                }|
+      {1:~              }type  {18::}{25:help}{18:<Enter>}          for help             {1:                }|
+      {1:~              ──────────────────────────────────────────────────               }|
+      {1:~              }type  {18::}{25:help credits}{18:<Enter>}  for who made this    {1:                }|
+      {1:~              ──────────────────────────────────────────────────               }|
       {1:~                        }Help poor children in Uganda!{1:                          }|
-      {1:~                 }type  {18::}{25:help Kuwasha}{18:<Enter>}  for information {1:                  }|
-      {1:~                                                                               }|*3
+      {1:~              }type  {18::}{25:help Kuwasha}{18:<Enter>}  for information      {1:                }|
+      {1:~                                                                               }|*2
     ]]
     local showmode = { { '-- INSERT --', 5, 'ModeMsg' } }
     screen:expect(introscreen)
@@ -2332,25 +2334,26 @@ describe('ui/ext_messages', function()
         ^                                                                                |
         {1:~    }{4:     }{1:                                                                      }|
         {1:~                                                                               }|
-        {1:~                                    }{16:│} {26:╲} {26:││}{1:                                     }|
-        {1:~                                    }{16:││}{26:╲╲││}{1:                                     }|
-        {1:~                                    }{16:││} {26:╲} {26:│}{1:                                     }|
+        {1:~                                    }{16:╦} {16:╦╔═╗}{1:                                     }|
+        {1:~                                    }{16:║║║║} {16:╦}{1:                                     }|
+        {1:~                                    }{16:╚╩╝╚═╝}{1:                                     }|
         {1:~                                                                               }|
         {1:~{MATCH: +}}{26:WGVIM {MATCH:%S+}}{1:{MATCH: +}}|
-        {1:~                 ────────────────────────────────────────────                  }|
-        {1:~                }wgvim is open source and freely distributable{1:                  }|
-        {1:~                         }Based on Neovim; see NOTICE{1:                           }|
-        {1:~                 ────────────────────────────────────────────                  }|
-        {1:~                 }type  {18::}{25:help nvim}{18:<Enter>}     if you are new! {1:                  }|
-        {1:~                }type  {18::}{25:checkhealth}{18:<Enter>}   to optimize wgvim{1:                  }|
-        {1:~                 }type  {18::}{25:q}{18:<Enter>}             to exit         {1:                  }|
-        {1:~                 }type  {18::}{25:help}{18:<Enter>}          for help        {1:                  }|
-        {1:~                 ────────────────────────────────────────────                  }|
-        {1:~                 }type  {18::}{25:help news}{18:<Enter>}     for v{MATCH:%d+%.%d+} notes {1:{MATCH: +}}|
-        {1:~                 ────────────────────────────────────────────                  }|
+        {1:~              ──────────────────────────────────────────────────               }|
+        {1:~                     }an offline, hardened build of Neovim{1:                      }|
+        {1:~              }Neovim and Vim are the work of their contributors{1:                }|
+        {1:~              ──────────────────────────────────────────────────               }|
+        {1:~              }type  {18::}{25:help wgvim}{18:<Enter>}    for what is different{1:                }|
+        {1:~              }type  {18::}{25:help nvim}{18:<Enter>}     if you are new!      {1:                }|
+        {1:~              }type  {18::}{25:checkhealth}{18:<Enter>}   to optimize wgvim    {1:                }|
+        {1:~              }type  {18::}{25:q}{18:<Enter>}             to exit              {1:                }|
+        {1:~              }type  {18::}{25:help}{18:<Enter>}          for help             {1:                }|
+        {1:~              ──────────────────────────────────────────────────               }|
+        {1:~              }type  {18::}{25:help credits}{18:<Enter>}  for who made this    {1:                }|
+        {1:~              ──────────────────────────────────────────────────               }|
         {1:~                        }Help poor children in Uganda!{1:                          }|
-        {1:~                 }type  {18::}{25:help Kuwasha}{18:<Enter>}  for information {1:                  }|
-        {1:~                                                                               }|*3
+        {1:~              }type  {18::}{25:help Kuwasha}{18:<Enter>}  for information      {1:                }|
+        {1:~                                                                               }|*2
       ]],
       showmode = showmode,
     }
@@ -2373,25 +2376,26 @@ describe('ui/ext_messages', function()
       grid = [[
         ^                                                                                |
                                                                                         |*2
-                                             {16:│} {26:╲} {26:││}                                     |
-                                             {16:││}{26:╲╲││}                                     |
-                                             {16:││} {26:╲} {26:│}                                     |
+                                             {16:╦} {16:╦╔═╗}                                     |
+                                             {16:║║║║} {16:╦}                                     |
+                                             {16:╚╩╝╚═╝}                                     |
                                                                                         |
         {MATCH: +}{26:WGVIM {MATCH:%S+}}{MATCH: +}|
-                          {1:────────────────────────────────────────────}                  |
-                         wgvim is open source and freely distributable                  |
-                                  Based on Neovim; see NOTICE                           |
-                          {1:────────────────────────────────────────────}                  |
-                          type  {18::}{25:help nvim}{18:<Enter>}     if you are new!                   |
-                         type  {18::}{25:checkhealth}{18:<Enter>}   to optimize wgvim                  |
-                          type  {18::}{25:q}{18:<Enter>}             to exit                           |
-                          type  {18::}{25:help}{18:<Enter>}          for help                          |
-                          {1:────────────────────────────────────────────}                  |
-                          type  {18::}{25:help news}{18:<Enter>}     for v{MATCH:%d+%.%d+} notes {MATCH: +}|
-                          {1:────────────────────────────────────────────}                  |
+                       {1:──────────────────────────────────────────────────}               |
+                              an offline, hardened build of Neovim                      |
+                       Neovim and Vim are the work of their contributors                |
+                       {1:──────────────────────────────────────────────────}               |
+                       type  {18::}{25:help wgvim}{18:<Enter>}    for what is different                |
+                       type  {18::}{25:help nvim}{18:<Enter>}     if you are new!                      |
+                       type  {18::}{25:checkhealth}{18:<Enter>}   to optimize wgvim                    |
+                       type  {18::}{25:q}{18:<Enter>}             to exit                              |
+                       type  {18::}{25:help}{18:<Enter>}          for help                             |
+                       {1:──────────────────────────────────────────────────}               |
+                       type  {18::}{25:help credits}{18:<Enter>}  for who made this                    |
+                       {1:──────────────────────────────────────────────────}               |
                                  Help poor children in Uganda!                          |
-                          type  {18::}{25:help Kuwasha}{18:<Enter>}  for information                   |
-                                                                                        |*3
+                       type  {18::}{25:help Kuwasha}{18:<Enter>}  for information                      |
+                                                                                        |*2
       ]],
     }
 
@@ -2507,25 +2511,26 @@ it('ui/ext_multigrid supports intro screen', function()
     ## grid 2
       ^                                                                                |
       {1:~                                                                               }|*2
-      {1:~                                    }{16:│} {26:╲} {26:││}{1:                                     }|
-      {1:~                                    }{16:││}{26:╲╲││}{1:                                     }|
-      {1:~                                    }{16:││} {26:╲} {26:│}{1:                                     }|
+      {1:~                                    }{16:╦} {16:╦╔═╗}{1:                                     }|
+      {1:~                                    }{16:║║║║} {16:╦}{1:                                     }|
+      {1:~                                    }{16:╚╩╝╚═╝}{1:                                     }|
       {1:~                                                                               }|
       {1:~{MATCH: +}}{26:WGVIM {MATCH:%S+}}{1:{MATCH: +}}|
-      {1:~                 ────────────────────────────────────────────                  }|
-      {1:~                }wgvim is open source and freely distributable{1:                  }|
-      {1:~                         }Based on Neovim; see NOTICE{1:                           }|
-      {1:~                 ────────────────────────────────────────────                  }|
-      {1:~                 }type  {18::}{25:help nvim}{18:<Enter>}     if you are new! {1:                  }|
-      {1:~                }type  {18::}{25:checkhealth}{18:<Enter>}   to optimize wgvim{1:                  }|
-      {1:~                 }type  {18::}{25:q}{18:<Enter>}             to exit         {1:                  }|
-      {1:~                 }type  {18::}{25:help}{18:<Enter>}          for help        {1:                  }|
-      {1:~                 ────────────────────────────────────────────                  }|
-      {1:~                 }type  {18::}{25:help news}{18:<Enter>}     for v{MATCH:%d+%.%d+} notes {1:{MATCH: +}}|
-      {1:~                 ────────────────────────────────────────────                  }|
+      {1:~              ──────────────────────────────────────────────────               }|
+      {1:~                     }an offline, hardened build of Neovim{1:                      }|
+      {1:~              }Neovim and Vim are the work of their contributors{1:                }|
+      {1:~              ──────────────────────────────────────────────────               }|
+      {1:~              }type  {18::}{25:help wgvim}{18:<Enter>}    for what is different{1:                }|
+      {1:~              }type  {18::}{25:help nvim}{18:<Enter>}     if you are new!      {1:                }|
+      {1:~              }type  {18::}{25:checkhealth}{18:<Enter>}   to optimize wgvim    {1:                }|
+      {1:~              }type  {18::}{25:q}{18:<Enter>}             to exit              {1:                }|
+      {1:~              }type  {18::}{25:help}{18:<Enter>}          for help             {1:                }|
+      {1:~              ──────────────────────────────────────────────────               }|
+      {1:~              }type  {18::}{25:help credits}{18:<Enter>}  for who made this    {1:                }|
+      {1:~              ──────────────────────────────────────────────────               }|
       {1:~                        }Help poor children in Uganda!{1:                          }|
-      {1:~                 }type  {18::}{25:help Kuwasha}{18:<Enter>}  for information {1:                  }|
-      {1:~                                                                               }|*2
+      {1:~              }type  {18::}{25:help Kuwasha}{18:<Enter>}  for information      {1:                }|
+      {1:~                                                                               }|
     ## grid 3
                                                                                       |
     ]],

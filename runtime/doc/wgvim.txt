@@ -1,0 +1,62 @@
+*wgvim.txt*	wgvim
+
+
+                            NVIM REFERENCE MANUAL
+
+
+==============================================================================
+wgvim                                           *wgvim* *wgvim-differences*
+
+wgvim is an offline, hardened build of Neovim (|nvim|). Neovim, and Vim
+before it, are the work of their contributors; wgvim only removes and
+restricts features. See |credits| and the NOTICE file for the full origin
+and licence. Please do not report wgvim problems to the Neovim project.
+
+Everything not listed here works as described in the rest of this manual.
+
+                                      Type |gO| to see the table of contents.
+
+==============================================================================
+No network access                                       *wgvim-network*
+
+The editor itself makes no network connections:
+
+- |vim.net| and the "http(s)://" buffer reader are removed.
+- |vim.pack| (which used `git`) is removed. Copy plugins into a
+  "pack/*/start/" or "pack/*/opt/" directory instead (|packages|).
+- Spell files are not downloaded (|spell-SpellFileMissing|). English is
+  bundled.
+- |netrw| works only on local files and "file://" URLs.
+- RPC servers (|--listen|, |serverstart()|) and |sockconnect()| accept only
+  pipes and Unix-domain sockets, not TCP. LSP servers are started over stdio
+  or a pipe (|vim.lsp.rpc.connect()| refuses a port).
+- `vim.uv` has no TCP, UDP or DNS functions.
+
+Programs you start (|:!|, |jobstart()|, |vim.system()|, |:terminal|, LSP
+servers) are not restricted. For a hard guarantee, run wgvim without network
+access at the operating-system level.
+
+==============================================================================
+Restricted features                                     *wgvim-restricted*
+
+- No server is started at startup; |v:servername| is empty unless |--listen|
+  is given or |serverstart()| is called.
+- 'exrc' and 'modelineexpr' are always off and cannot be set (E519).
+- LuaJIT's `ffi` library is disabled, and native Lua modules (.so files)
+  cannot be loaded (`package.loadlib()` raises an error).
+- Treesitter parsers are loaded only from the install directory, and only
+  the parsers bundled at build time, after checking their SHA256.
+- `lsp/*.lua` configs are read only from |stdpath()| "config" and $VIMRUNTIME.
+- Programs running in |:terminal| cannot set the system clipboard (OSC 52).
+- The Python 3, Ruby, Perl and Node.js providers and remote plugins are
+  removed (|provider-python|, |remote-plugin|). The clipboard provider stays.
+
+==============================================================================
+Names                                                   *wgvim-names*
+
+The executable is `wgvim`. Per-user directories and environment variables use
+"wgvim" / "WGVIM" instead of "nvim" / "NVIM": for example the config directory
+is "~/.config/wgvim" and the log file is set with $WGVIM_LOG_FILE. Internal
+names used by plugins (the `nvim_*` API, the `vim` Lua module) are unchanged.
+
+ vim:tw=78:ts=8:noet:ft=help:norl:
