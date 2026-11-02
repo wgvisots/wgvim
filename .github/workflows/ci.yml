@@ -90,14 +90,15 @@ jobs:
           { echo '```'; cat "$d/summary.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           if [ -s "$d/functionaltest-failures.txt" ]; then
             echo "::group::Failed functional tests"; cat "$d/functionaltest-failures.txt"; echo
-            sed 's/\x1b\[[0-9;]*m//g' "$d/functionaltest.log" | grep -A10 -E '^(FAILED|ERROR) +[^ ]+ @' | head -300
+            sed 's/\x1b\[[0-9;]*m//g' "$d/functionaltest.log" | grep -A60 -E '^(FAILED|ERROR) +[^ ]+ @' | head -1500
             echo "::endgroup::"
             { echo '**Failed functional tests**'; echo '```';
               cat "$d/functionaltest-failures.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           fi
           if grep -q '^old tests .*FAIL' "$d/summary.txt"; then
             echo "::group::Old tests (end of log)"
-            sed 's/\x1b\[[0-9;]*m//g' "$d/oldtest.log" | grep -E 'Failed|FAILED|Executed|^From ' | tail -60
+            if [ -f "$d/oldtest-test.log" ]; then cat "$d/oldtest-test.log"; fi
+            sed 's/\x1b\[[0-9;]*m//g' "$d/oldtest.log" | grep -E -A3 'FAILED|Failed|^From ' | tail -80
             echo "::endgroup::"
           fi
 
