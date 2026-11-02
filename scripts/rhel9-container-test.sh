@@ -85,7 +85,7 @@ trap 'rm -rf "$WORK_DIR"' EXIT
 log() { printf '[%s] %s\n' "$(date +%H:%M:%S)" "$*" | tee -a "$OUT_DIR/host.log"; }
 
 # SELinux hosts (RHEL, Fedora) need a relabel on bind mounts; harmless elsewhere.
-VOL_OPT=":Z"
+VOL_OPT="Z"
 
 # ---------------------------------------------------------------------------------------------
 # Stage 1: toolchain image (network)
@@ -251,7 +251,7 @@ set +e
   -e RUN_FUNCTIONAL="$RUN_FUNCTIONAL" -e RUN_OLDTEST="$RUN_OLDTEST" -e OPEN_SHELL="$OPEN_SHELL" \
   -e PARALLEL="$PARALLEL" \
   -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
-  -v "$WORK_DIR:/work:ro$VOL_OPT" -v "$OUT_DIR:/out$VOL_OPT" \
+  -v "$WORK_DIR:/work:ro,$VOL_OPT" -v "$OUT_DIR:/out:$VOL_OPT" \
   ${TTY_OPTS[@]+"${TTY_OPTS[@]}"} \
   "$TOOL_IMAGE" \
   bash -c '/work/inner.sh; rc=$?; if [ "$OPEN_SHELL" = 1 ]; then echo "(offline test container; exit to finish)"; bash; fi; exit $rc' \
