@@ -2969,6 +2969,13 @@ static void syn_cmd_iskeyword(exarg_T *eap, int syncing)
       }
       clear_string_option(&curwin->w_s->b_syn_isk);
       curwin->w_s->b_syn_isk = xstrdup(arg);
+      // wgvim: start from an empty table, as buf_init_isk_chartab() does. parse_isopt() only
+      // adds characters, so a second ":syn iskeyword" kept those of the first one (e.g. the ":"
+      // that syntax/sh.vim adds for bash broke the keywords of syntax/tutor.vim).
+      memset(curwin->w_s->b_syn_chartab, 0, sizeof(curwin->w_s->b_syn_chartab));
+      if (curbuf->b_p_lisp) {
+        curwin->w_s->b_syn_chartab[(unsigned)'-' >> 6] |= 1ull << ('-' & 0x3f);
+      }
       parse_isopt(curwin->w_s->b_syn_isk, curwin->w_s->b_syn_chartab);
     }
   }
