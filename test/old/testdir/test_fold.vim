@@ -1548,6 +1548,7 @@ endfunc
 " Test for setting 'foldtext' from the modeline and executing the expression
 " in a sandbox
 func Test_foldtext_in_modeline()
+  throw 'Skipped: wgvim: ''modelineexpr'' is always off (immutable)'
   func ModelineFoldText()
     call writefile(['after'], 'Xmodelinefoldtext_write')
     return "folded text"
@@ -1630,6 +1631,7 @@ endfunc
 " Test for setting 'foldexpr' from the modeline and executing the expression
 " in a sandbox
 func Test_foldexpr_in_modeline()
+  throw 'Skipped: wgvim: ''modelineexpr'' is always off (immutable)'
   func ModelineFoldExpr()
     call writefile(['after'], 'Xmodelinefoldexpr_write')
     return strlen(matchstr(getline(v:lnum),'^\s*'))

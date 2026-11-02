@@ -1312,8 +1312,8 @@ nvim_open_term({buf}, {opts})                               *nvim_open_term()*
        terminal with the intended size (defined by the window width/height).
 
     Example: this `TermHl` command can be used to display and highlight raw
-    ANSI termcodes, so you can use wgvim as a "scrollback pager" (for terminals
-    like kitty):                     *ansi-colorize* *terminal-scrollback-pager* >lua
+    ANSI termcodes, so you can use wgvim as a "scrollback pager" (for
+    terminals like kitty):           *ansi-colorize* *terminal-scrollback-pager* >lua
         vim.api.nvim_create_user_command('TermHl', function()
           vim.api.nvim_open_term(0)
         end, { desc = 'Highlights ANSI termcodes in curbuf' })

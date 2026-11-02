@@ -6106,14 +6106,16 @@ local options = {
       abbreviation = 'mle',
       defaults = false,
       desc = [=[
-        When on allow some options that are an expression to be set in the
-        modeline.  Check the option for whether it is affected by
-        'modelineexpr'.  Also see |modeline|.
+        DISABLED in wgvim: always off and cannot be set (E519), so neither a
+        file's modeline nor a plugin can enable it. Options that take an
+        expression (see each option for "modelineexpr") can therefore never be
+        set from a modeline.  Also see |modeline|.
       ]=],
       full_name = 'modelineexpr',
       scope = { 'global' },
       secure = true,
-      short_desc = N_('allow some options to be set in modeline'),
+      immutable = true,
+      short_desc = N_('disabled in wgvim (expression options in modelines)'),
       type = 'boolean',
       varname = 'p_mle',
     },
@@ -8892,9 +8894,9 @@ local options = {
         encoding is used, Vim doesn't check it.
         How the related spell files are found is explained here: |spell-load|.
 
-        If the |package-spellfile| plugin is active and you use a language name
-        for which Vim cannot find the .spl file in 'runtimepath' the plugin
-        will ask you if you want to download the file.
+        If the .spl file for a language cannot be found in 'runtimepath',
+        wgvim shows a warning; it does not download spell files (see
+        |spell-SpellFileMissing|).
 
         After this option has been set successfully, Vim will source the files
         "spell/LANG.vim" in 'runtimepath'.  "LANG" is the value of 'spelllang'

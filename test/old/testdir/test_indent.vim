@@ -197,6 +197,7 @@ endfunc
 
 " Test for setting the 'indentexpr' from a modeline
 func Test_modeline_indent_expr()
+  throw 'Skipped: wgvim: ''modelineexpr'' is always off (immutable)'
   let modeline = &modeline
   set modeline
   func GetIndent()

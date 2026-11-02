@@ -621,9 +621,10 @@ vim.v.scrollstart = ...
 vim.v.searchforward = ...
 
 --- Primary listen-address of wgvim, the first item returned by
---- `serverlist()`. Usually this is the named pipe created by wgvim
---- at `startup` or given by `--listen` (or the deprecated
---- `$WGVIM_LISTEN_ADDRESS` env var).
+--- `serverlist()`: the address given by `--listen` (or the deprecated
+--- `$WGVIM_LISTEN_ADDRESS` env var) or started with `serverstart()`.
+--- wgvim does not start a server on its own, so this is empty unless
+--- one of those was used.
 ---
 --- See also `serverstart()` `serverstop()`.
 --- Read-only.

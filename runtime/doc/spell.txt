@@ -647,10 +647,13 @@ Comment lines with the name of the .spl file are used as a header above the
 words that were generated from that .spl file.
 
 
-SPELL FILE MISSING				    *spell-SpellFileMissing*
+SPELL FILE MISSING		    *spell-SpellFileMissing* *package-spellfile*
 
-If a spell file is missing, the user is asked whether to download it. See
-|package-spellfile|.
+If a spell file is missing, wgvim only shows a warning; it does not offer to
+download one (wgvim makes no network requests). English ("en") is bundled.
+For other languages, build a spell file from a word list with |:mkspell| and
+put it in a "spell" directory on 'runtimepath'. A |SpellFileMissing|
+autocommand can still be used to react to a missing file.
 
 							*E797*
 Note that the SpellFileMissing autocommand must not change or destroy the

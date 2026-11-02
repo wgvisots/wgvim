@@ -103,8 +103,6 @@ Defaults                                            *defaults* *nvim-defaults*
 - |man.lua| plugin is enabled, so |:Man| is available by default.
 - |matchit| plugin is enabled. To disable it in your config: >vim
     :let loaded_matchit = 1
-- |package-spellfile| plugin is enabled, spellfiles are installed by default
-  if missing.
 
 - |g:vimsyn_embed| defaults to "l" to enable Lua highlighting
 
@@ -428,8 +426,7 @@ Options:
                 "preselect" attribute set.
 - 'cpoptions'   flags: |cpo-_|
 - 'eadirection' cannot be set to empty.
-- 'exrc'        searches for ".nvim.lua", ".nvimrc", or ".exrc" files. The
-                user is prompted whether to trust the file.
+- 'exrc'        always off in wgvim (cannot be set).
 - 'fileformat'  cannot be set to empty.
 - 'fillchars'   flags: "msgsep", "horiz", "horizup", "horizdown",
                 "vertleft", "vertright", "verthoriz"
@@ -797,7 +794,7 @@ Editor:
 - *cscope* support was removed in favour of plugin-based solutions such as:
   https://github.com/dhananjaylatkar/cscope_maps.nvim
 - *popup-window* : Use |floating-windows| instead.
-- *spellfile.vim* : Replaced by |package-spellfile|.
+- *spellfile.vim* : Removed (wgvim does not download spell files).
 - *textprop* : Use |extmarks| instead.
 
 Eval:

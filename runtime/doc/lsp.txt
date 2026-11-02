@@ -189,6 +189,12 @@ NEW CONFIG                                            *lsp-new-config*
 To create a new config you can either use `vim.lsp.config()` or create
 a `lsp/<config-name>.lua` file.
 
+wgvim: `lsp/*.lua` files are read only from your config directory
+(`stdpath('config')`, including its "after/" subdirectory) and from the bundled
+runtime ($VIMRUNTIME), not from every 'runtimepath' entry, so a file dropped
+into a plugin or data directory cannot define the program a server runs.
+Configs created with |vim.lsp.config()| are not affected.
+
 
 EXAMPLE: DEFINE A CONFIG AS CODE ~
 
@@ -199,10 +205,10 @@ EXAMPLE: DEFINE A CONFIG AS CODE ~
 
 EXAMPLE: DEFINE A CONFIG AS A FILE ~
 
-1. Create a file `lsp/foo.lua` somewhere on your 'runtimepath'. >
+1. Create a file `lsp/foo.lua` in your config directory. >
    :exe 'edit' stdpath('config') .. '/lsp/foo.lua'
-2. Add this code to the file (or copy an example from
-   https://github.com/neovim/nvim-lspconfig): >
+2. Add this code to the file (or copy a reviewed example from
+   nvim-lspconfig): >
    return {
      cmd = { 'true' },
    }
@@ -234,13 +240,12 @@ following sources (merge semantics defined by |vim.tbl_deep_extend()| with
 "force" behavior), in order of increasing priority:
 
 1. Configuration defined for the `'*'` name.
-2. The merged configuration of all `lsp/<config>.lua` files in 'runtimepath'
-   for the config named `<config>`.
-3. The merged configuration of all `after/lsp/<config>.lua` files in
-   'runtimepath'.
+2. The merged configuration of all `lsp/<config>.lua` files for the config
+   named `<config>` (wgvim: only from `stdpath('config')` and $VIMRUNTIME).
+3. The merged configuration of all `after/lsp/<config>.lua` files (same
+   directories).
    - This behavior of the "after/" directory is a standard Vim feature
-     |after-directory| which allows you to override `lsp/*.lua` configs
-     provided by plugins (such as nvim-lspconfig).
+     |after-directory|.
 4. Configurations defined anywhere else.
 
 Example: given the following configs... >lua
@@ -1937,8 +1942,8 @@ vim.lsp.ClientConfig                                    *vim.lsp.ClientConfig*
                                global |vim.lsp.commands|.
       • {detached}?            (`boolean`, default: `true`) Daemonize the
                                server process so that it runs in a separate
-                               process group from wgvim. wgvim will shutdown the
-                               process on exit, but if wgvim fails to exit
+                               process group from wgvim. wgvim will shutdown
+                               the process on exit, but if wgvim fails to exit
                                cleanly this could leave behind orphaned server
                                processes.
       • {exit_timeout}?        (`integer|boolean`, default: `false`) Decides
@@ -1950,8 +1955,9 @@ vim.lsp.ClientConfig                                    *vim.lsp.ClientConfig*
                                • `true`: wgvim will force-stop LSP server(s)
                                  that did not comply with the "shutdown"
                                  request.
-                               • `number`: wgvim will wait up to `exit_timeout`
-                                 milliseconds before performing force-stop.
+                               • `number`: wgvim will wait up to
+                                 `exit_timeout` milliseconds before performing
+                                 force-stop.
       • {flags}?               (`table`) Experimental client flags:
                                • {allow_incremental_sync}? (`boolean`,
                                  default: `true`) Allow using incremental sync
@@ -2737,16 +2743,16 @@ connect({host_or_path}, {port})                        *vim.lsp.rpc.connect()*
     Create a LSP RPC client factory that connects to either:
     • a named pipe (windows)
     • a domain socket (unix)
-    • a host and port via TCP
+
+    wgvim: connecting to a host and port via TCP is not supported.
 
     Return a function that can be passed to the `cmd` field for
     |vim.lsp.start()|.
 
     Parameters: ~
-      • {host_or_path}  (`string`) host to connect to or path to a pipe/domain
-                        socket
-      • {port}          (`integer?`) TCP port to connect to. If absent the
-                        first argument must be a pipe
+      • {host_or_path}  (`string`) path to a pipe/domain socket
+      • {port}          (`integer?`) Not supported in wgvim; passing a port is
+                        an error
 
     Return: ~
         (`fun(dispatchers: vim.lsp.rpc.Dispatchers): vim.lsp.rpc.Client`)
@@ -2778,7 +2784,7 @@ rpc_response_error({code}, {message}, {data})  *vim.lsp.rpc.rpc_response_error()
 start({cmd}, {dispatchers}, {extra_spawn_params})        *vim.lsp.rpc.start()*
     Starts an LSP server process and create an LSP RPC client object to
     interact with it. Communication with the spawned process happens via
-    stdio. For communication via TCP, spawn a process manually and use
+    stdio. For communication via a socket, spawn a process manually and use
     |vim.lsp.rpc.connect()|
 
     Parameters: ~

@@ -407,8 +407,10 @@ argument.
 <                Then stdin is an RPC channel only if it is a pipe/socket.
                 Otherwise (tty, /dev/null) wgvim waits for a UI to attach at
                 `addr`, e.g. to start a server for a GUI on a remote host: >
-                    ssh host 'nvim --embed --listen 0.0.0.0:8888 &'
-<                The UI can call |nvim_chan_set()| with `detach=false` to
+                    ssh host 'nvim --embed --listen /tmp/wgvim.sock &'
+<                (wgvim: TCP addresses are not supported, only pipes and
+                Unix-domain sockets.)
+                The UI can call |nvim_chan_set()| with `detach=false` to
                 enable exit-on-channel-close behavior.
 
                 To "daemonize" such a server, use |jobstart()| with "detach": >
@@ -435,8 +437,12 @@ argument.
                 See also |-es|, which also disables most messages.
 
 --listen {addr}                                         *--listen*
-                Start |RPC| server on pipe or TCP address {addr}. Sets the
-                primary listen address |v:servername| to {addr}. |serverstart()|
+                Start |RPC| server on pipe or Unix-domain socket {addr} (wgvim:
+                TCP "host:port" addresses are refused). Sets the primary listen
+                address |v:servername| to {addr}. |serverstart()|
+                wgvim does not start a server unless --listen is given (or
+                |serverstart()| is called), so by default no other process can
+                connect to the editor.
 
                 To start the server on-demand with systemd, use a systemd
                 socket unit and associated service unit running: >
@@ -460,7 +466,8 @@ accordingly, proceeding as follows:
    for debugging the initializations. The |--cmd| arguments are executed.
    Buffers are created for all files (but not loaded yet).
 
-4. Start a server (unless |--listen| was given) and set |v:servername|.
+4. If |--listen| was given, start a server and set |v:servername|.
+   (wgvim does not start a server otherwise; |v:servername| stays empty.)
 
 5. Wait for UI to connect.
    wgvim started with |--embed| waits for the UI to connect before proceeding
@@ -509,11 +516,8 @@ accordingly, proceeding as follows:
            directory in $XDG_CONFIG_DIRS.
         -  $EXINIT environment variable (Ex command line).
 
-   - c. If the 'exrc' option is on, the |current-directory| is searched until
-        one of these files is found, in order of precedence:
-        - ".nvim.lua"
-        - ".nvimrc"
-        - ".exrc"
+   - c. (wgvim: removed.) Project-local ".nvim.lua", ".nvimrc" and ".exrc"
+        files are never sourced; 'exrc' cannot be set.
 
 9. Enable filetype detection.
    Skipped if ":filetype off" was called or if the "-u NONE" command line
@@ -606,8 +610,8 @@ current directory, for obvious reasons.
 On Unix systems, this only happens if you are not the owner of the
 vimrc file.  Warning: If you unpack an archive that contains a vimrc or exrc
 file, it will be owned by you.  You won't have the security protection.  Check
-the vimrc file before you start Vim in that directory, or reset the 'exrc'
-option.  Some Unix systems allow a user to do "chown" on a file.  This makes
+the vimrc file before you start Vim in that directory. (wgvim never reads
+these files: 'exrc' is always off.)  Some Unix systems allow a user to do "chown" on a file.  This makes
 it possible for another user to create a nasty vimrc and make you the owner.
 Be careful!
 

@@ -30,7 +30,6 @@ Help-link		Loaded	Short description ~
 |package-cfilter|	No	Filtering quickfix/location list
 |package-justify|	No	Justify text
 |package-nohlsearch|	No	Automatically run :nohlsearch
-|package-spellfile|	Yes	Install spellfile if missing
 |package-termdebug|	No	Debug inside wgvim with gdb
 |package-tohtml|	No	Convert buffer to html, syntax included
 |package-undotree|	No	Interactive textual undotree
@@ -333,58 +332,6 @@ tab_width                                             *editorconfig.tab_width*
 trim_trailing_whitespace               *editorconfig.trim_trailing_whitespace*
     When `"true"`, trailing whitespace is automatically removed when the
     buffer is written.
-
-
-==============================================================================
-Builtin plugin: spellfile                                  *package-spellfile*
-
-Asks the user to download missing spellfiles. The spellfile is written to
-`stdpath('data') .. 'site/spell'` or the first writable directory in the
-'runtimepath'.
-
-The plugin can be disabled by setting `g:loaded_spellfile_plugin = 1`.
-
-
-nvim.spellfile.Config                                  *nvim.spellfile.Config*
-    A table with the following fields:
-
-    Fields: ~
-      • {confirm}     (`boolean`, default: `true`) Whether to ask user to
-                      confirm download.
-      • {timeout_ms}  (`integer`, default: 15000) Number of milliseconds after
-                      which the |vim.net.request()| times out.
-      • {url}         (`string`) The base URL from where the spellfiles are
-                      downloaded. Uses `g:spellfile_URL` if it's set,
-                      otherwise https://ftp.nluug.nl/pub/vim/runtime/spell.
-
-
-config({opts})                                            *spellfile.config()*
-    Configure spellfile download options. Omit {opts} to retrieve the current
-    configuration. Otherwise, update only the supplied fields.
-
-    For example: >lua
-        require('nvim.spellfile').config({ url = '...' })
-<
-
-    Parameters: ~
-      • {opts}  (`Partial<nvim.spellfile.Config>?`)
-
-    Return: ~
-        (`nvim.spellfile.Config?`) Current config if {opts} is omitted.
-
-get({lang})                                                  *spellfile.get()*
-    Download spellfiles for language {lang} if available.
-
-    Parameters: ~
-      • {lang}  (`string`) Language code.
-
-    Return: ~
-        (`table?`) A table with the following fields:
-        • {dir} (`string`)
-        • {encoding} (`string`)
-        • {files} (`string[]`)
-        • {key} (`string`)
-        • {lang} (`string`)
 
 
 ==============================================================================

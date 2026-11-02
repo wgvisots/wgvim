@@ -1234,9 +1234,10 @@ Lua module: vim.treesitter.language                      *treesitter-language*
 add({lang}, {opts})                            *vim.treesitter.language.add()*
     Load parser with name {lang}
 
-    Parsers are searched in the `parser` runtime directory, or the provided
-    {path}. Can be used to check for available parsers before enabling
-    treesitter features, e.g., >lua
+    wgvim: only the parsers bundled at build time are loaded, from the install
+    directory's `parser/` folder (not 'runtimepath'), and only if their SHA256
+    matches. A {path} outside that folder is refused. Can be used to check for
+    available parsers before enabling treesitter features, e.g., >lua
           if vim.treesitter.language.add('markdown') then
             vim.treesitter.start(bufnr, 'markdown')
           end
