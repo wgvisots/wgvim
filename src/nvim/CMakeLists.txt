@@ -590,7 +590,8 @@ else()
 endif()
 
 # Like LUA_GEN but includes also vim.fn, vim.api, vim.uv, etc
-set(NVIM_LUA $<TARGET_FILE:nvim_bin> -u NONE -l ${NVIM_LUA_PRELOAD} ${PROJECT_SOURCE_DIR})
+# wgvim: build-time runs of the editor read and write all over the tree; no sandbox.
+set(NVIM_LUA $<TARGET_FILE:nvim_bin> --sandbox off -u NONE -l ${NVIM_LUA_PRELOAD} ${PROJECT_SOURCE_DIR})
 
 # NVIM_GENERATED_FOR_HEADERS: generated headers to be included in headers
 # NVIM_GENERATED_FOR_SOURCES: generated headers to be included in sources
@@ -1027,7 +1028,7 @@ endif()
 add_glob_target(
   TARGET lintc-clint
   COMMAND $<TARGET_FILE:nvim_bin>
-  FLAGS --clean -l ${PROJECT_SOURCE_DIR}/src/clint.lua --output=${LINT_OUTPUT_FORMAT}
+  FLAGS --sandbox off --clean -l ${PROJECT_SOURCE_DIR}/src/clint.lua --output=${LINT_OUTPUT_FORMAT}
   FILES ${LINT_NVIM_SOURCES}
   EXCLUDE
     tui/terminfo_defs.h

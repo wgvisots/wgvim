@@ -30,6 +30,14 @@ Inside the editor, `:help wgvim` has the full list. In short:
   restricted. For a hard guarantee, run wgvim without network access at the
   operating-system level.
 
+**Sandbox**
+- At startup, before any config or plugin runs, wgvim confines itself and
+  everything it starts (`:!`, `:terminal`, LSP servers such as clangd) with
+  Landlock: read-write in the current directory and in files named on the
+  command line, read-only for system paths and your config, and no TCP.
+  Nothing else, `~/.ssh` included, can be read or written. See
+  `:help wgvim-sandbox`; it needs Linux 5.13+ (RHEL 9.6+).
+
 **Restricted features**
 - No RPC server is started at startup unless you pass `--listen` or call
   `serverstart()`.

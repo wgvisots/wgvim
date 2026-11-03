@@ -73,6 +73,7 @@
 #include "nvim/option_defs.h"
 #include "nvim/option_vars.h"
 #include "nvim/optionstr.h"
+#include "nvim/os/landlock.h"
 #include "nvim/os/input.h"
 #include "nvim/os/os_defs.h"
 #include "nvim/os/proc.h"
@@ -1900,6 +1901,15 @@ Dict nvim__id_dict(Dict dct, Arena *arena)
 Float nvim__id_float(Float flt)
 {
   return flt;
+}
+
+/// Gets the state of the wgvim sandbox (|wgvim-sandbox|): "status" ("off", "active",
+/// "unavailable", "failed"), "abi", "reason", "network", "scoped", "rules" and "notes".
+///
+/// @return Map describing the sandbox.
+Dict nvim__sandbox_info(Arena *arena)
+{
+  return landlock_info(arena);
 }
 
 /// Gets internal stats.

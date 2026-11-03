@@ -18,7 +18,8 @@ trap 'rm -rf "$TMP"' EXIT
 # Keep the user's own config and state out of it.
 export XDG_CONFIG_HOME="$TMP/config" XDG_DATA_HOME="$TMP/data" XDG_STATE_HOME="$TMP/state"
 export XDG_CACHE_HOME="$TMP/cache"
-run() { timeout 60 "$BIN" --clean --headless "$@" 2>&1; }
+# The scratch directory is outside the current directory, so the sandbox must allow it.
+run() { timeout 60 "$BIN" --clean --headless --sandbox-allow "$TMP" "$@" 2>&1; }
 FAIL=""
 
 echo "--- version:"
@@ -40,6 +41,11 @@ run -c 'checkhealth vim.health' \
     -c 'lua vim.wait(30000, function() return vim.api.nvim_buf_line_count(0) > 3 end, 100)' \
     -c "w! $TMP/health.txt" -c 'qa!' >/dev/null
 if [ "$(wc -l < "$TMP/health.txt" 2>/dev/null || echo 0)" -gt 3 ]; then head -40 "$TMP/health.txt"; else FAIL="$FAIL checkhealth"; fi
+
+echo "--- sandbox (informational; needs Landlock, Linux 5.13+ / RHEL 9.6+):"
+run -c 'lua local i = vim.api.nvim__sandbox_info()
+  io.stdout:write(("%s (ABI %d, network %s, %d rules) %s\n"):format(
+    i.status, i.abi, tostring(i.network), #i.rules, i.reason))' -c 'qa!'
 
 if [ -n "$FAIL" ]; then echo "smoke: FAIL:$FAIL"; exit 1; fi
 echo "smoke: ok"

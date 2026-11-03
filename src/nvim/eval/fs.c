@@ -36,6 +36,7 @@
 #include "nvim/memory.h"
 #include "nvim/message.h"
 #include "nvim/option_vars.h"
+#include "nvim/os/landlock.h"
 #include "nvim/os/fileio.h"
 #include "nvim/os/fileio_defs.h"
 #include "nvim/os/fs.h"
@@ -1877,7 +1878,10 @@ void f_writefile(typval_T *argvars, typval_T *rettv, EvalFuncData fptr)
                                 ((append ? kFileAppend : kFileTruncate)
                                  | (mkdir_p ? kFileMkDir : kFileCreate)
                                  | kFileCreate), 0666)) != 0) {
-    semsg(_("E482: Can't open file %s for writing: %s"), fname, os_strerror(error));
+    semsg(landlock_blocked(fname, error, true)
+          ? _("E482: Can't open file %s for writing: %s (outside the wgvim sandbox, "
+              "see :help wgvim-sandbox)")
+          : _("E482: Can't open file %s for writing: %s"), fname, os_strerror(error));
   } else {
     if (defer) {
       typval_T tv = {

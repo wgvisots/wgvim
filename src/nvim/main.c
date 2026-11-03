@@ -92,6 +92,7 @@
 #include "nvim/os/os.h"
 #include "nvim/os/os_defs.h"
 #include "nvim/os/signal.h"
+#include "nvim/os/landlock.h"
 #include "nvim/os/stdpaths_defs.h"
 #include "nvim/path.h"
 #include "nvim/popupmenu.h"
@@ -295,6 +296,11 @@ int main(int argc, char **argv)
   command_line_scan(&params);
 
   set_argf_var();
+
+  // wgvim: confine this process and everything it starts, before any config or plugin runs.
+  landlock_init(params.sandbox_mode, params.sandbox_rw, params.n_sandbox_rw,
+                params.sandbox_ro, params.n_sandbox_ro);
+  TIME_MSG("sandbox");
 
   nlua_init(argv, argc, params.lua_arg0);
   TIME_MSG("init lua interpreter");
@@ -1197,6 +1203,11 @@ static void command_line_scan(mparm_T *parmp)
         } else if (STRNICMP(argv[0] + argv_idx, "listen", 6) == 0) {
           want_argument = true;
           argv_idx += 6;
+        } else if (STRICMP(argv[0] + argv_idx, "sandbox") == 0
+                   || STRICMP(argv[0] + argv_idx, "sandbox-allow") == 0
+                   || STRICMP(argv[0] + argv_idx, "sandbox-allow-ro") == 0) {
+          want_argument = true;
+          argv_idx += (int)strlen(argv[0] + argv_idx);
         } else if (STRNICMP(argv[0] + argv_idx, "literal", 7) == 0) {
           // Do nothing: file args are always literal. #7679
         } else if (STRNICMP(argv[0] + argv_idx, "remote", 6) == 0) {
@@ -1437,6 +1448,16 @@ static void command_line_scan(mparm_T *parmp)
             // "--listen {address}"
             TO_SLASH(argv[0]);
             parmp->listen_addr = argv[0];
+          } else if (strequal(argv[-1], "--sandbox")) {
+            parmp->sandbox_mode = argv[0];
+          } else if (strequal(argv[-1], "--sandbox-allow")
+                     || strequal(argv[-1], "--sandbox-allow-ro")) {
+            bool ro = strequal(argv[-1], "--sandbox-allow-ro");
+            int *count = ro ? &parmp->n_sandbox_ro : &parmp->n_sandbox_rw;
+            if (*count >= MAX_ARG_CMDS) {
+              mainerr(_("Too many --sandbox-allow arguments"), NULL, NULL);
+            }
+            (ro ? parmp->sandbox_ro : parmp->sandbox_rw)[(*count)++] = argv[0];
           } else if (strequal(argv[-1], "--server")) {
             // "--server {address}"
             TO_SLASH(argv[0]);
@@ -2340,6 +2361,9 @@ static void usage(void)
   printf(_("  --headless            Don't start a user interface\n"));
   printf(_("  --listen <address>    Serve RPC API from this address\n"));
   printf(_("  --remote[-subcommand] Execute commands remotely on a server\n"));
+  printf(_("  --sandbox <mode>      Sandbox: on (default), off, or require\n"));
+  printf(_("  --sandbox-allow <path>     Also allow reading and writing <path>\n"));
+  printf(_("  --sandbox-allow-ro <path>  Also allow reading <path>\n"));
   printf(_("  --server <address>    Connect to this wgvim server\n"));
   printf(_("  --startuptime <file>  Write startup timing messages to <file>\n"));
   printf(_("\nSee \":help startup-options\" for all options.\n"));

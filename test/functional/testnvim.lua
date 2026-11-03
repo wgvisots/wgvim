@@ -32,6 +32,9 @@ M.nvim_set = (
 )
 M.nvim_argv = {
   M.nvim_prog,
+  -- wgvim: tests read and write all over the build tree (see sandbox_spec.lua for the sandbox).
+  '--sandbox',
+  'off',
   '-u',
   'NONE',
   '-i',

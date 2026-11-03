@@ -448,6 +448,10 @@ argument.
                 socket unit and associated service unit running: >
                         systemd-socket-proxyd --exit-idle-time
 <
+--sandbox {mode}, --sandbox-allow {path}, --sandbox-allow-ro {path}
+                wgvim: control the sandbox that confines the editor and the
+                programs it starts. See |wgvim-sandbox| and |--sandbox|.
+
 ==============================================================================
 Initialization                                  *initialization* *startup*
 

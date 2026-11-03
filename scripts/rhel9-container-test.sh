@@ -104,7 +104,7 @@ RUN dnf -y --setopt=install_weak_deps=0 install \\
       diffutils findutils procps-ng which file tar gzip patch util-linux \\
       glibc-langpack-en \\
  && dnf -y --setopt=install_weak_deps=0 --setopt=strict=0 install \\
-      man-db unzip zip bzip2 xz glibc-gconv-extra glibc-langpack-de glibc-langpack-fr \\
+      man-db unzip zip bzip2 xz glibc-gconv-extra clang-tools-extra glibc-langpack-de glibc-langpack-fr \\
  && dnf clean all && rm -rf /var/cache/dnf
 RUN useradd --create-home --shell /bin/bash tester
 ENV LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8

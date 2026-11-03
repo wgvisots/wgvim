@@ -58,6 +58,7 @@
 #include "nvim/option.h"
 #include "nvim/option_defs.h"
 #include "nvim/option_vars.h"
+#include "nvim/os/landlock.h"
 #include "nvim/os/fs.h"
 #include "nvim/os/fs_defs.h"
 #include "nvim/os/input.h"
@@ -539,7 +540,10 @@ int readfile(char *fname, char *sfname, linenr_T from, linenr_T lines_to_skip,
              ((fd == UV_EFBIG)
               ? _("[File too big]")
               // libuv only returns -errno in Unix; Windows open() does not set EOVERFLOW.
-              : (fd == -EOVERFLOW) ? _("[File too big]") : _("[Permission Denied]")),
+              : (fd == -EOVERFLOW) ? _("[File too big]")
+              : landlock_blocked(fname, fd, false)
+              ? _("[Permission Denied: outside the wgvim sandbox]")
+              : _("[Permission Denied]")),
              NULL);
 #else
     filemess(curbuf, sfname, ((fd == UV_EFBIG) ? _("[File too big]") : _("[Permission Denied]")),
@@ -3419,8 +3423,19 @@ static void vim_mktempdir(void)
       tmplen += (size_t)vim_snprintf(tmp + tmplen, sizeof(tmp) - tmplen, PATHSEPSTR);
       assert(tmplen < sizeof(tmp));
     }
-    tmplen += (size_t)vim_snprintf(tmp + tmplen, sizeof(tmp) - tmplen,
-                                   "wgvim.%s", user);
+    // wgvim: under the sandbox, child processes get $TMPDIR="/tmp/wgvim.<user>/"; a wgvim
+    // started from one uses that directory as its root instead of nesting another in it.
+    char root_name[64];
+    snprintf(root_name, sizeof(root_name), "wgvim.%s" PATHSEPSTR, user);
+    size_t rnlen = strlen(root_name);
+    bool is_root = tmplen > rnlen && strcmp(tmp + tmplen - rnlen, root_name) == 0
+                   && vim_ispathsep(tmp[tmplen - rnlen - 1]);
+    if (is_root) {
+      tmp[--tmplen] = NUL;  // drop the trailing separator, as if just appended below
+    } else {
+      tmplen += (size_t)vim_snprintf(tmp + tmplen, sizeof(tmp) - tmplen,
+                                     "wgvim.%s", user);
+    }
     assert(tmplen < sizeof(tmp));
     os_mkdir(tmp, 0700);  // Always create, to avoid a race.
     bool owned = os_file_owned(tmp);

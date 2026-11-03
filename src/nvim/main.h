@@ -46,6 +46,12 @@ typedef struct {
   char *scriptout;                      // -w/-W {filename}
   bool scriptout_append;                // append (-w) instead of overwrite (-W)
   bool had_stdin_file;                  // explicit - as a file to edit
+
+  char *sandbox_mode;                   // --sandbox {on|off|require}
+  int n_sandbox_rw;                     // no. of --sandbox-allow paths
+  char *sandbox_rw[MAX_ARG_CMDS];       // --sandbox-allow {path}
+  int n_sandbox_ro;                     // no. of --sandbox-allow-ro paths
+  char *sandbox_ro[MAX_ARG_CMDS];       // --sandbox-allow-ro {path}
 } mparm_T;
 
 #if defined(MSWIN) && !defined(ENABLE_ASAN_UBSAN)

@@ -30,6 +30,10 @@ if(NOT DEFINED ENV{WGVIM_LOG_FILE})
 endif()
 set(ENV{WGVIM_LOG_FILE} "$ENV{WGVIM_LOG_FILE}${TEST_SUFFIX}")
 
+# wgvim: the test harness reads and writes all over the build tree; tests that check the sandbox
+# turn it on explicitly (test/functional/core/sandbox_spec.lua).
+set(ENV{WGVIM_SANDBOX} off)
+
 if(WGVIM_PRG)
   set(ENV{WGVIM_PRG} "${WGVIM_PRG}")
 endif()

@@ -158,7 +158,8 @@ describe('server', function()
     local peer_addr = ('%s/%s'):format(tmp_dir2, peer_name)
     -- Set XDG_RUNTIME_DIR to a temp dir in this session to properly test serverlist({peer = true}). See #35492
     local client = n.new_session(true, {
-      args = { '--clean', '--listen', peer_addr, '--embed' },
+      -- wgvim: the peer listens outside the current directory, so no sandbox.
+      args = { '--sandbox', 'off', '--clean', '--listen', peer_addr, '--embed' },
       env = { XDG_RUNTIME_DIR = tmp_dir2 },
       merge = false,
     })
