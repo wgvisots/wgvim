@@ -661,6 +661,7 @@ function M._new_argv(...)
         'WGVIM_TEST',
         'WGVIM_LOG_FILE',
         'WGVIM_RPLUGIN_MANIFEST',
+        'WGVIM_SANDBOX', -- wgvim: so that programs the test instance starts are not confined
         'PATH',
         'TMPDIR',
         'TSAN_OPTIONS',
