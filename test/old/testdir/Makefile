@@ -11,6 +11,10 @@ ROOT := ../../..
 
 export SHELL := sh
 export WGVIM_PRG := $(WGVIM_PRG)
+# wgvim: many tests read and write outside this directory (../, the build tree); run them without
+# the sandbox. "make oldtest WGVIM_SANDBOX=on" runs them confined.
+WGVIM_SANDBOX ?= off
+export WGVIM_SANDBOX
 export TMPDIR := $(abspath X-test-tmpdir)
 
 ifeq ($(OS),Windows_NT)
