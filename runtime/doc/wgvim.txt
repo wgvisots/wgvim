@@ -102,8 +102,10 @@ sockets outside the sandbox (ABI 6, Linux 6.12).
 Starting wgvim in your home directory gives access only to its entries that
 are not hidden ("~/notes.txt", "~/projects/", but not "~/.ssh" or
 "~/.bashrc"), and a new file cannot be created there. Starting it in "/" or
-"/home" gives no write access to the current directory at all. Start wgvim
-inside the project you work on.
+in a top-level directory that contains home directories ("/home") gives no
+write access to the current directory at all. If your home directory is
+inside a deeper current directory (as some test setups do), it is reachable
+like the rest of that directory. Start wgvim inside the project you work on.
 
 Things that work differently ~
 - ":e" and ":w" outside the current directory fail, unless the file was named

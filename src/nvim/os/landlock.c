@@ -270,22 +270,34 @@ static void add_home_rule(int rfd, uint64_t handled, const char *sub, const char
   xfree(p);
 }
 
-/// Grants `kind` on a directory the user is working in (the current directory, or a directory
-/// named on the command line). Refuses the file system root and $HOME's ancestors, and for
-/// $HOME itself grants only the entries that are not hidden, so that ~/.ssh, ~/.gnupg and
-/// dotfiles stay out of reach.
+/// Number of components in an absolute real path: "/" is 0, "/home" is 1.
+static int path_depth(const char *p)
+{
+  int n = 0;
+  for (; *p; p++) {
+    if (*p == '/' && p[1] != NUL && p[1] != '/') {
+      n++;
+    }
+  }
+  return n;
+}
+
+/// Grants access to a directory the user is working in (the current directory, or a directory
+/// named on the command line). Refuses "/" and top-level directories that contain $HOME (such
+/// as "/home"), and for $HOME itself grants only the entries that are not hidden, so that
+/// ~/.ssh, ~/.gnupg and dotfiles stay out of reach.
 static void add_work_dir(int rfd, uint64_t handled, const char *dir, const char *what)
 {
   char *real = real_path(dir);
   if (real == NULL) {
     return;
   }
-  if (ll.home != NULL && path_within(ll.home, real) && strcmp(real, ll.home) != 0) {
-    add_note("%s is the root or an ancestor of your home directory; it is not writable "
-             "(start wgvim inside a project directory)", what);
-  } else if (strcmp(real, "/") == 0) {
-    add_note("%s is /; it is not writable (start wgvim inside a project directory)", what);
-  } else if (ll.home != NULL && strcmp(real, ll.home) == 0) {
+  bool contains_home = ll.home != NULL && path_within(ll.home, real);
+  if (strcmp(real, "/") == 0 || (contains_home && strcmp(real, ll.home) != 0
+                                 && path_depth(real) <= 1)) {
+    add_note("%s contains home directories; it is not writable (start wgvim inside a "
+             "project directory)", what);
+  } else if (contains_home && strcmp(real, ll.home) == 0) {
     add_note("%s is your home directory: only its non-hidden entries are writable", what);
     DIR *d = opendir(real);
     if (d != NULL) {
@@ -301,6 +313,9 @@ static void add_work_dir(int rfd, uint64_t handled, const char *dir, const char 
       closedir(d);
     }
   } else {
+    if (contains_home) {
+      add_note("your home directory is inside %s, so it is reachable too", what);
+    }
     add_rule(rfd, handled, real, "rwx", true);
   }
   xfree(real);
