@@ -20,6 +20,37 @@ concurrency:
 # network is used only to install the compilers (apt, dnf) and to pull the UBI 9 image.
 
 jobs:
+  # AGENTS.md: AI use is disclosed only with a bare "AI-assisted" trailer; no model or service
+  # names, links or AI authors. (Ported from Neovim's "no-ai-advertisements" check.)
+  commit-messages:
+    name: commit messages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Reject AI advertisements in commits
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          case "$EVENT" in
+            pull_request) range="$PR_BASE..$PR_HEAD" ;;
+            push)
+              if [ -z "$BEFORE" ] || [ "$BEFORE" = 0000000000000000000000000000000000000000 ]; then
+                range="$AFTER^!"
+              else
+                range="$BEFORE..$AFTER"
+              fi ;;
+            *) echo "no new commits to check for a $EVENT event"; exit 0 ;;
+          esac
+          scripts/check-commit-messages.sh "$range"
+
   ubuntu:
     name: ubuntu (${{ matrix.cc }})
     runs-on: ubuntu-24.04

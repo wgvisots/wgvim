@@ -36,7 +36,8 @@ start with `summary.txt`. See `scripts/rhel9-container-test.sh --help` for optio
 `scripts/check-hardening.sh` and `scripts/smoke-test.sh` check a built binary on their own.
 The GitHub workflow (`.github/workflows/ci.yml`) runs all of this on every push and pull
 request: Ubuntu 24.04 builds with GCC and Clang (hardening check, smoke test, help-page lint,
-functional and old tests), the RHEL 9 container script, and the two fuzzers.
+functional and old tests), the RHEL 9 container script, the two fuzzers, and
+`scripts/check-commit-messages.sh`, which enforces the AI-disclosure rule in `AGENTS.md`.
 
 ## Building
 
