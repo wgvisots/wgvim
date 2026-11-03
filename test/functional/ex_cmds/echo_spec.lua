@@ -257,7 +257,7 @@ describe(':echo :echon :echomsg :echoerr', function()
       eval('add(l, l)')
       -- Regression: the below line used to crash (add returns original list and
       -- there was error in dumping partials). Tested explicitly in
-      -- test/unit/api/private_helpers_spec.lua.
+      -- (formerly also covered by the removed unit tests).
       eval('add(l, function("Test1", l))')
       eq(
         dedent(

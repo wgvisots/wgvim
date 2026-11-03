@@ -115,7 +115,7 @@ func Test_tagfiles()
 	\           fnamemodify(tf[0], ':p:gs?\\?/?'))
   helpclose
   call assert_equal(['Xtags1', 'Xtags2'], tagfiles())
-  " Nvim: defaults to "./tags;,tags", which might cause false positives.
+  " wgvim: defaults to "./tags;,tags", which might cause false positives.
   set tags=./tags,tags
   call assert_equal([], tagfiles())
 

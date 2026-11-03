@@ -6,7 +6,7 @@ local M = {}
 ---
 ---EXPERIMENTAL: This API may change in the future. Its semantics are not yet finalized.
 ---
----This provides a functional API for displaying images in Nvim.
+---This provides a functional API for displaying images in wgvim.
 ---Currently supports PNG images via the Kitty graphics protocol.
 ---
 ---To override the image backend, replace `vim.ui.img` with your own

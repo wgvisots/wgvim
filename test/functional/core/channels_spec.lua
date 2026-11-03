@@ -529,13 +529,6 @@ describe('channels', function()
       )
     end)
 
-    it('in "tcp" mode', function()
-      eq(
-        'Vim:connection failed: connection refused',
-        pcall_err(fn.sockconnect, 'tcp', '127.0.0.1:0')
-      )
-    end)
-
     it('with another connection accepted while polling #37807', function()
       local server = api.nvim_get_vvar('servername')
       local invalid_pipe = n.new_pipename()
@@ -558,7 +551,7 @@ describe('channels', function()
     end)
   end)
 
-  it('no stack-buffer-overflow with Nvim exit during connection #39387', function()
+  it('no stack-buffer-overflow with wgvim exit during connection #39387', function()
     local nvim0 = n.get_session()
     -- Need a valid pipe so that connecting to it doesn't fail immediately.
     local server = fn.serverstart()

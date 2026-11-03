@@ -231,7 +231,7 @@ function M._test()
     ['ci(tui)!: message with scope and breaking change'] = true,
     ['vim-patch:8.2.3374: Pyret files are not recognized (#15642)'] = true,
     ['vim-patch:8.1.1195,8.2.{3417,3419}'] = true,
-    ['NVIM v0.12.0'] = true,
+    ['WGVIM v0.12.0'] = true,
     ['revert: "ci: use continue-on-error instead of "|| true""'] = true,
     ['fixup'] = false,
     ['fixup: commit message'] = false,

@@ -1,4 +1,4 @@
-*zip.txt*    Nvim
+*zip.txt*    wgvim
 
 
                             NVIM REFERENCE MANUAL
@@ -7,7 +7,7 @@
 ==============================================================================
 Builtin plugin: zip                                                      *zip*
 
-Nvim opens a read-only listing when |:edit| is used with a zip archive. The
+wgvim opens a read-only listing when |:edit| is used with a zip archive. The
 listing is a |dir| buffer with 'filetype' set to "zip"; entries open as
 read-only `zip://{archive}/{path}` buffers. Requires the `unzip`
 executable.

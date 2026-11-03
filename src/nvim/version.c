@@ -45,7 +45,7 @@
   "." STR(NVIM_VERSION_MINOR) "." STR(NVIM_VERSION_PATCH) \
   NVIM_VERSION_PRERELEASE
 #endif
-#define NVIM_VERSION_LONG "NVIM " NVIM_VERSION_MEDIUM  // NOLINT(bugprone-suspicious-missing-comma)
+#define NVIM_VERSION_LONG "WGVIM " NVIM_VERSION_MEDIUM  // NOLINT(bugprone-suspicious-missing-comma)
 
 char *Versions[] = { "8.1", "8.2", "9.0", "9.1", "9.2" };
 char *longVersion = NVIM_VERSION_LONG;
@@ -3776,11 +3776,11 @@ static const int *included_patchsets[] = {
   },
 };
 
-/// Compares a version string to the current Nvim version.
+/// Compares a version string to the current wgvim version.
 ///
 /// @param version Version string like "1.3.42"
 ///
-/// @return true if Nvim is at or above the version.
+/// @return true if wgvim is at or above the version.
 bool has_nvim_version(const char *const version_str)
   FUNC_ATTR_PURE FUNC_ATTR_WARN_UNUSED_RESULT FUNC_ATTR_NONNULL_ALL
 {
@@ -4007,6 +4007,9 @@ void list_version(void)
   msg_ext_set_kind("list_cmd");
   msg_puts(longVersion);
   msg_putchar('\n');
+  // Credit: wgvim is a derivative of Neovim (Apache-2.0 / Vim license); see NOTICE.
+  msg_puts("Based on Neovim v0.13.0-dev (snapshot d299306), see NOTICE");
+  msg_putchar('\n');
   msg_puts(version_buildtype);
   msg_putchar('\n');
   list_lua_version();
@@ -4050,7 +4053,7 @@ void list_version(void)
   version_msg(p_verbose > 0
               ? "\nRun :checkhealth for more info"
               : (starting
-                 ? "\nRun \"nvim -V1 -v\" for more info"
+                 ? "\nRun \"wgvim -V1 -v\" for more info"
                  : "\nRun \":verbose version\" for more info"));
 }
 
@@ -4072,25 +4075,29 @@ bool may_show_intro(void)
 /// @param colon true for ":intro"
 void intro_message(bool colon)
 {
+  // wgvim: a "WG" monogram instead of the Neovim logo, and lines that credit Neovim and Vim and
+  // point to |wgvim| for what this build changes. Keep it at 19 lines (as upstream): longer intros
+  // are not shown in smaller windows.
   static char *(lines[]) = {
-    "│ ╲ ││",
-    "││╲╲││",
-    "││ ╲ │",
+    "╦ ╦╔═╗",
+    "║║║║ ╦",
+    "╚╩╝╚═╝",
     "",
     N_(NVIM_VERSION_LONG),
-    "────────────────────────────────────────────",
-    N_("Nvim is open source and freely distributable"),
-    "https://neovim.io/#chat",
-    "────────────────────────────────────────────",
-    N_("type  :help nvim<Enter>     if you are new! "),
-    N_("type  :checkhealth<Enter>   to optimize Nvim"),
-    N_("type  :q<Enter>             to exit         "),
-    N_("type  :help<Enter>          for help        "),
-    "────────────────────────────────────────────",
-    N_("type  :help news<Enter>     for v%s.%s notes "),
-    "────────────────────────────────────────────",
+    "──────────────────────────────────────────────────",
+    N_("an offline, hardened build of Neovim"),
+    N_("Neovim and Vim are the work of their contributors"),
+    "──────────────────────────────────────────────────",
+    N_("type  :help wgvim<Enter>    for what is different"),
+    N_("type  :help nvim<Enter>     if you are new!      "),
+    N_("type  :checkhealth<Enter>   to optimize wgvim    "),
+    N_("type  :q<Enter>             to exit              "),
+    N_("type  :help<Enter>          for help             "),
+    "──────────────────────────────────────────────────",
+    N_("type  :help credits<Enter>  for who made this    "),
+    "──────────────────────────────────────────────────",
     N_("Help poor children in Uganda!"),
-    N_("type  :help Kuwasha<Enter>  for information "),
+    N_("type  :help Kuwasha<Enter>  for information      "),
   };
 
   // blanklines = screen height - # message lines
@@ -4188,9 +4195,9 @@ static void do_intro_line(int row, char *mesg, bool colon, bool is_logo)
   }
 
   // Try highlighting full line:
-  // - Version starts with "NVIM".
+  // - Version starts with "WGVIM" (the prefix of NVIM_VERSION_LONG).
   // - Separator line consists from ─ (UTF-8: E2 94 80).
-  bool is_version = mesg[0] == 'N' && mesg[1] == 'V' && mesg[2] == 'I' && mesg[3] == 'M';
+  bool is_version = strncmp(mesg, "WGVIM ", 6) == 0;
   bool is_sep = utfc_ptr2len(mesg) == 3 && utf_ptr2char(mesg) == 0x2500;
   if (is_version || is_sep) {
     int clen = is_sep ? 3 : 1;

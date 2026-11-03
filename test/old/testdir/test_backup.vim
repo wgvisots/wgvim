@@ -77,7 +77,7 @@ endfunc
 
 " Test for using a non-existing directory as a backup directory
 func Test_non_existing_backupdir()
-  throw 'Skipped: Nvim auto-creates backup directory'
+  throw 'Skipped: wgvim auto-creates backup directory'
   set backupdir=./non_existing_dir backupskip=
   call writefile(['line1'], 'Xbackupdir', 'D')
   new Xbackupdir

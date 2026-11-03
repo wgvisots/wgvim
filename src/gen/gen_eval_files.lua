@@ -1003,7 +1003,7 @@ local CONFIG = {
     funcs = get_eval_meta,
     render = render_eval_doc,
     header = {
-      '*vimfn.txt*	Nvim',
+      '*vimfn.txt*	wgvim',
       '',
       '',
       '\t\t  NVIM REFERENCE MANUAL',

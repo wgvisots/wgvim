@@ -207,7 +207,7 @@ func Test_compare_fail()
     call assert_equal(s:w, '')
   catch
     call assert_equal(0, assert_exception('E724:'))
-    " Nvim: expected value isn't shown as NULL
+    " wgvim: expected value isn't shown as NULL
     " call assert_match("Expected NULL but got ''", v:errors[0])
     call assert_match("Expected .* but got ''", v:errors[0])
     call remove(v:errors, 0)
@@ -477,7 +477,7 @@ func Test_assert_with_msg()
 endfunc
 
 func Test_override()
-  throw 'Skipped: Nvim does not support test_override()'
+  throw 'Skipped: wgvim does not support test_override()'
   call test_override('char_avail', 1)
   eval 1->test_override('redraw')
   call test_override('ALL', 0)
@@ -507,7 +507,7 @@ endfunc
 
 " Test for the test_alloc_fail() function
 func Test_test_alloc_fail()
-  throw 'Skipped: Nvim does not support test_alloc_fail()'
+  throw 'Skipped: wgvim does not support test_alloc_fail()'
   call assert_fails('call test_alloc_fail([], 1, 1)', 'E474:')
   call assert_fails('call test_alloc_fail(10, [], 1)', 'E474:')
   call assert_fails('call test_alloc_fail(10, 1, [])', 'E474:')
@@ -516,7 +516,7 @@ endfunc
 
 " Test for the test_option_not_set() function
 func Test_test_option_not_set()
-  throw 'Skipped: Nvim does not support test_option_not_set()'
+  throw 'Skipped: wgvim does not support test_option_not_set()'
   call assert_fails('call test_option_not_set("Xinvalidopt")', 'E475:')
 endfunc
 

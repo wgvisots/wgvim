@@ -211,7 +211,7 @@ static void deadly_signal(int signum)
 
   ILOG("got signal %d (%s)", signum, signal_name(signum));
 
-  snprintf(IObuff, IOSIZE, "Nvim: Caught deadly signal '%s'\n", signal_name(signum));
+  snprintf(IObuff, IOSIZE, "wgvim: Caught deadly signal '%s'\n", signal_name(signum));
 
   if (p_awa && signum != SIGTERM && signum != SIGINT) {
     autowrite_all();

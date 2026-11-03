@@ -169,7 +169,7 @@ func Test_get_func()
   call assert_equal(0, get(l:F, 'dict'))
   call assert_equal([], get(l:F, 'args'))
 
-  " Nvim doesn't have null functions
+  " wgvim doesn't have null functions
   " let NF = test_null_function()
   " call assert_equal('', get(NF, 'name'))
   " call assert_equal(NF, get(NF, 'func'))

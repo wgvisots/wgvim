@@ -1,6 +1,6 @@
 local tointeger = vim._tointeger
 
--- Nvim-Lua stdlib: the `vim` module (:help lua-stdlib)
+-- wgvim-Lua stdlib: the `vim` module (:help lua-stdlib)
 --
 
 -- These are for loading runtime modules lazily since they aren't available in
@@ -46,7 +46,7 @@ vim._extra = {
 --- `callback` immediately, then on user events, internal events, and approximately every
 --- `interval` milliseconds. Returns `true` plus any remaining callback results on success.
 ---
---- Nvim processes other events while waiting.
+--- wgvim processes other events while waiting.
 --- Cannot be called during an |api-fast| event.
 ---
 --- Examples:
@@ -134,7 +134,7 @@ function vim.wait(time, callback, interval, fast_only)
   if interval > 0 then
     dummy_timer = assert(vim.uv.new_timer())
     dummy_timer:start(interval, interval, function()
-      -- If Nvim exits while loop_poll() is blocked, vim.wait() does not
+      -- If wgvim exits while loop_poll() is blocked, vim.wait() does not
       -- resume.
       if vim.v.exiting ~= vim.NIL then
         cleanup()
@@ -802,7 +802,7 @@ end
 --- instead of throwing an error.
 ---
 --- Use `"utf-32"` to convert Unicode code-point indices to byte indices.
---- `"utf-8"` is Nvim's native string encoding, so this function is
+--- `"utf-8"` is wgvim's native string encoding, so this function is
 --- idempotent for that encoding: {index} is already a byte index and is
 --- returned unchanged.
 ---
@@ -1358,7 +1358,7 @@ function vim._cs_remote(rcid, server_addr, connect_error, args)
     or subcmd == 'tab-wait'
     or subcmd == 'tab-wait-silent'
   then
-    return { errmsg = 'E5600: Wait commands not yet implemented in Nvim' }
+    return { errmsg = 'E5600: Wait commands not yet implemented in wgvim' }
   elseif subcmd == 'tab-silent' then
     f_tab = true
     f_silent = true
@@ -1442,13 +1442,13 @@ end
 ---@param alternative string|nil Suggested alternative feature.
 ---@param version     string     Version when the deprecated function will be removed.
 ---@param plugin      string|nil Name of the plugin that owns the deprecated feature.
----                              Defaults to "Nvim".
+---                              Defaults to "wgvim".
 ---@param backtrace   boolean|nil Prints backtrace. Defaults to true.
 ---
 ---@return string|nil # Deprecation message, or nil if no message was shown.
 function vim.deprecate(name, alternative, version, plugin, backtrace)
-  plugin = plugin or 'Nvim'
-  if plugin == 'Nvim' then
+  plugin = plugin or 'wgvim'
+  if plugin == 'wgvim' then
     require('vim.deprecated.health').add(name, version, traceback(), alternative)
 
     -- Show a warning only if feature is hard-deprecated (see MAINTAIN.md).
@@ -1456,7 +1456,7 @@ function vim.deprecate(name, alternative, version, plugin, backtrace)
     -- starting at 0.11, including 0.11-dev.
     local major_str, minor_str = version:match('(%d+)%.(%d+)')
     local major, minor = vim._assert_integer(major_str), vim._assert_integer(minor_str)
-    local nvim_major = 0 --- Current Nvim major version.
+    local nvim_major = 0 --- Current wgvim major version.
 
     -- We can't "subtract" from a major version, so:
     --  * Always treat `major > nvim_major` as soft-deprecation.
@@ -1495,11 +1495,11 @@ end
 
 require('vim._core.options')
 
---- Remove at Nvim 1.0
+--- Remove at wgvim 1.0
 ---@deprecated
 vim.loop = vim.uv
 
--- Deprecated. Remove at Nvim 2.0
+-- Deprecated. Remove at wgvim 2.0
 vim.highlight = vim._defer_deprecated_module('vim.highlight', 'vim.hl')
 
 return vim

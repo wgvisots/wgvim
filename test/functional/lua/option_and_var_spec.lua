@@ -132,7 +132,7 @@ describe('lua stdlib', function()
       local xhome = 'Xhome_lua'
       local xconfig = xhome .. pathsep .. 'Xconfig'
       local xdata = xhome .. pathsep .. 'Xdata'
-      local autoload_folder = table.concat({ xconfig, 'nvim', 'autoload' }, pathsep)
+      local autoload_folder = table.concat({ xconfig, 'wgvim', 'autoload' }, pathsep)
       local autoload_file = table.concat({ autoload_folder, 'testload.vim' }, pathsep)
       mkdir_p(autoload_folder)
       write_file(autoload_file, [[let testload#value = 2]])

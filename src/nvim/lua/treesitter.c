@@ -26,12 +26,17 @@
 #include "nvim/ascii_defs.h"
 #include "nvim/buffer_defs.h"
 #include "nvim/globals.h"
+#include "nvim/log.h"
 #include "nvim/lua/treesitter.h"
 #include "nvim/macros_defs.h"
 #include "nvim/map_defs.h"
 #include "nvim/memline.h"
 #include "nvim/memory.h"
+#include "nvim/os/fs.h"
+#include "nvim/path.h"
 #include "nvim/pos_defs.h"
+#include "nvim/runtime.h"
+#include "nvim/sha256.h"
 #include "nvim/strings.h"
 #include "nvim/types_defs.h"
 
@@ -64,6 +69,7 @@ typedef struct {
 } TSLuaParserCallbackPayload;
 
 #include "lua/treesitter.c.generated.h"
+#include "ts_parser_hashes.generated.h"
 
 static PMap(cstr_t) langs = MAP_INIT;
 
@@ -134,6 +140,84 @@ static int tslua_add_language_from_object(lua_State *L)
   return add_language(L, false);
 }
 
+/// wgvim: refuses to load a native parser unless it is
+///   1. a file directly inside <libdir>/parser (after resolving symlinks), and
+///   2. listed in ts_parser_hashes[] (generated at build time), with matching SHA256.
+/// On success writes the resolved path to `out`; otherwise raises a Lua error.
+///
+/// Residual risk: the file is hashed and then opened by path, so someone who can write to the
+/// install directory could swap it in between. That directory should be writable only by root.
+static void ts_verify_bundled_parser(lua_State *L, const char *path, char *out, size_t outlen)
+{
+  char dir[MAXPATHL];
+  char *libdir = get_lib_dir();
+  bool have_dir = false;
+  if (libdir != NULL) {
+    char parser_dir[MAXPATHL];
+    snprintf(parser_dir, sizeof(parser_dir), "%s/parser", libdir);
+    have_dir = os_realpath(parser_dir, dir, sizeof(dir)) != NULL;
+  }
+  xfree(libdir);
+  if (!have_dir) {
+    luaL_error(L, "wgvim: cannot load parser %s: the bundled parser directory was not found",
+               path);
+  }
+
+  if (os_realpath(path, out, outlen) == NULL) {
+    luaL_error(L, "wgvim: cannot load parser %s: file not found", path);
+  }
+
+  size_t dirlen = strlen(dir);
+  const char *tail = out + dirlen + 1;
+  if (strncmp(out, dir, dirlen) != 0 || out[dirlen] != '/' || strchr(tail, '/') != NULL) {
+    luaL_error(L, "wgvim: refusing to load parser %s: only bundled parsers in %s may be loaded",
+               out, dir);
+  }
+
+  size_t taillen = strlen(tail);
+  const char *expected = NULL;
+  for (size_t i = 0; ts_parser_hashes[i].name != NULL; i++) {
+    size_t n = strlen(ts_parser_hashes[i].name);
+    if (taillen == n + 3 && strncmp(tail, ts_parser_hashes[i].name, n) == 0
+        && strcmp(tail + n, ".so") == 0) {
+      expected = ts_parser_hashes[i].sha256;
+      break;
+    }
+  }
+  if (expected == NULL) {
+    luaL_error(L, "wgvim: refusing to load parser %s: not one of the parsers bundled at build "
+               "time", out);
+  }
+
+  FILE *f = fopen(out, "rb");
+  if (f == NULL) {
+    luaL_error(L, "wgvim: cannot read parser %s", out);
+  }
+  context_sha256_T ctx;
+  sha256_start(&ctx);
+  uint8_t buf[8192];
+  size_t nread;
+  while ((nread = fread(buf, 1, sizeof(buf), f)) > 0) {
+    sha256_update(&ctx, buf, nread);
+  }
+  bool read_err = ferror(f) != 0;
+  fclose(f);
+  if (read_err) {
+    luaL_error(L, "wgvim: cannot read parser %s", out);
+  }
+  uint8_t digest[SHA256_SUM_SIZE];
+  sha256_finish(&ctx, digest);
+  char hex[SHA256_SUM_SIZE * 2 + 1];
+  for (size_t i = 0; i < SHA256_SUM_SIZE; i++) {
+    snprintf(hex + 2 * i, 3, "%02x", digest[i]);
+  }
+  if (strcmp(hex, expected) != 0) {
+    WLOG("parser %s refused: SHA256 %s does not match the build-time hash %s", out, hex, expected);
+    luaL_error(L, "wgvim: refusing to load parser %s: its SHA256 does not match the parser "
+               "bundled at build time", out);
+  }
+}
+
 static const TSLanguage *load_language_from_object(lua_State *L, const char *path,
                                                    const char *lang_name, const char *symbol)
 {
@@ -143,6 +227,11 @@ static const TSLanguage *load_language_from_object(lua_State *L, const char *pat
     return static_lang;
   }
 #endif
+
+  // wgvim: only bundled parsers, from the install directory, with the SHA256 compiled in.
+  char verified[MAXPATHL];
+  ts_verify_bundled_parser(L, path, verified, sizeof(verified));
+  path = verified;
 
   uv_lib_t lib;
   if (uv_dlopen(path, &lib)) {

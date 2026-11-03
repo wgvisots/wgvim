@@ -1,6 +1,6 @@
 " Test for displaying stuff
 
-" Nvim: `:set term` is not supported.
+" wgvim: `:set term` is not supported.
 " if !has('gui_running') && has('unix')
 "   set term=ansi
 " endif

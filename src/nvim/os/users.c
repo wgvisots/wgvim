@@ -120,7 +120,7 @@ int os_get_usernames(garray_T *users)
   return OK;
 }
 
-/// Gets the username that owns the current Nvim process.
+/// Gets the username that owns the current wgvim process.
 ///
 /// @param s[out] Username.
 /// @param len Length of `s`.

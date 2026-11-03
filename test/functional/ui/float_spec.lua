@@ -1014,11 +1014,11 @@ describe('float window', function()
   end)
 
   describe(':close on non-float with floating windows', function()
-    -- XXX: it isn't really clear whether this should quit Nvim, as if the autocommand
-    -- here is BufUnload then it does quit Nvim.
-    -- But with BufWinLeave, this doesn't quit Nvim if there are no floating windows,
-    -- so it shouldn't quit Nvim if there are floating windows.
-    it('does not quit Nvim if BufWinLeave makes it the only non-float', function()
+    -- XXX: it isn't really clear whether this should quit wgvim, as if the autocommand
+    -- here is BufUnload then it does quit wgvim.
+    -- But with BufWinLeave, this doesn't quit wgvim if there are no floating windows,
+    -- so it shouldn't quit wgvim if there are floating windows.
+    it('does not quit wgvim if BufWinLeave makes it the only non-float', function()
       exec([[
         let g:buf = bufnr()
         new

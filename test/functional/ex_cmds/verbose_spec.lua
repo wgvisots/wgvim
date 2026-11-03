@@ -14,7 +14,7 @@ local fn = n.fn
 --- @param v1 boolean
 local function last_set_lua_verbose_tests(cmd, v1)
   local script_location, script_file
-  -- All test cases below use the same Nvim instance.
+  -- All test cases below use the same wgvim instance.
   setup(function()
     clear(v1 and { args = { '-V1' } } or nil)
     script_file = 'test_verbose.lua'
@@ -94,7 +94,7 @@ end)()
   local function get_last_set_location(linenr)
     return ('%s %s'):format(
       (cmd == 'source' or v1) and script_location or 'Lua',
-      v1 and ('line %d'):format(linenr) or '(run Nvim with -V1 for more details)'
+      v1 and ('line %d'):format(linenr) or '(run wgvim with -V1 for more details)'
     )
   end
 
@@ -260,7 +260,7 @@ TestHL2        xxx guibg=Green
   it('for option set by nvim_exec2 with anonymous sid', function()
     local result = exec_capture(':verbose set tw?')
     local loc = get_last_set_location(40)
-    if loc == 'Lua (run Nvim with -V1 for more details)' then
+    if loc == 'Lua (run wgvim with -V1 for more details)' then
       loc = 'anonymous :source (script id 1) line 5'
     end
     eq(
@@ -323,7 +323,7 @@ end)
 
 describe(':verbose when using API from Vimscript', function()
   local script_location, script_file
-  -- All test cases below use the same Nvim instance.
+  -- All test cases below use the same wgvim instance.
   setup(function()
     clear()
     script_file = 'test_verbose.vim'
@@ -426,7 +426,7 @@ TestHL2        xxx guibg=Green
 end)
 
 describe(':verbose when using API from RPC', function()
-  -- All test cases below use the same Nvim instance.
+  -- All test cases below use the same wgvim instance.
   setup(clear)
 
   it('"Last set" for option set by nvim_set_option_value', function()

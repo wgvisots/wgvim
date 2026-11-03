@@ -30,7 +30,7 @@ describe('vim.loader', function()
 
       require('vim.fs')
 
-      -- try to load other vim submodules as well (Nvim Lua stdlib)
+      -- try to load other vim submodules as well (wgvim Lua stdlib)
       for key, _ in pairs(vim._submodules) do
         local modname = 'vim.' .. key -- e.g. "vim.fs"
 

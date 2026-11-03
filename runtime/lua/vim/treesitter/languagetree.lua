@@ -1023,7 +1023,7 @@ end
 --- @return boolean # true if parser for {lang} exists on rtp
 local has_parser = vim.func._memoize(1, function(lang)
   return vim._ts_has_language(lang)
-    or #vim.api.nvim_get_runtime_file('parser/' .. lang .. '.*', false) > 0
+    or vim.uv.fs_stat(vim.treesitter.language._parser_dir() .. '/' .. lang .. '.so') ~= nil
 end)
 
 --- Return parser name for language (if exists) or filetype (if registered and exists).

@@ -191,7 +191,7 @@ void error_exit(Integer status)
 // Sets a hint for how a client can handle neovim unexpectedly exiting
 // with an error code or signal (without using "error_exit" to indicate
 // an intentional `:cquit`). This should then be handled by starting a new
-// server. Use `progpath` as the full path to the Nvim executable
+// server. Use `progpath` as the full path to the wgvim executable
 // |v:progpath| and `argv` as its arguments |v:argv|, and reattach to the new
 // server.
 void _set_restart_on_crash_exit(String progpath, Array argv) FUNC_API_CLIENT_IMPL;

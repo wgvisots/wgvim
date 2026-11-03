@@ -55,7 +55,7 @@ describe('Visual mode and operator', function()
   end)
 
   it('simple change in Visual mode', function()
-    -- Nvim: visual-repeat re-executes the visual operation, not a fixed-size reselect.
+    -- wgvim: visual-repeat re-executes the visual operation, not a fixed-size reselect.
 
     -- Exercise characterwise Visual mode plus operator, with count and repeat.
     insert('apple banana cherry')
@@ -95,7 +95,7 @@ describe('Visual mode and operator', function()
   end)
 
   it('Visual mode mapping', function()
-    -- Nvim: visual-repeat re-executes the visual operation, not a fixed-size reselect.
+    -- wgvim: visual-repeat re-executes the visual operation, not a fixed-size reselect.
 
     -- Set up Visual mode mappings.
     feed_command('vnoremap W /\\u/s-1<CR>')

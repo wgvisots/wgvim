@@ -861,7 +861,7 @@ describe('put command', function()
       )
     end)
 
-    -- Asserts whether `keys` makes Nvim beep.
+    -- Asserts whether `keys` makes wgvim beep.
     local function bell_test(keys, should_ring)
       local cmd = 'normal! ' .. keys
       if should_ring then

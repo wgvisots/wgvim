@@ -1,4 +1,4 @@
---- Converts Nvim :help files to HTML (a page per file, or one "amalgamated" page for PDF).
+--- Converts wgvim :help files to HTML (a page per file, or one "amalgamated" page for PDF).
 --- Validates |tag| links and document syntax (parser errors).
 --
 -- USAGE (For CI/local testing purposes): Simply `make lintdoc`, which basically does the following:
@@ -47,9 +47,9 @@ local invalid_links = {} ---@type table<string, any>
 local invalid_urls = {} ---@type table<string, any>
 local invalid_spelling = {} ---@type table<string, table<string, string>>
 local spell_dict = {
-  Neovim = 'Nvim',
-  NeoVim = 'Nvim',
-  neovim = 'Nvim',
+  -- wgvim: the rename turned this into `wgvim = 'wgvim'`, which flagged every "wgvim".
+  NeoVim = 'Neovim',
+  neovim = 'Neovim',
   lua = 'Lua',
   VimL = 'Vimscript',
   vimL = 'Vimscript',
@@ -261,7 +261,7 @@ local function is_noise(line, noise_lines)
     -- Example: "NVIM REFERENCE MANUAL    by …", "VIM USER MANUAL    by …"
     or line:find([[^%s*N?VIM[ \t]*%u+[ \t]*MANUAL]])
     -- First line of traditional :help pages.
-    -- Example: "*api.txt*    Nvim"
+    -- Example: "*api.txt*    wgvim"
     or line:find('%s*%*?[a-zA-Z]+%.txt%*?%s+N?[vV]im%s*$')
     -- modeline
     -- Example: "vim:tw=78:ts=8:sw=4:sts=4:et:ft=help:norl:"
@@ -419,7 +419,7 @@ end
 ---@param node TSNode
 ---@param bufnr integer
 ---@param conceal? boolean For preformatted `old` lines: Tab is preceded by a space for each char
----   concealed on the line since the previous Tab: Nvim widens the Tab by that much, so text after a
+---   concealed on the line since the previous Tab: wgvim widens the Tab by that much, so text after a
 ---   Tab stays at its raw column.
 ---@return string
 local function getws(node, bufnr, conceal)
@@ -518,7 +518,7 @@ end
 --- Gets the title: the first h1, if only the first two lines, blank lines, and "noise" lines (see
 --- `is_noise`) precede it. Example:
 ---
----   *foo.txt*  Nvim
+---   *foo.txt*  wgvim
 ---
 ---   ==============================================================================
 ---   Foo plugin                                                       *foo*
@@ -1046,8 +1046,8 @@ end
 
 --- Use the vimdoc parser defined in the build, not whatever happens to be installed on the system.
 local function ensure_runtimepath()
-  if not vim.o.runtimepath:find('build/lib/nvim/') then
-    vim.cmd [[set runtimepath^=./build/lib/nvim/]]
+  if not vim.o.runtimepath:find('build/lib/wgvim/') then
+    vim.cmd [[set runtimepath^=./build/lib/wgvim/]]
   end
 end
 
@@ -1280,7 +1280,7 @@ local function gen_redirect_pages(commit, helpfile, to_dir, to_fname)
     .indent(
       0,
       [[
-      *%s*      Nvim
+      *%s*      wgvim
 
       ==============================================================================
       Document moved
@@ -1353,7 +1353,7 @@ local function gen_print_html(chapters, helpfiles)
       anchor
     )
   end)
-  return ('<!doctype html>\n<html><head><meta charset="utf-8"><title>Nvim</title>\n<style>\n%s</style>\n</head><body>\n%s\n</body></html>\n'):format(
+  return ('<!doctype html>\n<html><head><meta charset="utf-8"><title>wgvim</title>\n<style>\n%s</style>\n</head><body>\n%s\n</body></html>\n'):format(
     vim.text.indent(0, print_css),
     body
   )
@@ -1400,8 +1400,8 @@ function M.gen(output_format, help_dir, to_dir, include, commit, parser_path)
   parser_path = parser_path and vim.fs.normalize(parser_path) or nil
   if parser_path then
     -- XXX: Delete the installed .so files first, else this won't work :(
-    --    /usr/local/lib/nvim/parser/vimdoc.so
-    --    ./build/lib/nvim/parser/vimdoc.so
+    --    /usr/local/lib/wgvim/parser/vimdoc.so
+    --    ./build/lib/wgvim/parser/vimdoc.so
     vim.treesitter.language.add('vimdoc', { path = parser_path })
   end
 
@@ -1537,8 +1537,8 @@ function M.validate(help_dir, include, parser_path, request_urls)
   parser_path = parser_path and vim.fs.normalize(parser_path) or nil
   if parser_path then
     -- XXX: Delete the installed .so files first, else this won't work :(
-    --    /usr/local/lib/nvim/parser/vimdoc.so
-    --    ./build/lib/nvim/parser/vimdoc.so
+    --    /usr/local/lib/wgvim/parser/vimdoc.so
+    --    ./build/lib/wgvim/parser/vimdoc.so
     vim.treesitter.language.add('vimdoc', { path = parser_path })
   end
 

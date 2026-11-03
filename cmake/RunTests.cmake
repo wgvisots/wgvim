@@ -8,15 +8,15 @@ else()
   set(TEST_SUFFIX "")
 endif()
 
-set(ENV{NVIM_TEST} "1")
+set(ENV{WGVIM_TEST} "1")
 # Test runner should use the runtime from the build, not the system install (if any).
 set(ENV{VIMRUNTIME} ${ROOT_DIR}/runtime)
 # Set LC_ALL to meet expectations of some locale-sensitive tests.
 set(ENV{LC_ALL} "en_US.UTF-8")
 set(TEST_XDG_PREFIX ${BUILD_DIR}/Xtest_xdg${TEST_SUFFIX})
 unset(ENV{XDG_DATA_DIRS})
-unset(ENV{NVIM})  # Clear $NVIM in case tests are running from Nvim. #11009
-unset(ENV{TMUX})  # Nvim TUI shouldn't think it's running in tmux. #34173
+unset(ENV{WGVIM})  # Clear $WGVIM in case tests are running from wgvim. #11009
+unset(ENV{TMUX})  # wgvim TUI shouldn't think it's running in tmux. #34173
 
 # Prepare for running tests in ${TEST_XDG_PREFIX}.
 file(MAKE_DIRECTORY ${TEST_XDG_PREFIX})
@@ -25,13 +25,17 @@ file(CREATE_LINK ${ROOT_DIR}/src ${TEST_XDG_PREFIX}/src SYMBOLIC)
 file(CREATE_LINK ${ROOT_DIR}/test ${TEST_XDG_PREFIX}/test SYMBOLIC)
 file(CREATE_LINK ${ROOT_DIR}/README.md ${TEST_XDG_PREFIX}/README.md SYMBOLIC)
 
-if(NOT DEFINED ENV{NVIM_LOG_FILE})
-  set(ENV{NVIM_LOG_FILE} ${BUILD_DIR}/nvim.log)
+if(NOT DEFINED ENV{WGVIM_LOG_FILE})
+  set(ENV{WGVIM_LOG_FILE} ${BUILD_DIR}/nvim.log)
 endif()
-set(ENV{NVIM_LOG_FILE} "$ENV{NVIM_LOG_FILE}${TEST_SUFFIX}")
+set(ENV{WGVIM_LOG_FILE} "$ENV{WGVIM_LOG_FILE}${TEST_SUFFIX}")
 
-if(NVIM_PRG)
-  set(ENV{NVIM_PRG} "${NVIM_PRG}")
+# wgvim: the test harness reads and writes all over the build tree; tests that check the sandbox
+# turn it on explicitly (test/functional/core/sandbox_spec.lua).
+set(ENV{WGVIM_SANDBOX} off)
+
+if(WGVIM_PRG)
+  set(ENV{WGVIM_PRG} "${WGVIM_PRG}")
 endif()
 
 if(DEFINED ENV{TEST_FILE})
@@ -65,7 +69,7 @@ if(DEFINED ENV{TEST_FILTER_OUT} AND NOT "$ENV{TEST_FILTER_OUT}" STREQUAL "")
   list(APPEND TEST_ARGS --filter-out $ENV{TEST_FILTER_OUT})
 endif()
 
-# TMPDIR: for testutil.tmpname() and Nvim tempname().
+# TMPDIR: for testutil.tmpname() and wgvim tempname().
 set(ENV{TMPDIR} "${BUILD_DIR}/Xtest_tmpdir${TEST_SUFFIX}")
 file(MAKE_DIRECTORY $ENV{TMPDIR})
 
@@ -84,7 +88,7 @@ if(NOT WIN32)
 endif()
 
 execute_process(
-  COMMAND ${NVIM_PRG} -l ${ROOT_DIR}/test/runner.lua -X${TEST_XDG_PREFIX} -v
+  COMMAND ${WGVIM_PRG} -l ${ROOT_DIR}/test/runner.lua -X${TEST_XDG_PREFIX} -v
     --summary-file=${TEST_SUMMARY_FILE}
     --helper=${TEST_DIR}/${TEST_TYPE}/preload.lua
     --lpath=${BUILD_DIR}/?.lua
@@ -99,11 +103,11 @@ file(REMOVE_RECURSE ${TEST_XDG_PREFIX})
 file(REMOVE_RECURSE $ENV{TMPDIR})
 
 macro(PRINT_NVIM_LOG)
-  file(READ $ENV{NVIM_LOG_FILE} out)
+  file(READ $ENV{WGVIM_LOG_FILE} out)
   if(${TEST_SUMMARY_FILE} STREQUAL "-")
-    message(STATUS "$NVIM_LOG_FILE: $ENV{NVIM_LOG_FILE}\n${out}")
+    message(STATUS "$WGVIM_LOG_FILE: $ENV{WGVIM_LOG_FILE}\n${out}")
   else()
-    file(APPEND ${TEST_SUMMARY_FILE} "$NVIM_LOG_FILE: $ENV{NVIM_LOG_FILE}\n${out}")
+    file(APPEND ${TEST_SUMMARY_FILE} "$WGVIM_LOG_FILE: $ENV{WGVIM_LOG_FILE}\n${out}")
   endif()
 endmacro()
 
@@ -112,7 +116,7 @@ if(res)
 
   # Dump the logfile on CI (if not displayed and moved already).
   if(CI_BUILD)
-    if(EXISTS $ENV{NVIM_LOG_FILE} AND NOT EXISTS $ENV{NVIM_LOG_FILE}.displayed)
+    if(EXISTS $ENV{WGVIM_LOG_FILE} AND NOT EXISTS $ENV{WGVIM_LOG_FILE}.displayed)
       PRINT_NVIM_LOG()
     endif()
   endif()
@@ -121,9 +125,9 @@ if(res)
 endif()
 
 if(CI_BUILD)
-  file(SIZE $ENV{NVIM_LOG_FILE} FILE_SIZE)
+  file(SIZE $ENV{WGVIM_LOG_FILE} FILE_SIZE)
   if(NOT ${FILE_SIZE} MATCHES "^0$")
     PRINT_NVIM_LOG()
-    message(FATAL_ERROR "$NVIM_LOG_FILE is not empty")
+    message(FATAL_ERROR "$WGVIM_LOG_FILE is not empty")
   endif()
 endif()

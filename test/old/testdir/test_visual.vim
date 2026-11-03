@@ -505,7 +505,7 @@ func Test_visual_mode_op()
 
   call setline(1, 'apple banana cherry')
   call cursor(1, 1)
-  " Nvim: "." re-executes the captured keysequence (|visual-repeat|): the final
+  " wgvim: "." re-executes the captured keysequence (|visual-repeat|): the final
   " "." replays "3vd", multiplying the previous (grown) selection again.
   normal lvld.l3vd.
   call assert_equal('a ', getline(1))
@@ -547,7 +547,7 @@ func Test_visual_mode_maps()
   vnoremap W /\u/s-1<CR>
   vnoremap iW :<C-U>call SelectInCaps()<CR>
 
-  " Nvim: a selection extended by a search or Ex motion is not replayable:
+  " wgvim: a selection extended by a search or Ex motion is not replayable:
   " "." falls back to an equal-size reselect ("1v"), like Vim. But "." after
   " "2vd" re-executes "2vd", multiplying the previous (grown) area again.
   call setline(1, 'KiwiRaspberryDateWatermelonPeach')

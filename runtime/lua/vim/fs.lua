@@ -606,7 +606,7 @@ end
 --- buffer.
 ---
 --- If the buffer is unnamed (has no backing file) or has a non-empty 'buftype' then the search
---- begins from Nvim's |current-directory|.
+--- begins from wgvim's |current-directory|.
 ---
 --- Examples:
 ---
@@ -829,7 +829,7 @@ end
 --- ```lua
 --- [[C:\Users\jdoe]]                         --> "C:/Users/jdoe"
 --- "~/src/neovim"                            --> "/home/jdoe/src/neovim"
---- "$XDG_CONFIG_HOME/nvim/init.vim"          --> "/Users/jdoe/.config/nvim/init.vim"
+--- "$XDG_CONFIG_HOME/wgvim/init.vim"          --> "/Users/jdoe/.config/wgvim/init.vim"
 --- "~/src/nvim/api/../tui/./tui.c"           --> "/home/jdoe/src/nvim/tui/tui.c"
 --- "./foo/bar"                               --> "foo/bar"
 --- "foo/../../../bar"                        --> "../../bar"

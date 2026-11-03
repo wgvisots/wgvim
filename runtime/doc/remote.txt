@@ -1,4 +1,4 @@
-*remote.txt*    Nvim
+*remote.txt*    wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -12,9 +12,9 @@ Vim client-server communication				*client-server*
 ==============================================================================
 1. Common functionality					*clientserver*
 
-Nvim's |RPC| functionality allows clients to programmatically control Nvim. Nvim
+wgvim's |RPC| functionality allows clients to programmatically control wgvim. wgvim
 itself takes command-line arguments that cause it to become a client to another
-Nvim running as a server. These arguments match those provided by Vim's
+wgvim running as a server. These arguments match those provided by Vim's
 clientserver option.
 
 The following command line arguments are available:
@@ -25,7 +25,7 @@ The following command line arguments are available:
 				Vim allows one init command: +{cmd}.
 				This must be an Ex command that can be
 				followed by "|". It's not yet supported by
-				Nvim.
+				wgvim.
 				The rest of the command line is taken as the
 				file list.  Thus any non-file arguments must
 				come before this.
@@ -63,17 +63,17 @@ The following command line arguments are available:
 
 Examples ~
 
-Start an Nvim server listening on a named pipe at '~/.cache/nvim/server.pipe': >
-    nvim --listen ~/.cache/nvim/server.pipe
+Start an wgvim server listening on a named pipe at '~/.cache/wgvim/server.pipe': >
+    nvim --listen ~/.cache/wgvim/server.pipe
 
-Edit "file.txt" in an Nvim server listening at '~/.cache/nvim/server.pipe': >
-    nvim --server ~/.cache/nvim/server.pipe --remote file.txt
+Edit "file.txt" in an wgvim server listening at '~/.cache/wgvim/server.pipe': >
+    nvim --server ~/.cache/wgvim/server.pipe --remote file.txt
 
 This doesn't work, all arguments after --remote will be used as file names: >
-    nvim --remote --server ~/.cache/nvim/server.pipe file.txt
+    nvim --remote --server ~/.cache/wgvim/server.pipe file.txt
 
 Tell the remote server to write all files and exit: >
-    nvim --server ~/.cache/nvim/server.pipe --remote-send '<C-\><C-N>:wqa<CR>'
+    nvim --server ~/.cache/wgvim/server.pipe --remote-send '<C-\><C-N>:wqa<CR>'
 
 
 REMOTE EDITING
@@ -89,23 +89,23 @@ You can not put options there!
 2. Missing functionality			*E5600* *clientserver-missing*
 
 Vim supports additional functionality in clientserver that's not yet
-implemented in Nvim. In particular, none of the "wait" variants are supported
+implemented in wgvim. In particular, none of the "wait" variants are supported
 yet. The following command line arguments are not yet available:
 
    --remote-wait [+{cmd}] {file} ...				*--remote-wait*
-				Not yet supported by Nvim.
+				Not yet supported by wgvim.
 				As --remote, but wait for files to complete
 				(unload) in remote Vim.
    --remote-wait-silent [+{cmd}] {file} ...		*--remote-wait-silent*
-				Not yet supported by Nvim.
+				Not yet supported by wgvim.
 				As --remote-wait, but don't complain if there
 				is no server.
 							*--remote-tab-wait*
-   --remote-tab-wait		Not yet supported by Nvim.
+   --remote-tab-wait		Not yet supported by wgvim.
 				Like --remote-wait but open each file in a new
 				tabpage.
 						*--remote-tab-wait-silent*
-   --remote-tab-wait-silent	Not yet supported by Nvim.
+   --remote-tab-wait-silent	Not yet supported by wgvim.
 				Like --remote-wait-silent but open each file
 				in a new tabpage.
 

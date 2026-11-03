@@ -1,4 +1,4 @@
-*usr_02.txt*	Nvim
+*usr_02.txt*	wgvim
 
 
 		     VIM USER MANUAL	by Bram Moolenaar
@@ -28,7 +28,7 @@ Table of contents: |usr_toc.txt|
 ==============================================================================
 *02.1*	Running Vim for the First Time
 
-To start Nvim, enter this command: >
+To start wgvim, enter this command: >
 
 	nvim file.txt
 
@@ -639,9 +639,9 @@ Summary:					*help-summary*  >
     command switch of Vim use: >
 	:help -f
 
-24) Lua language and Nvim's Lua standard library are available at >vim
+24) Lua language and wgvim's Lua standard library are available at >vim
 	:help lua.txt
-<    Guide to using Lua in Nvim is available at >vim
+<    Guide to using Lua in wgvim is available at >vim
 	:help lua-guide.txt
 <    Lua 5.1 reference manual is available at >vim
 	:help luaref.txt

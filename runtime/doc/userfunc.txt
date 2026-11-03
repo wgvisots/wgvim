@@ -1,4 +1,4 @@
-*userfunc.txt*	Nvim
+*userfunc.txt*	wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -450,7 +450,7 @@ like this: >
 
 When such a function is called, and it is not defined yet, Vim will search the
 "autoload" directories in 'runtimepath' for a script file called
-"filename.vim".  For example "~/.config/nvim/autoload/filename.vim".  That
+"filename.vim".  For example "~/.config/wgvim/autoload/filename.vim".  That
 file should then define the function like this: >
 
 	function filename#funcname()

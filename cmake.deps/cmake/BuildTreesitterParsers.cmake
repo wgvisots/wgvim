@@ -28,7 +28,7 @@ function(BuildTSParser)
     ${EXTERNALPROJECT_OPTIONS})
 endfunction()
 
-foreach(lang c diff lua vim vimdoc query)
+foreach(lang c cpp diff lua vim vimdoc query)
   BuildTSParser(LANG ${lang})
 endforeach()
 BuildTSParser(LANG markdown CMAKE_FILE MarkdownParserCMakeLists.txt)
@@ -49,5 +49,5 @@ if(USE_BUNDLED_TS_PARSERS AND ENABLE_WASMTIME)
     BUILD_COMMAND ""
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy
       ${DEPS_DOWNLOAD_DIR}/treesitter_lua_wasm/tree-sitter-lua.wasm
-      ${DEPS_INSTALL_DIR}/lib/nvim/parser/lua.wasm)
+      ${DEPS_INSTALL_DIR}/lib/wgvim/parser/lua.wasm)
 endif()

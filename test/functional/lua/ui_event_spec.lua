@@ -421,7 +421,7 @@ end)
 
 describe('vim.ui_attach', function()
   before_each(function()
-    clear({ env = { NVIM_LOG_FILE = testlog } })
+    clear({ env = { WGVIM_LOG_FILE = testlog } })
   end)
 
   after_each(function()

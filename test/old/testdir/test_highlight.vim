@@ -826,7 +826,7 @@ endfunc
 
 " Do this test last, sometimes restoring the columns doesn't work
 func Test_z_no_space_before_xxx()
-  " Note: we need to create this highlight group in the test because it does not exist in Neovim
+  " Note: we need to create this highlight group in the test because it does not exist in wgvim
   execute('hi StatusLineTermNC ctermfg=green')
   let l:org_columns = &columns
   set columns=17

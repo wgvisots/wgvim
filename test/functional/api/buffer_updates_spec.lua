@@ -28,7 +28,7 @@ end
 
 local function sendkeys(keys)
   api.nvim_input(keys)
-  -- Wait for Nvim to fully process pending input before possibly sending
+  -- Wait for wgvim to fully process pending input before possibly sending
   -- more key presses - otherwise they all pile up in the queue and get
   -- processed at once
   n.poke_eventloop()
@@ -918,7 +918,7 @@ describe('API: buffer events:', function()
     sendkeys(s)
     assert_match_somewhere(expected_lines, buffer_lines)
 
-    -- Trigger synchronized output in child Nvim, and then exit parent Nvim after
+    -- Trigger synchronized output in child wgvim, and then exit parent wgvim after
     -- blocking its event loop for a while. This should not cause an error log.
     n.expect_exit(n.exec_lua, function()
       vim.api.nvim_chan_send(vim.bo.channel, 'aaa')

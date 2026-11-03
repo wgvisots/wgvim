@@ -4,9 +4,9 @@
     processorArchitecture="*"
     version="0.9.0.0"
     type="win32"
-    name="Neovim"
+    name="wgvim"
   />
-  <description>Neovim</description>
+  <description>wgvim</description>
   <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
     <application>
       <!-- Windows 10 and Windows 11 -->

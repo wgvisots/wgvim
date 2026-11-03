@@ -276,7 +276,7 @@ syn match rBraceError "[)}]" contained
 syn match rCurlyError "[)\]]" contained
 syn match rParenError "[\]}]" contained
 
-" Use Nvim-R to highlight functions dynamically if it is installed
+" Use wgvim-R to highlight functions dynamically if it is installed
 if !exists("g:r_syntax_fun_pattern")
   let s:ff = split(substitute(globpath(&rtp, "R/functions.vim"), "functions.vim", "", "g"), "\n")
   if len(s:ff) > 0
@@ -286,12 +286,12 @@ if !exists("g:r_syntax_fun_pattern")
   endif
 endif
 
-" Only use Nvim-R to highlight functions if they should not be highlighted
+" Only use wgvim-R to highlight functions if they should not be highlighted
 " according to a generic pattern
 if g:r_syntax_fun_pattern == 1
   syn match rFunction '[0-9a-zA-Z_\.]\+\s*\ze('
 else
-  " Nvim-R:
+  " wgvim-R:
   runtime R/functions.vim
 endif
 

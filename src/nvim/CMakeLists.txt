@@ -8,7 +8,7 @@ set_target_properties(nvim_bin
   PROPERTIES
   EXPORT_COMPILE_COMMANDS ON
   ENABLE_EXPORTS TRUE
-  OUTPUT_NAME nvim)
+  OUTPUT_NAME wgvim)
 
 #-------------------------------------------------------------------------------
 # Dependencies
@@ -55,7 +55,6 @@ if(ENABLE_WASMTIME)
   target_compile_definitions(nvim_bin PRIVATE HAVE_WASMTIME)
 endif()
 
-# The unit test lib requires LuaJIT; it will be skipped if LuaJIT is missing.
 option(PREFER_LUA "Prefer Lua over LuaJIT in the nvim executable." OFF)
 if(PREFER_LUA)
   find_package(Lua 5.1 EXACT REQUIRED)
@@ -107,6 +106,56 @@ if(NOT MINGW AND NOT CMAKE_SYSTEM_NAME STREQUAL "Haiku")
       target_link_libraries(main_lib INTERFACE -fstack-protector --param ssp-buffer-size=4)
     endif()
   endif()
+endif()
+
+# wgvim: compiler and linker hardening (see SECURITY-AUDIT.md). Each flag is used only if the
+# toolchain accepts it, so older compilers (e.g. GCC 11 on RHEL 9) still build.
+option(WGVIM_HARDENING "Enable compiler and linker hardening flags" ON)
+if(WGVIM_HARDENING AND NOT MSVC AND NOT MINGW AND NOT CMAKE_SYSTEM_NAME STREQUAL "Haiku")
+  include(CheckCSourceCompiles)
+
+  # Position-independent executable (ASLR for the main binary).
+  include(CheckPIESupported)
+  check_pie_supported(OUTPUT_VARIABLE WGVIM_PIE_OUTPUT LANGUAGES C)
+  set_property(TARGET nvim_bin PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+  # Compile-time and run-time buffer overflow checks. Needs optimization, so not in Debug.
+  # _FORTIFY_SOURCE=3 needs GCC 12+ / Clang 9+ (__builtin_dynamic_object_size); else use 2.
+  check_c_source_compiles("
+    #include <stddef.h>
+    int main(void) { char b[4]; return (int)__builtin_dynamic_object_size(b, 0); }"
+    HAS_BUILTIN_DYNAMIC_OBJECT_SIZE)
+  if(HAS_BUILTIN_DYNAMIC_OBJECT_SIZE)
+    set(WGVIM_FORTIFY_LEVEL 3)
+  else()
+    set(WGVIM_FORTIFY_LEVEL 2)
+  endif()
+  target_compile_options(main_lib INTERFACE
+    "$<$<NOT:$<CONFIG:Debug>>:-U_FORTIFY_SOURCE;-D_FORTIFY_SOURCE=${WGVIM_FORTIFY_LEVEL}>")
+
+  foreach(flag
+      -fstack-clash-protection        # guard pages cannot be jumped over by large allocations
+      -fcf-protection=full            # Intel CET (x86-64): indirect branch / return tracking
+      -mbranch-protection=standard    # ARM64: BTI + pointer authentication
+      -ftrivial-auto-var-init=zero    # uninitialized stack variables start as zero
+      -fno-strict-overflow)           # signed overflow wraps instead of being "impossible"
+    string(MAKE_C_IDENTIFIER "HAS${flag}" var)
+    check_c_compiler_flag(${flag} ${var})
+    if(${var})
+      target_compile_options(main_lib INTERFACE ${flag})
+    endif()
+  endforeach()
+
+  # Linker: full RELRO (GOT read-only after startup), non-executable stack.
+  foreach(lflag -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -Wl,-z,separate-code)
+    string(MAKE_C_IDENTIFIER "HAS_LINK${lflag}" var)
+    set(CMAKE_REQUIRED_LINK_OPTIONS ${lflag})
+    check_c_source_compiles("int main(void) { return 0; }" ${var})
+    unset(CMAKE_REQUIRED_LINK_OPTIONS)
+    if(${var})
+      target_link_options(main_lib INTERFACE ${lflag})
+    endif()
+  endforeach()
 endif()
 
 # Compiler specific options
@@ -295,7 +344,7 @@ endif()
 set(EVAL_FUNCS_METADATA ${PROJECT_BINARY_DIR}/eval_funcs_metadata.mpack)
 set(EXPORTED_FUNCS_METADATA ${PROJECT_BINARY_DIR}/exported_funcs_metadata.mpack)
 set(UI_METADATA ${PROJECT_BINARY_DIR}/ui_metadata.mpack)
-set(BINARY_LIB_DIR ${PROJECT_BINARY_DIR}/lib/nvim)
+set(BINARY_LIB_DIR ${PROJECT_BINARY_DIR}/lib/wgvim)
 set(GENERATED_DIR ${PROJECT_BINARY_DIR}/src/nvim/auto)
 set(GENERATED_INCLUDES_DIR ${PROJECT_BINARY_DIR}/include)
 set(GENERATOR_DIR ${PROJECT_SOURCE_DIR}/src/gen)
@@ -541,7 +590,8 @@ else()
 endif()
 
 # Like LUA_GEN but includes also vim.fn, vim.api, vim.uv, etc
-set(NVIM_LUA $<TARGET_FILE:nvim_bin> -u NONE -l ${NVIM_LUA_PRELOAD} ${PROJECT_SOURCE_DIR})
+# wgvim: build-time runs of the editor read and write all over the tree; no sandbox.
+set(NVIM_LUA $<TARGET_FILE:nvim_bin> --sandbox off -u NONE -l ${NVIM_LUA_PRELOAD} ${PROJECT_SOURCE_DIR})
 
 # NVIM_GENERATED_FOR_HEADERS: generated headers to be included in headers
 # NVIM_GENERATED_FOR_SOURCES: generated headers to be included in sources
@@ -723,8 +773,18 @@ list(APPEND NVIM_GENERATED_FOR_HEADERS
   "${GENERATED_OPTION_VARS}"
 )
 
+# wgvim: SHA256 of each bundled tree-sitter parser, checked before dlopen().
+set(GENERATED_TS_PARSER_HASHES ${GENERATED_DIR}/ts_parser_hashes.generated.h)
+file(GLOB TS_BUNDLED_PARSERS ${DEPS_PREFIX}/lib/wgvim/parser/*.so)
+add_custom_command(OUTPUT ${GENERATED_TS_PARSER_HASHES}
+  COMMAND ${CMAKE_COMMAND} -D PARSER_DIR=${DEPS_PREFIX}/lib/wgvim/parser
+    -D OUTPUT=${GENERATED_TS_PARSER_HASHES}
+    -P ${PROJECT_SOURCE_DIR}/cmake/GenerateParserHashes.cmake
+  DEPENDS ${PROJECT_SOURCE_DIR}/cmake/GenerateParserHashes.cmake ${TS_BUNDLED_PARSERS})
+
 list(APPEND NVIM_GENERATED_FOR_SOURCES
   "${GENERATED_API_DISPATCH}"
+  "${GENERATED_TS_PARSER_HASHES}"
   "${GENERATED_EX_CMDS_DEFS}"
   "${GENERATED_EVENTS_NAMES_MAP}"
   "${GENERATED_FUNCS}"
@@ -746,13 +806,8 @@ foreach(hfile ${NVIM_GENERATED_FOR_HEADERS})
   endif()
 endforeach()
 
-if(PREFER_LUA)
-  message(STATUS "luajit not used, skipping unit tests")
-else()
-  file(GLOB UNIT_TEST_FIXTURES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/test/unit/fixtures/*.c)
-  target_sources(nvim_bin PRIVATE ${UNIT_TEST_FIXTURES})
-  target_compile_definitions(nvim_bin PRIVATE UNIT_TESTING)
-endif()
+# wgvim: the unit tests are removed, so the binary no longer compiles in their C fixtures or
+# UNIT_TESTING code (which included writable malloc/free function pointers in memory.c).
 
 target_sources(main_lib INTERFACE
   ${NVIM_GENERATED_FOR_SOURCES}
@@ -805,7 +860,7 @@ if(WIN32)
     COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/windows_runtime_deps
     COMMAND ${CMAKE_COMMAND}
       -D CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
-      -D BINARY="${PROJECT_BINARY_DIR}/bin/nvim${CMAKE_EXECUTABLE_SUFFIX}"
+      -D BINARY="${PROJECT_BINARY_DIR}/bin/wgvim${CMAKE_EXECUTABLE_SUFFIX}"
       -D DST=${PROJECT_BINARY_DIR}/windows_runtime_deps
       -D CI_BUILD=${CI_BUILD}
       -P ${PROJECT_SOURCE_DIR}/cmake/WindowsDllCopy.cmake)
@@ -834,11 +889,11 @@ endif()
 file(MAKE_DIRECTORY ${BINARY_LIB_DIR})
 
 # install treesitter parser if bundled
-if(EXISTS ${DEPS_PREFIX}/lib/nvim/parser)
+if(EXISTS ${DEPS_PREFIX}/lib/wgvim/parser)
   add_custom_command(
     TARGET nvim_runtime_deps
     POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E ${COPY_DIRECTORY} ${DEPS_PREFIX}/lib/nvim/parser ${BINARY_LIB_DIR}/parser)
+    COMMAND ${CMAKE_COMMAND} -E ${COPY_DIRECTORY} ${DEPS_PREFIX}/lib/wgvim/parser ${BINARY_LIB_DIR}/parser)
 endif()
 
 if(CYGWIN)
@@ -859,7 +914,7 @@ if(NOT PREFER_LUA)
   # install luajit runtime files if bundled
   if(EXISTS ${LUAJIT_RUNTIME_DIR})
     install(DIRECTORY ${LUAJIT_RUNTIME_DIR}
-      DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/nvim/runtime/lua
+      DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/wgvim/runtime/lua
       USE_SOURCE_PERMISSIONS)
   endif()
 endif()
@@ -877,6 +932,34 @@ set_target_properties(
 )
 target_compile_definitions(libnvim PRIVATE MAKE_LIB)
 target_link_libraries(libnvim PRIVATE main_lib PUBLIC libuv)
+
+# wgvim: libFuzzer harnesses for untrusted-input parsers (test/fuzz, see its README.md).
+# Configure a separate build with clang: cmake -B build-fuzz -D CMAKE_C_COMPILER=clang
+#   -D CMAKE_BUILD_TYPE=RelWithDebInfo -D WGVIM_FUZZ=ON -D WGVIM_HARDENING=OFF
+# then: cmake --build build-fuzz --target fuzzers
+option(WGVIM_FUZZ "Build libFuzzer harnesses (requires clang)" OFF)
+if(WGVIM_FUZZ)
+  if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
+    message(FATAL_ERROR "WGVIM_FUZZ requires clang (libFuzzer)")
+  endif()
+  # Instrument all editor code for coverage feedback and ASan/UBSan.
+  target_compile_options(main_lib INTERFACE
+    -fsanitize=fuzzer-no-link,address,undefined -fno-sanitize-recover=undefined
+    -fno-omit-frame-pointer -g)
+  target_link_options(main_lib INTERFACE -fsanitize=address,undefined)
+  set(WGVIM_FUZZERS vterm termkey)
+  foreach(f ${WGVIM_FUZZERS})
+    add_executable(${f}_fuzzer EXCLUDE_FROM_ALL ${PROJECT_SOURCE_DIR}/test/fuzz/${f}_fuzzer.c)
+    target_include_directories(${f}_fuzzer PRIVATE
+      $<TARGET_PROPERTY:main_lib,INTERFACE_INCLUDE_DIRECTORIES>)
+    target_compile_definitions(${f}_fuzzer PRIVATE
+      $<TARGET_PROPERTY:main_lib,INTERFACE_COMPILE_DEFINITIONS>)
+    target_compile_options(${f}_fuzzer PRIVATE -fsanitize=fuzzer,address,undefined -g)
+    target_link_libraries(${f}_fuzzer PRIVATE libnvim -fsanitize=fuzzer,address,undefined)
+    list(APPEND WGVIM_FUZZER_TARGETS ${f}_fuzzer)
+  endforeach()
+  add_custom_target(fuzzers DEPENDS ${WGVIM_FUZZER_TARGETS})
+endif()
 
 #-------------------------------------------------------------------------------
 # Lint
@@ -945,7 +1028,7 @@ endif()
 add_glob_target(
   TARGET lintc-clint
   COMMAND $<TARGET_FILE:nvim_bin>
-  FLAGS --clean -l ${PROJECT_SOURCE_DIR}/src/clint.lua --output=${LINT_OUTPUT_FORMAT}
+  FLAGS --sandbox off --clean -l ${PROJECT_SOURCE_DIR}/src/clint.lua --output=${LINT_OUTPUT_FORMAT}
   FILES ${LINT_NVIM_SOURCES}
   EXCLUDE
     tui/terminfo_defs.h

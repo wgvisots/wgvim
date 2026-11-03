@@ -51,7 +51,7 @@ describe(':mksession', function()
     command('mksession ' .. session_file)
     command('%bwipeout!')
 
-    -- Create a new test instance of Nvim.
+    -- Create a new test instance of wgvim.
     clear()
     -- Restore session.
     command('source ' .. session_file)
@@ -66,7 +66,7 @@ describe(':mksession', function()
 
     command('mksession ' .. session_file)
 
-    -- Create a new test instance of Nvim.
+    -- Create a new test instance of wgvim.
     clear()
 
     -- Restore session.
@@ -136,7 +136,7 @@ describe(':mksession', function()
     command('tabfirst')
     command('mksession ' .. session_file)
 
-    -- Create a new test instance of Nvim.
+    -- Create a new test instance of wgvim.
     clear()
 
     command('source ' .. session_file)
@@ -160,7 +160,7 @@ describe(':mksession', function()
     command('tabfirst')
     command('mksession ' .. session_path)
 
-    -- Create a new test instance of Nvim.
+    -- Create a new test instance of wgvim.
     clear()
 
     -- Use :silent to avoid hit-enter prompt due to long path
@@ -220,7 +220,7 @@ describe(':mksession', function()
       sleep(100) -- Make sure all child processes have exited.
     end
 
-    -- Create a new test instance of Nvim.
+    -- Create a new test instance of wgvim.
     clear()
     command('silent source ' .. session_path)
 
@@ -259,7 +259,7 @@ describe(':mksession', function()
     command('mksession ' .. session_path)
     command('%bwipeout!')
 
-    -- Create a new test instance of Nvim.
+    -- Create a new test instance of wgvim.
     clear()
     screen = Screen.new(50, 6, { rgb = false })
     command('silent source ' .. session_path)
@@ -292,7 +292,7 @@ describe(':mksession', function()
     local cmdheight = api.nvim_get_option_value('cmdheight', {})
     command('mksession ' .. session_file)
 
-    -- Create a new test instance of Nvim.
+    -- Create a new test instance of wgvim.
     clear()
 
     command('source ' .. session_file)
@@ -345,7 +345,7 @@ describe(':mksession', function()
   end)
 
   it('SessionWritePre handles buffer removal', function()
-    -- :bdelete and :bwipeout differ for "live" Nvim but are equivalent
+    -- :bdelete and :bwipeout differ for "live" wgvim but are equivalent
     -- from :mksession's perspective, so one test covers both.
     api.nvim_buf_set_name(0, 'foo')
     command('autocmd SessionWritePre * bwipeout!')
@@ -392,7 +392,7 @@ describe(':mksession', function()
     command('set sessionoptions-=curdir')
     command('mksession ' .. session_file2)
 
-    -- Create a new test instance of Nvim.
+    -- Create a new test instance of wgvim.
     clear()
 
     command('silent source ' .. session_file)
@@ -420,7 +420,7 @@ describe(':mksession', function()
     command('tabfirst')
     command('mksession ' .. session_file)
 
-    -- Create a new test instance of Nvim.
+    -- Create a new test instance of wgvim.
     clear()
 
     command('source ' .. session_file)

@@ -736,7 +736,7 @@ endfunc
 " identical with the cache on (default) and off.  Compare full-buffer synID()
 " output both ways across filetypes that use "contains"/cluster lists.
 func Test_syntax_idlist_cache_unchanged()
-  throw 'Skipped: Nvim does not support test_override()'
+  throw 'Skipped: wgvim does not support test_override()'
   let samples = {
         \ 'c': ['#define M 0x1F', "char c = '\\n';",
         \       'int f(int a) { return a + 0xAB; }'],

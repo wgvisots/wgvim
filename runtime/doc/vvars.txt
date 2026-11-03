@@ -1,4 +1,4 @@
-*vvars.txt*	Nvim
+*vvars.txt*	wgvim
 
 
                 NVIM REFERENCE MANUAL
@@ -26,10 +26,10 @@ v:argf                                                    *v:argf* *argf-variabl
 <
 
 v:argv                                                    *v:argv* *argv-variable*
-		Command line arguments (`-u`, `--cmd`, `+cmd`, …) Nvim was
-		invoked with.  The first item is the Nvim command.
+		Command line arguments (`-u`, `--cmd`, `+cmd`, …) wgvim was
+		invoked with.  The first item is the wgvim command.
 
-		See |v:progpath| to get the full path to Nvim.
+		See |v:progpath| to get the full path to wgvim.
 		See |v:argf| to get only file args, without other options.
 
 v:cascading                                     *v:cascading* *cascading-variable*
@@ -492,11 +492,11 @@ v:profiling                                     *v:profiling* *profiling-variabl
 		See |profiling|.
 
 v:progname                                        *v:progname* *progname-variable*
-		The name by which Nvim was invoked (with path removed).
+		The name by which wgvim was invoked (with path removed).
 		Read-only.
 
 v:progpath                                        *v:progpath* *progpath-variable*
-		Absolute path to the current running Nvim.
+		Absolute path to the current running wgvim.
 		Read-only.
 
 v:register                                        *v:register* *register-variable*
@@ -528,28 +528,29 @@ v:searchforward                         *v:searchforward* *searchforward-variabl
 		Read-write.
 
 v:servername                                  *v:servername* *servername-variable*
-		Primary listen-address of Nvim, the first item returned by
-		|serverlist()|. Usually this is the named pipe created by Nvim
-		at |startup| or given by |--listen| (or the deprecated
-		|$NVIM_LISTEN_ADDRESS| env var).
+		Primary listen-address of wgvim, the first item returned by
+		|serverlist()|: the address given by |--listen| (or the deprecated
+		|$WGVIM_LISTEN_ADDRESS| env var) or started with |serverstart()|.
+		wgvim does not start a server on its own, so this is empty unless
+		one of those was used.
 
 		See also |serverstart()| |serverstop()|.
 		Read-only.
 
-		                                                     *$NVIM*
-		$NVIM is set to v:servername by |terminal| and |jobstart()|,
+		                                                     *$WGVIM*
+		$WGVIM is set to v:servername by |terminal| and |jobstart()|,
 		and is thus a hint that the current environment is a child
-		(direct subprocess) of Nvim.
+		(direct subprocess) of wgvim.
 
-		Example: a child Nvim process can detect and make requests to
-		its parent Nvim: >lua
+		Example: a child wgvim process can detect and make requests to
+		its parent wgvim: >lua
 
-		  if vim.env.NVIM then
-		    local ok, chan = pcall(vim.fn.sockconnect, 'pipe', vim.env.NVIM, {rpc=true})
+		  if vim.env.WGVIM then
+		    local ok, chan = pcall(vim.fn.sockconnect, 'pipe', vim.env.WGVIM, {rpc=true})
 		    if ok and chan then
 		      local client = vim.api.nvim_get_chan_info(chan).client
 		      local rv = vim.rpcrequest(chan, 'nvim_exec_lua', [[return ... + 1]], { 41 })
-		      vim.print(('got "%s" from parent Nvim'):format(rv))
+		      vim.print(('got "%s" from parent wgvim'):format(rv))
 		    end
 		  end
 <
@@ -574,7 +575,7 @@ v:stacktrace                                  *v:stacktrace* *stacktrace-variabl
 		|throw-variables|.
 
 v:startreason                               *v:startreason* *startreason-variable*
-		The reason Nvim started. Possible values:
+		The reason wgvim started. Possible values:
 		- "normal"    Normal startup, yearning for life, etc.
 		- "restart"   Started by |:restart|.
 		- "restart!"  Started by |:restart!|.
@@ -582,7 +583,7 @@ v:startreason                               *v:startreason* *startreason-variabl
 		Read-only.
 
 v:starttime                                     *v:starttime* *starttime-variable*
-		Timestamp (nanoseconds since UNIX epoch) when the Nvim process
+		Timestamp (nanoseconds since UNIX epoch) when the wgvim process
 		started.
 
 		To see the current "uptime": >lua
@@ -659,7 +660,7 @@ v:termrequest                               *v:termrequest* *termrequest-variabl
 
 v:termresponse                            *v:termresponse* *termresponse-variable*
 		The most recent OSC, DCS, APC, or recognized CSI (DA1, kitty
-		multiple-cursors) control sequence received by Nvim from the
+		multiple-cursors) control sequence received by wgvim from the
 		host-terminal. Can be read in a |TermResponse| event handler
 		after querying the terminal.
 
@@ -708,7 +709,7 @@ v:version                                           *v:version* *version-variabl
 		Vim version number: major version times 100 plus minor
 		version.  Vim 5.0 is 500, Vim 5.1 is 501.
 		Read-only.
-		Use |has()| to check the Nvim (not Vim) version: >vim
+		Use |has()| to check the wgvim (not Vim) version: >vim
 		  :if has("nvim-0.2.1")
 <
 
@@ -749,7 +750,7 @@ v:warningmsg                                  *v:warningmsg* *warningmsg-variabl
 v:windowid                                        *v:windowid* *windowid-variable*
 		Application-specific window "handle" which may be set by any
 		attached UI. Defaults to zero.
-		Note: For Nvim |windows| use |winnr()| or |win_getid()|, see
+		Note: For wgvim |windows| use |winnr()| or |win_getid()|, see
 		|window-ID|.
 
  vim:tw=78:ts=8:noet:ft=help:norl:

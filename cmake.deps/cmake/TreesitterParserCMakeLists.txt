@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 project(parser C)
 
+# wgvim: tree-sitter parsers are C11 (some scanners use static_assert). Under the deps'
+# default C99 that compiled as a call to an undefined function, which only surfaced once the
+# parsers were linked with -z now (see SECURITY-AUDIT.md).
+set(CMAKE_C_STANDARD 11)
+
 add_compile_options(-w)
 
 file(GLOB source_files src/*.c)
@@ -18,6 +23,6 @@ set_target_properties(
 
 include_directories(src)
 
-install(TARGETS parser LIBRARY DESTINATION lib/nvim/parser)
+install(TARGETS parser LIBRARY DESTINATION lib/wgvim/parser)
 
 # vim: set ft=cmake:

@@ -30,7 +30,7 @@ describe('vim.secure', function()
 
     before_each(function()
       clear { env = { XDG_STATE_HOME = xstate } }
-      n.mkdir_p(vim.fs.joinpath(xstate, is_os('win') and 'nvim-data' or 'nvim'))
+      n.mkdir_p(vim.fs.joinpath(xstate, is_os('win') and 'wgvim-data' or 'wgvim'))
 
       t.mkdir('Xdir')
       t.mkdir('Xdir/Xsubdir')
@@ -297,7 +297,7 @@ describe('vim.secure', function()
     end)
 
     before_each(function()
-      n.mkdir_p(vim.fs.joinpath(xstate, is_os('win') and 'nvim-data' or 'nvim'))
+      n.mkdir_p(vim.fs.joinpath(xstate, is_os('win') and 'wgvim-data' or 'wgvim'))
       t.write_file(test_file, 'test')
       t.write_file(empty_file, '')
       t.mkdir(test_dir)

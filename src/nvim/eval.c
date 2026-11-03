@@ -6414,7 +6414,7 @@ void last_set_msg(sctx_T script_ctx)
     msg_puts(_(line_msg));
     msg_outnum(script_ctx.sc_lnum);
   } else if (script_is_lua(script_ctx.sc_sid)) {
-    msg_puts(_(" (run Nvim with -V1 for more details)"));
+    msg_puts(_(" (run wgvim with -V1 for more details)"));
   }
   if (should_free) {
     xfree(p);
@@ -6651,13 +6651,9 @@ typval_T eval_call_provider(char *provider, char *method, list_T *arguments, boo
 /// Checks if provider for feature `feat` is enabled.
 bool eval_has_provider(const char *feat, bool throw_if_fast)
 {
-  if (!strequal(feat, "clipboard")
-      && !strequal(feat, "python3")
-      && !strequal(feat, "python3_compiled")
-      && !strequal(feat, "python3_dynamic")
-      && !strequal(feat, "perl")
-      && !strequal(feat, "ruby")
-      && !strequal(feat, "node")) {
+  // wgvim: clipboard is the only provider. The python3/perl/ruby/node providers are removed, so
+  // has('python3') etc. are 0 and :python3, :ruby, :perl report a missing provider.
+  if (!strequal(feat, "clipboard")) {
     // Avoid autoload for non-provider has() features.
     return false;
   }

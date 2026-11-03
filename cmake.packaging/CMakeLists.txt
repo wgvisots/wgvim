@@ -2,7 +2,7 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm64|ARM64|aarch64)$")
   set(CMAKE_SYSTEM_PROCESSOR arm64)
 endif()
 
-set(CPACK_PACKAGE_NAME "Neovim")
+set(CPACK_PACKAGE_NAME "wgvim")
 set(CPACK_PACKAGE_VENDOR "neovim.io")
 set(CPACK_PACKAGE_FILE_NAME "nvim")
 set(CPACK_PACKAGE_DIRECTORY ${PROJECT_BINARY_DIR})
@@ -45,7 +45,7 @@ if(WIN32)
 
   # Create start menu and desktop shortcuts
   set(CPACK_WIX_PROGRAM_MENU_FOLDER "${CPACK_PACKAGE_NAME}")
-  set(CPACK_PACKAGE_EXECUTABLES "nvim" "Neovim")
+  set(CPACK_PACKAGE_EXECUTABLES "nvim" "wgvim")
   set(CPACK_WIX_INSTALL_SCOPE "perMachine")
 
   set(CPACK_WIX_UI_REF "WixUI_CustomInstallDir")
@@ -63,7 +63,7 @@ elseif(APPLE)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CPACK_PACKAGE_FILE_NAME "nvim-linux-${CMAKE_SYSTEM_PROCESSOR}" CACHE STRING "Base filename for cpack output (no extension)")
   set(CPACK_GENERATOR TGZ DEB)
-  set(CPACK_DEBIAN_PACKAGE_NAME "Neovim") # required
+  set(CPACK_DEBIAN_PACKAGE_NAME "wgvim") # required
   set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Neovim.io") # required
 
   # Automatically compute required shared lib dependencies.

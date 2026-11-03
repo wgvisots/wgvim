@@ -110,7 +110,7 @@ func Test_xterm_mouse_right_click_extends_visual()
   bwipe!
 endfunc
 
-" Nvim: <C-LeftMouse> adds a multicursor. <C-RightMouse> still pops the tagstack.
+" wgvim: <C-LeftMouse> adds a multicursor. <C-RightMouse> still pops the tagstack.
 func Test_xterm_mouse_ctrl_click()
   let save_mouse = &mouse
   let save_term = &term

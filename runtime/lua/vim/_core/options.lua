@@ -1,4 +1,4 @@
---- @brief Nvim Lua provides an interface or "bridge" to Vimscript variables and
+--- @brief wgvim Lua provides an interface or "bridge" to Vimscript variables and
 --- functions, and editor commands and options.
 ---
 --- Objects passed over this bridge are COPIED (marshalled): there are no
@@ -56,7 +56,7 @@
 --- <
 ---
 --- Note that setting dictionary fields directly will not write them back into
---- Nvim. This is because the index into the namespace simply returns a copy.
+--- wgvim. This is because the index into the namespace simply returns a copy.
 --- Instead the whole dictionary must be written as one. This can be achieved by
 --- creating a short-lived temporary.
 ---

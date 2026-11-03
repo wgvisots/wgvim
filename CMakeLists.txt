@@ -6,7 +6,6 @@
 #     - variable_watch https://cmake.org/cmake/help/latest/command/variable_watch.html
 #     - verbose output: cmake --build build --verbose
 
-# Version should match the tested CMAKE_URL in .github/workflows/build.yml.
 cmake_minimum_required(VERSION 3.16)
 
 project(nvim C)
@@ -255,7 +254,7 @@ add_glob_target(
 add_custom_target(lintquery-compilation
   COMMAND ${TS_QUERY_LS_PRG}
   check ${PROJECT_SOURCE_DIR}/runtime/queries --config
-  '{"parser_install_directories": ["${DEPS_PREFIX}/lib/nvim/parser"]}')
+  '{"parser_install_directories": ["${DEPS_PREFIX}/lib/wgvim/parser"]}')
 
 add_custom_target(lintquery-format
   COMMAND ${TS_QUERY_LS_PRG}
@@ -265,11 +264,11 @@ add_custom_target(lintquery)
 add_dependencies(lintquery lintquery-compilation lintquery-format)
 
 add_custom_target(lintcommit
-  COMMAND $<TARGET_FILE:nvim_bin> --clean -l ${PROJECT_SOURCE_DIR}/scripts/lintcommit.lua main)
+  COMMAND $<TARGET_FILE:nvim_bin> --sandbox off --clean -l ${PROJECT_SOURCE_DIR}/scripts/lintcommit.lua main)
 add_dependencies(lintcommit nvim_bin)
 
 add_custom_target(linterrcodes
-  COMMAND $<TARGET_FILE:nvim_bin> --clean -l ${PROJECT_SOURCE_DIR}/scripts/linterrcodes.lua
+  COMMAND $<TARGET_FILE:nvim_bin> --sandbox off --clean -l ${PROJECT_SOURCE_DIR}/scripts/linterrcodes.lua
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 add_dependencies(linterrcodes nvim_bin)
 

@@ -530,9 +530,9 @@ func Test_null()
   echom v:_null_dict
   echom v:_null_blob
   echom v:_null_string
-  " Nvim doesn't have NULL functions
+  " wgvim doesn't have NULL functions
   " echom test_null_function()
-  " Nvim doesn't have NULL partials
+  " wgvim doesn't have NULL partials
   " echom test_null_partial()
   if has('job')
     echom test_null_job()

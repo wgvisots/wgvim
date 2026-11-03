@@ -273,7 +273,7 @@ describe('system()', function()
       screen:expect([[
         ^                                                     |
         {1:~                                                    }|*12
-        Type  :qa  and press <Enter> to exit Nvim            |
+        Type  :qa  and press <Enter> to exit wgvim           |
       ]])
     end)
 
@@ -461,7 +461,7 @@ describe('systemlist()', function()
       screen:expect([[
         ^                                                     |
         {1:~                                                    }|*12
-        Type  :qa  and press <Enter> to exit Nvim            |
+        Type  :qa  and press <Enter> to exit wgvim           |
       ]])
     end)
   end)

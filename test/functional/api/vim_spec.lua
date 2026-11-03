@@ -1798,7 +1798,7 @@ describe('API', function()
       local xhome = 'Xhome_api'
       local xconfig = ('%s/Xconfig'):format(xhome)
       local xdata = ('%s/Xdata'):format(xhome)
-      local autoload_folder = ('%s/nvim/autoload'):format(xconfig)
+      local autoload_folder = ('%s/wgvim/autoload'):format(xconfig)
       local autoload_file = ('%s/testload.vim'):format(autoload_folder)
       mkdir_p(autoload_folder)
       write_file(autoload_file, [[let testload#value = 2]])
@@ -1928,7 +1928,7 @@ describe('API', function()
       api.nvim_exec_lua('vim.api.nvim_set_option_value("equalalways", true, {})', {})
       status, rv = pcall(command_output, 'verbose set equalalways?')
       eq(true, status)
-      eq('  equalalways\n\tLast set from Lua (run Nvim with -V1 for more details)', rv)
+      eq('  equalalways\n\tLast set from Lua (run wgvim with -V1 for more details)', rv)
     end)
 
     it('updates whether the option has ever been set #25025', function()
@@ -2224,7 +2224,7 @@ describe('API', function()
       exec [[
         autocmd FileType * ++once let g:dummy_buf = bufnr() | split
 
-        " Autocommands should be blocked while Nvim attempts to wipe the buffer.
+        " Autocommands should be blocked while wgvim attempts to wipe the buffer.
         let g:wipe_events = []
         autocmd WinClosed * if winbufnr(expand('<amatch>')) == g:dummy_buf
                          \| let g:wipe_events += ['WinClosed']
@@ -2253,7 +2253,7 @@ describe('API', function()
     end)
 
     it('does not crash if dummy buffer wiped after autocommands', function()
-      -- Autocommands are blocked while Nvim attempts to wipe the buffer, but check something like
+      -- Autocommands are blocked while wgvim attempts to wipe the buffer, but check something like
       -- &bufhidden = "wipe" causing a premature wipe doesn't crash.
       command('autocmd FileType * ++once setlocal bufhidden=wipe | split')
       api.nvim_get_option_value('formatexpr', { filetype = 'lua' })
@@ -3952,7 +3952,7 @@ describe('API', function()
       assert_alive()
     end)
 
-    require('test.unit.viml.expressions.parser_tests')(it, _check_parsing, hl, fmtn)
+    require('test.functional.api.expression_parser_tests')(it, _check_parsing, hl, fmtn)
   end)
 
   describe('nvim_create_namespace', function()
@@ -4153,21 +4153,19 @@ describe('API', function()
       eq({}, api.nvim_get_runtime_file('bork.borkbork', true))
       eq(1, #api.nvim_get_runtime_file('autoload/msgpack.vim', false))
       eq(1, #api.nvim_get_runtime_file('autoload/msgpack.vim', true))
-      local val = api.nvim_get_runtime_file('autoload/remote/*.vim', true)
+      -- wgvim: autoload/remote/ (remote plugins) is removed; use two other runtime files.
+      local val = api.nvim_get_runtime_file('autoload/xml/xs*.vim', true)
       eq(2, #val)
-      if endswith(val[1], 'define.vim') then
-        ok(endswith(val[1], 'autoload/remote/define.vim'))
-        ok(endswith(val[2], 'autoload/remote/host.vim'))
+      if endswith(val[1], 'xsd.vim') then
+        ok(endswith(val[1], 'autoload/xml/xsd.vim'))
+        ok(endswith(val[2], 'autoload/xml/xsl.vim'))
       else
-        ok(endswith(val[1], 'autoload/remote/host.vim'))
-        ok(endswith(val[2], 'autoload/remote/define.vim'))
+        ok(endswith(val[1], 'autoload/xml/xsl.vim'))
+        ok(endswith(val[2], 'autoload/xml/xsd.vim'))
       end
-      val = api.nvim_get_runtime_file('autoload/remote/*.vim', false)
+      val = api.nvim_get_runtime_file('autoload/xml/xs*.vim', false)
       eq(1, #val)
-      ok(
-        endswith(val[1], 'autoload/remote/define.vim')
-          or endswith(val[1], 'autoload/remote/host.vim')
-      )
+      ok(endswith(val[1], 'autoload/xml/xsd.vim') or endswith(val[1], 'autoload/xml/xsl.vim'))
 
       val = api.nvim_get_runtime_file('lua', true)
       eq(1, #val)

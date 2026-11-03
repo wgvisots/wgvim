@@ -31,7 +31,7 @@ describe('u_* functions', function()
       },
     })
     set_session(session)
-    command('echo "True"') -- Should not error out due to crashed Neovim
+    command('echo "True"') -- Should not error out due to crashed wgvim
     session:close()
   end)
 end)

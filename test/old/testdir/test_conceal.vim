@@ -394,7 +394,7 @@ func Test_conceal_mouse_click()
   syn match Concealed "this" conceal
   hi link Concealed Search
 
-  " Nvim: need to redraw before processing every key, because mouse clicks set
+  " wgvim: need to redraw before processing every key, because mouse clicks set
   " w_redr_type, which prevent using vcols[].
   lua _G.NS = vim.on_key(function() vim.cmd.redraw() end)
 

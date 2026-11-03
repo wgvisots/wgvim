@@ -1,5 +1,5 @@
 if exists('s:did_load')
-  " Align Nvim defaults to Vim.
+  " Align wgvim defaults to Vim.
   set commentstring=/*\ %s\ */
   if g:testname !~ 'test_ins_complete_no_halt\.vim$'
     set complete=.,w,b,u,t,i
@@ -37,7 +37,7 @@ if exists('s:did_load')
   endif
   if g:testname !~ 'test_mapping\.vim$'
     " Make "Q" behave like normal Ex mode.
-    " This does not work for all tests as Nvim only supports Vim Ex mode.
+    " This does not work for all tests as wgvim only supports Vim Ex mode.
     nnoremap Q 1q:<Cmd>call<SID>ExStart()<CR>
     " Make "gQ" go to Vim Ex mode.
     noremap gQ 1q:
@@ -61,13 +61,13 @@ func s:ExMayEnd()
   " normal Ex mode vs. Vim Ex mode.
   " - In normal Ex mode, "\n" is used.
   " - In Vim Ex mode, Ctrl-C is used.
-  " Nvim only supports Vim Ex mode, so emulate the normal Ex mode behavior.
+  " wgvim only supports Vim Ex mode, so emulate the normal Ex mode behavior.
   if state('m') == '' && mode(1) == 'cv' && getcharstr(1) == "\<C-C>"
     call feedkeys("\n")
   endif
 endfunc
 
-" Clear Nvim default user commands, mappings and menus.
+" Clear wgvim default user commands, mappings and menus.
 comclear
 mapclear
 mapclear!
@@ -78,8 +78,8 @@ autocmd! nvim.popupmenu
 " Undo the 'grepprg' and 'grepformat' setting in _core/defaults.lua.
 set grepprg& grepformat&
 
-" Prevent Nvim log from writing to stderr.
-let $NVIM_LOG_FILE = exists($NVIM_LOG_FILE) ? $NVIM_LOG_FILE : 'Xnvim.log'
+" Prevent wgvim log from writing to stderr.
+let $WGVIM_LOG_FILE = exists($WGVIM_LOG_FILE) ? $WGVIM_LOG_FILE : 'Xnvim.log'
 
 " Make sure 'runtimepath' and 'packpath' does not include $HOME.
 set rtp=$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after

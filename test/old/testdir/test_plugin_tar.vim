@@ -323,7 +323,7 @@ func Test_extract_with_dotted_filename()
 endfunc
 
 func Test_extract_command_injection()
-  throw 'SKipped: Nvim does not support :Vimuntar'
+  throw 'SKipped: wgvim does not support :Vimuntar'
   CheckExecutable gunzip
   CheckExecutable touch
   var tgz = eval('0z1F8B08087795056A000364756D6D792E74617200EDCE2B12C2300004D01C254' ..

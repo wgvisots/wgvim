@@ -53,7 +53,7 @@ describe(':Tutor', function()
       {0:  }     :{4:!}dir                   - shows a directory listing                       |
       {0:  }     :{4:!}del FILENAME          - removes file FILENAME                           |
       {0:  }                                                                               |
-      {0:  } 2. {2::w} FILENAME              writes the current Neovim file to disk with       |
+      {0:  } 2. {2::w} FILENAME              writes the current wgvim file to disk with        |
       {0:  }                             name FILENAME.                                    |
       {0:  }                                                                               |
       {0:  } 3. {2:v}  motion  :w FILENAME   saves the Visually selected lines in file         |
@@ -85,7 +85,7 @@ describe(':Tutor', function()
       {0:  }     :{4:!}ls                    - shows a directory listing                       |
       {0:  }     :{4:!}rm  FILENAME          - removes file FILENAME                           |
       {0:  }                                                                               |
-      {0:  } 2. {2::w} FILENAME              writes the current Neovim file to disk with       |
+      {0:  } 2. {2::w} FILENAME              writes the current wgvim file to disk with        |
       {0:  }                             name FILENAME.                                    |
       {0:  }                                                                               |
       {0:  } 3. {2:v}  motion  :w FILENAME   saves the Visually selected lines in file         |
@@ -108,8 +108,8 @@ describe(':Tutor', function()
       {0:  }^This concludes Chapter 1 of the Vim Tutor.  Consider continuing with           |
       {0:  }{2:Chapter 2}.                                                                     |
       {0:  }                                                                               |
-      {0:  }This was intended to give a brief overview of the Neovim editor, just enough to|
-      {0:  }allow you to use it fairly easily. It is far from complete as Neovim has       |
+      {0:  }This was intended to give a brief overview of the wgvim editor, just enough to |
+      {0:  }allow you to use it fairly easily. It is far from complete as wgvim has        |
       {0:  }many many more commands. Consult the help often.                               |
       {0:  }There are also countless great tutorials and videos to be found online.        |
       {0:  }Here's a bunch of them:                                                        |
@@ -130,7 +130,7 @@ describe(':Tutor', function()
       {0:  }  {2:https://github.com/mhinz/vim-galore}                                          |
       {0:  }                                                                               |
       {0:  }If you prefer a book, {6:Practical Vim} by Drew Neil is recommended often          |
-      {0:  }(the sequel, {6:Modern Vim}, includes material specific to Neovim).                |
+      {0:  }(the sequel, {6:Modern Vim}, includes material specific to wgvim).                 |
       {0:  }                                                                               |
       {0:  }This tutorial was written by Michael C. Pierce and Robert K. Ware, Colorado    |
       {0:  }School of Mines using ideas supplied by Charles Smith, Colorado State          |
@@ -234,7 +234,7 @@ describe(':Tutor', function()
       {0:  } 5. Now that the line is correct, go on to Lesson 1.4.                         |
       {0:  }                                                                               |
       {0:  }{1:NOTE}: As you go through this tutorial, do not try to memorize everything,      |
-      {0:  }      your Neovim vocabulary will expand with usage. Consider returning to     |
+      {0:  }      your wgvim vocabulary will expand with usage. Consider returning to      |
       {0:  }      this tutorial periodically for a refresher.                              |
       {0:  }                                                                               |
       {0:  }{3:#}{5: Lesson 1.4: TEXT EDITING: INSERTION}                                          |
@@ -272,7 +272,7 @@ describe(':Tutor', function()
       {0:  } 5. Now that the line is correct, go on to Lesson 1.4.                         |
       {0:  }                                                                               |
       {0:  }{1:NOTE}: As you go through this tutorial, do not try to memorize everything,      |
-      {0:  }      your Neovim vocabulary will expand with usage. Consider returning to     |
+      {0:  }      your wgvim vocabulary will expand with usage. Consider returning to      |
       {0:  }      this tutorial periodically for a refresher.                              |
       {0:  }                                                                               |
       {0:  }{3:#}{5: Lesson 1.4: TEXT EDITING: INSERTION}                                          |

@@ -6212,9 +6212,9 @@ static void nv_esc(cmdarg_T *cap)
     if (restart_edit == 0 && !Visual.active && no_reason) {
       if (anyBufIsChanged()) {
         msg(_("Type  :qa!  and press <Enter> to abandon all changes"
-              " and exit Nvim"), 0);
+              " and exit wgvim"), 0);
       } else {
-        msg(_("Type  :qa  and press <Enter> to exit Nvim"), 0);
+        msg(_("Type  :qa  and press <Enter> to exit wgvim"), 0);
       }
     }
 

@@ -1,4 +1,4 @@
-*usr_27.txt*	Nvim
+*usr_27.txt*	wgvim
 
 
 		     VIM USER MANUAL	by Bram Moolenaar

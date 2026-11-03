@@ -28,13 +28,13 @@ func Test_execute_string()
   let evaled = execute('echo "that"')
   echo 'theend'
   redir END
-" Nvim supports execute('... :redir ...'), so this test is intentionally
+" wgvim supports execute('... :redir ...'), so this test is intentionally
 " disabled.
 "  call assert_equal("\nthis\ntheend", redired)
   call assert_equal("\nthat", evaled)
 
   call assert_fails('call execute("doesnotexist")', 'E492:')
-" Nvim supports execute('... :redir ...'), so this test is intentionally
+" wgvim supports execute('... :redir ...'), so this test is intentionally
 " disabled.
 "  call assert_fails('call execute("call NestedRedir()")', 'E930:')
 
@@ -204,7 +204,7 @@ func Test_execute_cmd_with_null()
   call assert_equal("", execute(v:_null_list))
   call assert_fails('call execute(v:_null_dict)', 'E731:')
   call assert_fails('call execute(v:_null_blob)', 'E976:')
-  " Nvim doesn't have null partials
+  " wgvim doesn't have null partials
   " call assert_fails('call execute(test_null_partial())','E729:')
   if has('job')
     call assert_fails('call execute(test_null_job())', 'E908:')

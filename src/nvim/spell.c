@@ -1600,18 +1600,9 @@ static void spell_load_lang(char *lang)
   }
 
   if (r == FAIL) {
-    if (starting) {
-      // Prompt the user at VimEnter if spell files are missing. #3027
-      // Plugins aren't loaded yet, so nvim/spellfile.lua cannot handle this case.
-      char autocmd_buf[512] = { 0 };
-      snprintf(autocmd_buf, sizeof(autocmd_buf),
-               "autocmd VimEnter * call v:lua.require'nvim.spellfile'.get('%s')|set spell",
-               lang);
-      do_cmdline_cmd(autocmd_buf);
-    } else {
-      smsg(0, _("Warning: Cannot find word list \"%s.%s.spl\" or \"%s.ascii.spl\""),
-           lang, spell_enc(), lang);
-    }
+    // wgvim: missing spell files are never downloaded; just report them.
+    smsg(0, _("Warning: Cannot find word list \"%s.%s.spl\" or \"%s.ascii.spl\""),
+         lang, spell_enc(), lang);
   } else if (sl.sl_slang != NULL) {
     // At least one file was loaded, now load ALL the additions.
     STRCPY(fname_enc + strlen(fname_enc) - 3, "add.spl");

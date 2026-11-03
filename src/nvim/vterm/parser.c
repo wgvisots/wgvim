@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -7,6 +8,8 @@
 #include "nvim/vterm/vterm_internal_defs.h"
 
 #include "vterm/parser.c.generated.h"
+
+#define VTERM_CSI_ARG_MAX 65535L
 
 #undef DEBUG_PARSER
 
@@ -245,8 +248,15 @@ size_t vterm_input_write(VTerm *vt, const char *bytes, size_t len)
         if (vt->parser.v.csi.args[vt->parser.v.csi.argi] == CSI_ARG_MISSING) {
           vt->parser.v.csi.args[vt->parser.v.csi.argi] = 0;
         }
-        vt->parser.v.csi.args[vt->parser.v.csi.argi] *= 10;
-        vt->parser.v.csi.args[vt->parser.v.csi.argi] += c - '0';
+        // wgvim: clamp numeric CSI arguments to 65535 (xterm's limit). Unbounded values first
+        // overflowed `long` here, and values near INT_MAX then overflowed the `int` cursor and
+        // count arithmetic in state.c (e.g. pos.col + count), wrapping negative and leading to
+        // out-of-bounds reads/writes in the screen buffer. Found by test/fuzz/vterm_fuzzer.
+        long *argp = &vt->parser.v.csi.args[vt->parser.v.csi.argi];
+        *argp = *argp * 10 + (c - '0');
+        if (*argp > VTERM_CSI_ARG_MAX) {
+          *argp = VTERM_CSI_ARG_MAX;
+        }
         break;
       }
       if (c == ':') {
@@ -254,8 +264,15 @@ size_t vterm_input_write(VTerm *vt, const char *bytes, size_t len)
         c = ';';
       }
       if (c == ';') {
-        vt->parser.v.csi.argi++;
-        vt->parser.v.csi.args[vt->parser.v.csi.argi] = CSI_ARG_MISSING;
+        // wgvim: bound the argument index. Without this check every ';' advanced argi, so a CSI
+        // sequence with more than CSI_ARGS_MAX (32) parameters wrote attacker-chosen values past
+        // the end of args[] into the rest of the VTerm heap object (and beyond): a program
+        // printing "ESC [" followed by many "1;" in :terminal crashed the editor (SIGSEGV).
+        // Extra parameters are now dropped. Found by test/fuzz/vterm_fuzzer.
+        if (vt->parser.v.csi.argi < CSI_ARGS_MAX - 1) {
+          vt->parser.v.csi.argi++;
+          vt->parser.v.csi.args[vt->parser.v.csi.argi] = CSI_ARG_MISSING;
+        }
         break;
       }
 
@@ -285,10 +302,14 @@ size_t vterm_input_write(VTerm *vt, const char *bytes, size_t len)
       if (c >= '0' && c <= '9') {
         if (vt->parser.v.osc.command == -1) {
           vt->parser.v.osc.command = 0;
-        } else {
-          vt->parser.v.osc.command *= 10;
         }
-        vt->parser.v.osc.command += c - '0';
+        // wgvim: saturate instead of overflowing `int` (UB) on a huge OSC number; found by
+        // test/fuzz/vterm_fuzzer. No real OSC command is anywhere near INT_MAX.
+        if (vt->parser.v.osc.command > (INT_MAX - (c - '0')) / 10) {
+          vt->parser.v.osc.command = INT_MAX;
+        } else {
+          vt->parser.v.osc.command = vt->parser.v.osc.command * 10 + (c - '0');
+        }
         break;
       }
       if (c == ';') {

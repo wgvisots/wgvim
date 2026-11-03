@@ -6,12 +6,12 @@ function M.check_log_file()
     return
   end
 
-  local wanted = vim.fn.getenv('__NVIM_LOG_FILE_WANT')
+  local wanted = vim.fn.getenv('__WGVIM_LOG_FILE_WANT')
   if not wanted or wanted == vim.NIL then
     return
   end
 
-  local actual = vim.fn.getenv('NVIM_LOG_FILE')
+  local actual = vim.fn.getenv('WGVIM_LOG_FILE')
 
   local msg --[[@type string]]
   if not actual or actual == vim.NIL or actual == '' then

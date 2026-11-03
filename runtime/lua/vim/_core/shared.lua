@@ -1,4 +1,4 @@
--- Functions shared by Nvim and its test-suite.
+-- Functions shared by wgvim and its test-suite.
 --
 -- These are "pure" lua functions not depending of the state of the editor.
 -- Thus they should always be available whenever nvim-related lua code is run,

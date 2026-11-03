@@ -1,13 +1,13 @@
-*dev_style.txt*          Nvim
+*dev_style.txt*          wgvim
 
 
                             NVIM REFERENCE MANUAL
 
 
 ==============================================================================
-Nvim style guide                                        *dev-style*
+wgvim style guide                                        *dev-style*
 
-Style guidelines for developers working on Nvim's source code.
+Style guidelines for developers working on wgvim's source code.
 
 License: CC-By 3.0 https://creativecommons.org/licenses/by/3.0/
 
@@ -44,7 +44,7 @@ All header files should start with `#pragma once` to prevent multiple inclusion.
 
 Headers system ~
 
-Nvim uses two types of headers. There are "normal" headers and "defs" headers.
+wgvim uses two types of headers. There are "normal" headers and "defs" headers.
 Typically, each normal header will have a corresponding defs header, e.g.
 `fileio.h` and `fileio_defs.h`. This distinction is done to minimize
 recompilation on change. The reason for this is because adding a function or
@@ -116,7 +116,7 @@ but each initialization should be done on a separate line.
     int i = 0, j = 0;   // ❌: multiple declarations with initialization.
 
 ==============================================================================
-Nvim-Specific Magic
+wgvim-Specific Magic
 
 clint ~
 
@@ -485,7 +485,7 @@ important, the best code is self-documenting.
 When writing your comments, write for your audience: the next contributor who
 will need to understand your code. Be generous — the next one may be you!
 
-Nvim uses Doxygen comments.
+wgvim uses Doxygen comments.
 
 
 Comment Style ~

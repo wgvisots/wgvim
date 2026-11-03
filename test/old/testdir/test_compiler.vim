@@ -11,7 +11,7 @@ func Test_compiler()
   let $LC_ALL= "C"
 
   let save_shellslash = &shellslash
-  " Nvim doesn't allow setting value of a hidden option to non-default value
+  " wgvim doesn't allow setting value of a hidden option to non-default value
   if exists('+shellslash')
     " %:S does not work properly with 'shellslash' set
     set noshellslash

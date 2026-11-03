@@ -12,10 +12,6 @@
 #endif
 
 #define NVIM_VERSION_CFLAGS "${VERSION_STRING}"
-#ifdef ZIG_BUILD
-# define NVIM_VERSION_BUILD_TYPE "${CONFIG}"
-#else
-# define NVIM_VERSION_BUILD_TYPE "$<CONFIG>"
-#endif
+#define NVIM_VERSION_BUILD_TYPE "$<CONFIG>"
 
 #endif  // AUTO_VERSIONDEF_H

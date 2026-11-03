@@ -369,7 +369,7 @@ function main() {
     }
   });
   transport.onExit((code) => {
-      setStatus(`Neovim exited (code ${code}). Refresh the page to start a new session.`);
+      setStatus(`wgvim exited (code ${code}). Refresh the page to start a new session.`);
       gridEl.style.opacity = "0.5";
     });
   nvim.on("redraw", (params) =>

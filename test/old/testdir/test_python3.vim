@@ -115,7 +115,7 @@ func Test_set_cursor()
 endfunc
 
 func Test_vim_function()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   " Check creating vim.Function object
   py3 import vim
 
@@ -152,7 +152,7 @@ func Test_vim_function()
 endfunc
 
 func Test_skipped_python3_command_does_not_affect_pyxversion()
-  throw 'Skipped: Nvim hardcodes pyxversion=3'
+  throw 'Skipped: wgvim hardcodes pyxversion=3'
   set pyxversion=0
   if 0
     python3 import vim
@@ -307,7 +307,7 @@ endfunc
 
 " Test for resetting options with local values to global values
 func Test_python3_opt_reset_local_to_global()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   new
 
   py3 curbuf = vim.current.buffer
@@ -406,7 +406,7 @@ endfunc
 
 " Test for the python List object
 func Test_python3_list()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   let l = []
   py3 l = vim.bindeval('l')
   py3 f = vim.bindeval('function("strlen")')
@@ -425,7 +425,7 @@ endfunc
 
 " Extending Dictionary directly with different types
 func Test_python3_dict_extend()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   let d = {}
   func d.f()
     return 1
@@ -459,7 +459,7 @@ func Test_python3_dict_extend()
 endfunc
 
 func Test_python3_list_del_items()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   " removing items with del
   let l = [0, function("strlen"), [1, 2, function("strlen"), {'a': 1}]]
   py3 l = vim.bindeval('l')
@@ -541,7 +541,7 @@ func Test_python3_list_del_items()
 endfunc
 
 func Test_python3_dict_del_items()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   let d = eval("{'0' : -1, '1' : 'asd', 'b' : [1, 2, function('strlen')], 'f' : function('min'), '-1' : {'a': 1}}")
   py3 d = vim.bindeval('d')
   py3 del d['-1']
@@ -564,7 +564,7 @@ endfunc
 
 " Slice assignment to a list
 func Test_python3_slice_assignment()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   let l = [0, 1, 2, 3]
   py3 l = vim.bindeval('l')
   py3 l[0:0] = ['a']
@@ -633,7 +633,7 @@ endfunc
 
 " Locked variables
 func Test_python3_lockedvar()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   new
   py3 cb = vim.current.buffer
   let l = [0, 1, 2, 3]
@@ -654,7 +654,7 @@ endfunc
 
 " Test for calling a function
 func Test_python3_function_call()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   func New(...)
     return ['NewStart'] + a:000 + ['NewEnd']
   endfunc
@@ -684,7 +684,7 @@ func Test_python3_function_call()
 endfunc
 
 func Test_python3_float()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   CheckFeature float
   let l = [0.0]
   py3 l = vim.bindeval('l')
@@ -694,7 +694,7 @@ endfunc
 
 " Test for Dict key errors
 func Test_python3_dict_key_error()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   let messages = []
   py3 << trim EOF
     import sys
@@ -728,7 +728,7 @@ endfunc
 
 " Test for locked and scope attributes
 func Test_python3_lock_scope_attr()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   let d = {} | let dl = {} | lockvar dl
   let res = []
   for s in split("d dl v: g:")
@@ -824,7 +824,7 @@ endfunc
 " Running py3do command (Test_pydo) before this test, stops the python thread
 " from running. So this test should be run before the pydo test
 func Test_aaa_python_threading()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   let l = [0]
   py3 l = vim.bindeval('l')
   py3 << trim EOF
@@ -862,7 +862,7 @@ endfunc
 
 " settrace
 func Test_python3_settrace()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   let l = []
   py3 l = vim.bindeval('l')
   py3 << trim EOF
@@ -888,7 +888,7 @@ endfunc
 
 " Slice
 func Test_python3_list_slice()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   py3 ll = vim.bindeval('[0, 1, 2, 3, 4, 5]')
   py3 l = ll[:4]
   call assert_equal([0, 1, 2, 3], py3eval('l'))
@@ -952,7 +952,7 @@ endfunc
 " preserveindent: boolean, buffer-local/global
 " path:           string,  buffer-local/global
 func Test_python3_opts()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   let g:res = []
   let g:bufs = [bufnr('%')]
   new
@@ -1748,7 +1748,7 @@ endfunc
 
 " Test types
 func Test_python3_types()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   %d
   py3 cb = vim.current.buffer
   py3 << trim EOF
@@ -1784,7 +1784,7 @@ endfunc
 
 " Test __dir__() method
 func Test_python3_dir_method()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   %d
   py3 cb = vim.current.buffer
   py3 << trim EOF
@@ -1819,7 +1819,7 @@ endfunc
 
 " Test vim.*.__new__
 func Test_python3_new()
-  throw "Skipped: Nvim: 'LegacyVim' object has no attribute 'Dictionary'"
+  throw "Skipped: wgvim: 'LegacyVim' object has no attribute 'Dictionary'"
   call assert_equal({}, py3eval('vim.Dictionary({})'))
   call assert_equal({'a': 1}, py3eval('vim.Dictionary(a=1)'))
   call assert_equal({'a': 1}, py3eval('vim.Dictionary(((''a'', 1),))'))
@@ -1847,7 +1847,7 @@ endfunc
 
 " Test vim.Function
 func Test_python3_vim_func()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   function Args(...)
     return a:000
   endfunc
@@ -2238,7 +2238,7 @@ endfunc
 
 " Test subclassing
 func Test_python3_subclass()
-  throw "Skipped: Nvim: 'LegacyVim' object has no attribute 'Dictionary'"
+  throw "Skipped: wgvim: 'LegacyVim' object has no attribute 'Dictionary'"
   new
   func Put(...)
     return a:000
@@ -2289,7 +2289,7 @@ endfunc
 
 " Test chdir
 func Test_python3_chdir()
-  throw "Skipped: Nvim: 'LegacyVim' object has no attribute 'Function'"
+  throw "Skipped: wgvim: 'LegacyVim' object has no attribute 'Function'"
   new Xfile
   py3 cb = vim.current.buffer
   py3 << trim EOF
@@ -2325,7 +2325,7 @@ endfunc
 
 " Test errors
 func Test_python3_errors()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   func F() dict
   endfunc
 
@@ -3594,7 +3594,7 @@ endfunc
 
 " Test exceptions
 func Test_python3_exception()
-  throw 'Skipped: Nvim does not support vim.bindeval()'
+  throw 'Skipped: wgvim does not support vim.bindeval()'
   func Exe(e)
     execute a:e
   endfunc

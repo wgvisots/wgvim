@@ -1,13 +1,13 @@
-*api.txt*               Nvim
+*api.txt*               wgvim
 
 
                  NVIM REFERENCE MANUAL    by Thiago de Arruda
 
 
 ==============================================================================
-Nvim API                                                           *API* *api*
+wgvim API                                                           *API* *api*
 
-Nvim exposes a powerful API that can be used by plugins and external processes
+wgvim exposes a powerful API that can be used by plugins and external processes
 via |RPC|, |Lua| and Vimscript (|eval-api|).
 
 Applications can also embed libnvim to work with the C API directly.
@@ -18,12 +18,12 @@ Applications can also embed libnvim to work with the C API directly.
 API Usage                                               *api-rpc* *RPC* *rpc*
 
                                                         *msgpack-rpc*
-RPC is the main way to control Nvim programmatically.  Nvim implements the
+RPC is the main way to control wgvim programmatically.  wgvim implements the
 MessagePack-RPC protocol with these extra (out-of-spec) constraints:
 
 1. Responses must be given in reverse order of requests (like "unwinding
    a stack").
-2. Nvim processes all messages (requests and notifications) in the order they
+2. wgvim processes all messages (requests and notifications) in the order they
    are received.
 
 MessagePack-RPC specification:
@@ -32,11 +32,11 @@ MessagePack-RPC specification:
 
 Many clients use the API: user interfaces (GUIs), remote plugins, scripts like
 "nvr" (https://github.com/mhinz/neovim-remote).  Even Nvim itself can control
-other Nvim instances.  API clients can:
+other wgvim instances.  API clients can:
 
   - Call any API function
   - Listen for events
-  - Receive remote calls from Nvim
+  - Receive remote calls from wgvim
 
 The RPC API is like a more powerful version of Vim's "clientserver" feature.
 
@@ -45,9 +45,9 @@ CONNECTING                                              *rpc-connecting*
 See |channel-intro| for various ways to open a channel. Channel-opening
 functions take an `rpc` key in the options dict. RPC channels can also be
 opened by other processes connecting to TCP/IP sockets or named pipes listened
-to by Nvim.
+to by wgvim.
 
-Nvim creates a default RPC socket at |startup|, given by |v:servername|. To
+wgvim creates a default RPC socket at |startup|, given by |v:servername|. To
 start with a TCP/IP socket instead, use |--listen| with a TCP-style address: >
     nvim --listen 127.0.0.1:6666
 More endpoints can be started with |serverstart()|.
@@ -58,12 +58,12 @@ and can lead to vulnerabilities like remote code execution.
 Connecting to the socket is the easiest way a programmer can test the API,
 which can be done through any msgpack-rpc client library or full-featured
 |api-client|. Here's a Ruby script that prints "hello world!" in the current
-Nvim instance:
+wgvim instance:
 >ruby
     #!/usr/bin/env ruby
     # Requires msgpack: gem install msgpack
     #
-    # To run this script, use Nvim's built-in terminal emulator:
+    # To run this script, use wgvim's built-in terminal emulator:
     #
     #   :term ruby hello.rb
     #
@@ -94,7 +94,7 @@ functions can be called interactively (requires `pip install pynvim` or
     >>> nvim = attach('socket', path='[address]')
     >>> nvim.command('echo "hello world!"')
 <
-You can also embed Nvim via |jobstart()|, and communicate using |rpcrequest()|
+You can also embed wgvim via |jobstart()|, and communicate using |rpcrequest()|
 and |rpcnotify()|:
 >vim
     let nvim = jobstart(['nvim', '--embed'], {'rpc': v:true})
@@ -106,8 +106,8 @@ and |rpcnotify()|:
 API Definitions                                         *api-definitions*
 
                                                         *api-types*
-The Nvim C API defines custom types for all function parameters. Some are just
-typedefs around C99 standard types, others are Nvim-defined data structures.
+The wgvim C API defines custom types for all function parameters. Some are just
+typedefs around C99 standard types, others are wgvim-defined data structures.
 
 Basic types ~
 
@@ -181,14 +181,14 @@ request will block.
 ==============================================================================
 API metadata                                            *api-metadata*
 
-The Nvim C API is automatically exposed to RPC by the build system, which
+The wgvim C API is automatically exposed to RPC by the build system, which
 parses headers in src/nvim/api/* and generates dispatch-functions mapping RPC
 API method names to public C API functions, converting/validating arguments
 and return values.
 
-Nvim exposes its API metadata as a Dictionary with these items:
+wgvim exposes its API metadata as a Dictionary with these items:
 
-- version                 Nvim version, API level/compatibility
+- version                 wgvim version, API level/compatibility
 - version.api_level       API version integer *api-level*
 - version.api_compatible  API is backwards-compatible with this level
 - version.api_prerelease  Declares the API as unstable/unreleased
@@ -199,7 +199,7 @@ Nvim exposes its API metadata as a Dictionary with these items:
 - ui_options              Supported |ui-option|s
 - {fn}.since              API level where function {fn} was introduced
 - {fn}.deprecated_since   API level where function {fn} was deprecated
-- types                   Custom handle types defined by Nvim
+- types                   Custom handle types defined by wgvim
 - error_types             Possible error types returned by API functions
 
 About the `functions` map:
@@ -207,7 +207,7 @@ About the `functions` map:
   - Container types may be decorated with type/size constraints, e.g.
     ArrayOf(Buffer) or ArrayOf(Integer, 2).
   - Each function `parameters` item is a `[type, name, optional]` tuple.
-  - Functions considered to be methods that operate on instances of Nvim
+  - Functions considered to be methods that operate on instances of wgvim
     special types (msgpack EXT) have the "method=true" flag. The receiver type
     is that of the first argument. Method names are prefixed with `nvim_` plus
     a type name, e.g. `nvim_buf_get_lines` is the `get_lines` method of
@@ -219,7 +219,7 @@ About the `functions` map:
 External programs (clients) can use the metadata to discover the API, using
 any of these approaches:
 
-1. Connect to a running Nvim instance and call |nvim_get_api_info()| via
+1. Connect to a running wgvim instance and call |nvim_get_api_info()| via
    msgpack-RPC. This is best for clients written in dynamic languages which
    can define functions at runtime.
 2. Use the |--api-info| startup arg. Useful for statically-compiled clients.
@@ -234,14 +234,14 @@ any of these approaches:
 ==============================================================================
 API contract                                                     *api-contract*
 
-The Nvim API is composed of functions and events.
+The wgvim API is composed of functions and events.
 
 - Clients call functions like those described at |api-global|.
 - Clients can subscribe to |ui-events|, |api-buffer-updates|, etc.
 - API function names are prefixed with "nvim_".
 - API event names are prefixed with "nvim_" and suffixed with "_event".
 
-As Nvim evolves the API may change in compliance with this CONTRACT:
+As wgvim evolves the API may change in compliance with this CONTRACT:
 
 - New functions and events may be added.
   - Any such extensions are OPTIONAL: old clients may ignore them.
@@ -260,7 +260,7 @@ As Nvim evolves the API may change in compliance with this CONTRACT:
     value is an error.
 - Event parameters will not be removed or reordered (after release).
 - Events may be EXTENDED: new parameters may be added.
-- Deprecated functions will not be removed until Nvim 2.0.
+- Deprecated functions will not be removed until wgvim 2.0.
 
 "Private" interfaces are NOT covered by this contract:
 
@@ -274,7 +274,7 @@ The idea is "versionless evolution", in the words of Rich Hickey:
 ==============================================================================
 Buffer update events                                    *api-buffer-updates*
 
-API clients can "attach" to Nvim buffers to subscribe to buffer update events.
+API clients can "attach" to wgvim buffers to subscribe to buffer update events.
 This is similar to |TextChanged| but more powerful and granular.
 
 Call |nvim_buf_attach()| to receive these events on the channel:
@@ -293,7 +293,7 @@ nvim_buf_lines_event[{buf}, {changedtick}, {firstline}, {lastline}, {linedata}, 
     Parameters: ~
       • {buf}         (`integer`) Buffer id
       • {changedtick} (`integer`) Value of |b:changedtick|. If you send an API
-                      command back to Nvim you can check |b:changedtick| as
+                      command back to wgvim you can check |b:changedtick| as
                       part of your request to ensure that no other changes
                       have been made.
       • {firstline}   (`integer`) The first line that was replaced.
@@ -396,7 +396,7 @@ callbacks attached with the same |nvim_buf_attach()| call without invoking the
 ==============================================================================
 Buffer highlighting                                            *api-highlights*
 
-Nvim allows plugins to add position-based highlights to buffers. This is
+wgvim allows plugins to add position-based highlights to buffers. This is
 similar to |matchaddpos()| but with some key differences. The added highlights
 are associated with a buffer and adapts to line insertions and deletions,
 similar to signs. It is also possible to manage a set of highlights as a group
@@ -572,7 +572,7 @@ nvim_ui_term_event({event}, {value})                      *nvim_ui_term_event*
 
     Supports these events:
     • "termresponse": The host-terminal sent an OSC, DCS, APC, or recognized
-      CSI (DA1, kitty multiple-cursors) response to Nvim. The payload is the
+      CSI (DA1, kitty multiple-cursors) response to wgvim. The payload is the
       received response. Sets |v:termresponse| and fires |TermResponse|.
 
     Attributes: ~
@@ -590,7 +590,7 @@ Global Functions                                                  *api-global*
 nvim_chan_send({chan}, {data})                              *nvim_chan_send()*
     Sends raw data to channel `chan`. |channel-bytes|
     • For a job, it writes it to the stdin of the process.
-    • For the stdio channel |channel-stdio|, it writes to Nvim's stdout.
+    • For the stdio channel |channel-stdio|, it writes to wgvim's stdout.
     • For an internal terminal instance (|nvim_open_term()|) it writes
       directly to terminal output.
 
@@ -620,7 +620,7 @@ nvim_chan_set({chan}, {config})                              *nvim_chan_set()*
       • {chan}    (`integer`) Channel id, or 0 for current (RPC) channel.
       • {config}  (`vim.api.keyset.chan_set`) Properties:
                   • detach: (boolean, default: true) Closing the channel does
-                    not self-exit Nvim. Nvim self-exits when the last
+                    not self-exit wgvim. wgvim self-exits when the last
                     `detach=false` |RPC| channel closes. See also |:detach!|.
 
 nvim_create_buf({listed}, {scratch})                       *nvim_create_buf()*
@@ -810,7 +810,7 @@ nvim_exec_lua({code}, {args})                                *nvim_exec_lua()*
         (`any`) Value returned by the Lua code (if any), or NIL.
 
 nvim_feedkeys({keys}, {mode}, {escape_ks})                   *nvim_feedkeys()*
-    Sends input-keys to Nvim, subject to various quirks controlled by `mode`
+    Sends input-keys to wgvim, subject to various quirks controlled by `mode`
     flags. This is a blocking call, unlike |nvim_input()|.
 
     On execution error: does not fail, but updates v:errmsg.
@@ -865,7 +865,7 @@ nvim_get_chan_info({chan})                              *nvim_get_chan_info()*
         • "buffer" (optional) Deprecated alias for `buf`.
         • "client" (optional) Info about the peer (client on the other end of
           the channel), as set by |nvim_set_client_info()|.
-        • "detach" (optional) Closing the |RPC| channel does not exit Nvim.
+        • "detach" (optional) Closing the |RPC| channel does not exit wgvim.
           |nvim_chan_set()|
         • "exitcode" (optional) Exit code of the |terminal| process.
         • "id" Channel id.
@@ -878,8 +878,8 @@ nvim_get_chan_info({chan})                              *nvim_get_chan_info()*
           device path like "/dev/pts/1". If unknown, the key will still be
           present if a pty is used (e.g. for conpty on Windows).
         • "stream" Stream underlying the channel.
-          • "stdio" stdin and stdout of this Nvim instance
-          • "stderr" stderr of this Nvim instance
+          • "stdio" stdin and stdout of this wgvim instance
+          • "stderr" stderr of this wgvim instance
           • "socket" TCP/IP socket or named pipe
           • "job" Job with communication over its stdio.
 
@@ -1066,7 +1066,7 @@ nvim_get_mark({name}, {opts})                                *nvim_get_mark()*
       • |nvim_del_mark()|
 
 nvim_get_mode()                                              *nvim_get_mode()*
-    Gets the current mode. |mode()| "blocking" is true if Nvim is waiting for
+    Gets the current mode. |mode()| "blocking" is true if wgvim is waiting for
     input.
 
     Attributes: ~
@@ -1202,7 +1202,7 @@ nvim_input_mouse({button}, {action}, {modifier}, {grid}, {row}, {col})  *nvim_in
                     "C-A-", "c-a" and "CA" can all be used to specify
                     Ctrl+Alt+click.
       • {grid}      (`integer`) Grid number (used by |ui-multigrid| client),
-                    or 0 to let Nvim decide positioning of windows. For more
+                    or 0 to let wgvim decide positioning of windows. For more
                     information, see |dev-ui-multigrid|
       • {row}       (`integer`) Mouse row-position (zero-based, like redraw
                     events)
@@ -1252,7 +1252,7 @@ nvim_list_tabpages()                                    *nvim_list_tabpages()*
 nvim_list_uis()                                              *nvim_list_uis()*
     Gets a list of dictionaries representing attached UIs.
 
-    Example: The Nvim builtin |TUI| sets its channel info as described in
+    Example: The wgvim builtin |TUI| sets its channel info as described in
     |startup-tui|. In particular, it sets `client.name` to "nvim-tui". So you
     can check if the TUI is running by inspecting the client name of each UI: >lua
         vim.print(vim.api.nvim_get_chan_info(vim.api.nvim_list_uis()[1].chan).client.name)
@@ -1312,8 +1312,8 @@ nvim_open_term({buf}, {opts})                               *nvim_open_term()*
        terminal with the intended size (defined by the window width/height).
 
     Example: this `TermHl` command can be used to display and highlight raw
-    ANSI termcodes, so you can use Nvim as a "scrollback pager" (for terminals
-    like kitty):                     *ansi-colorize* *terminal-scrollback-pager* >lua
+    ANSI termcodes, so you can use wgvim as a "scrollback pager" (for
+    terminals like kitty):           *ansi-colorize* *terminal-scrollback-pager* >lua
         vim.api.nvim_create_user_command('TermHl', function()
           vim.api.nvim_open_term(0)
         end, { desc = 'Highlights ANSI termcodes in curbuf' })
@@ -1479,13 +1479,13 @@ nvim_set_client_info({name}, {version}, {type}, {methods}, {attributes})  *nvim_
       • {type}        (`string`) Must be one of the following values. Client
                       libraries should default to "remote" unless overridden
                       by the user.
-                      • "embedder" application using Nvim as a component (for
+                      • "embedder" application using wgvim as a component (for
                         example, IDE/editor implementing a vim mode).
                       • "host" plugin host, typically started by nvim
-                      • "msgpack-rpc" remote client connected to Nvim via
+                      • "msgpack-rpc" remote client connected to wgvim via
                         fully MessagePack-RPC compliant protocol.
                       • "plugin" single plugin, started by nvim
-                      • "remote" remote client connected "Nvim flavored"
+                      • "remote" remote client connected "wgvim flavored"
                         MessagePack-RPC (responses must be in reverse order of
                         requests). |msgpack-rpc|
                       • "ui" gui frontend
@@ -1493,9 +1493,9 @@ nvim_set_client_info({name}, {version}, {type}, {methods}, {attributes})  *nvim_
                       a host, this does not include plugin methods which will
                       be discovered later. The key should be the method name,
                       the values are dicts with these (optional) keys (more
-                      keys may be added in future versions of Nvim, thus
+                      keys may be added in future versions of wgvim, thus
                       unknown keys are ignored. Clients must only use keys
-                      defined in this or later versions of Nvim):
+                      defined in this or later versions of wgvim):
                       • "async" if true, send as a notification. If false or
                         unspecified, use a blocking request
                       • "nargs" Number of arguments. Could be a single integer
@@ -1872,7 +1872,7 @@ nvim__invalidate_glyph_cache()                *nvim__invalidate_glyph_cache()*
 nvim__redraw({opts})                                          *nvim__redraw()*
     WARNING: This feature is experimental/unstable.
 
-    Instruct Nvim to redraw various components.
+    Instruct wgvim to redraw various components.
 
     Attributes: ~
         Since: 0.10.0
@@ -3778,7 +3778,7 @@ nvim_ui_detach()                                            *nvim_ui_detach()*
         Since: 0.1.0
 
 nvim_ui_pum_set_bounds({width}, {height}, {row}, {col})  *nvim_ui_pum_set_bounds()*
-    Tells Nvim the geometry of the popupmenu, to align floating windows with
+    Tells wgvim the geometry of the popupmenu, to align floating windows with
     an external popup menu.
 
     Note that this method is not to be confused with
@@ -3799,7 +3799,7 @@ nvim_ui_pum_set_bounds({width}, {height}, {row}, {col})  *nvim_ui_pum_set_bounds
       • {col}     (`number`) Popupmenu height.
 
 nvim_ui_pum_set_height({height})                    *nvim_ui_pum_set_height()*
-    Tells Nvim the number of elements displaying in the popupmenu, to decide
+    Tells wgvim the number of elements displaying in the popupmenu, to decide
     <PageUp> and <PageDown> movement.
 
     Attributes: ~
@@ -3855,7 +3855,7 @@ nvim_ui_try_resize({width}, {height})                   *nvim_ui_try_resize()*
       • {height}  (`integer`)
 
 nvim_ui_try_resize_grid({grid}, {width}, {height})  *nvim_ui_try_resize_grid()*
-    Tell Nvim to resize a grid. Triggers a grid_resize event with the
+    Tell wgvim to resize a grid. Triggers a grid_resize event with the
     requested grid size or the maximum size if it exceeds size limits.
 
     On invalid grid handle, fails with error.
@@ -3881,7 +3881,7 @@ nvim_open_win({buf}, {enter}, {config})                      *nvim_open_win()*
       • Floats must specify `width` and `height`.
     • Specify `external` to create an external window. External windows are
       displayed as separate top-level windows managed by the |ui-multigrid| UI
-      (not Nvim).
+      (not wgvim).
     • If `relative` and `external` are omitted, a normal "split" window is
       created.
       • The `win` key decides which window to split. If nil or 0, the split
@@ -4002,7 +4002,7 @@ nvim_open_win({buf}, {enter}, {config})                      *nvim_open_win()*
                   • split: Split direction: "left", "right", "above", "below".
                   • style: (optional) Configure the appearance of the window:
                     • "" No special style.
-                    • "minimal" Nvim will display the window with many UI
+                    • "minimal" wgvim will display the window with many UI
                       options disabled. This is useful when displaying a
                       temporary float where the text should not be edited.
                       Disables 'number', 'relativenumber', 'cursorline',

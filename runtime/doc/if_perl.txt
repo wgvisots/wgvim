@@ -1,4 +1,4 @@
-*if_perl.txt*   Nvim
+*if_perl.txt*   wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Jacques Germishuys
@@ -107,7 +107,7 @@ to the next.
 ==============================================================================
 2. The VIM module					*perl-vim*
 
-Perl code gets all of its access to Nvim via the "VIM" module.
+Perl code gets all of its access to wgvim via the "VIM" module.
 
 Overview >
 	print "Hello"				# displays a message
@@ -252,9 +252,9 @@ There are multiple lexical variables.
 Variable		Description ~
 $curwin			The current Window object.
 $curbuf			The current Buffer object.
-$vim			A Neovim::Ext object.
+$vim			A wgvim::Ext object.
 $nvim			The same as $nvim.
-$current		A Neovim::Ext::Current object.
+$current		A wgvim::Ext::Current object.
 
 These are also available via the "main" package:
 

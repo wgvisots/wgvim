@@ -193,10 +193,10 @@ enum key_extra {
   KE_KINS = 79,             // keypad Insert key
   KE_KDEL = 80,             // keypad Delete key
 
-  // KE_CSI = 81,           // Nvim doesn't need escaping CSI
+  // KE_CSI = 81,           // wgvim doesn't need escaping CSI
   KE_SNR = 82,              // <SNR>
   KE_PLUG = 83,             // <Plug>
-  // KE_CMDWIN = 84,        // Nvim "cmdwin" is not special. #40312
+  // KE_CMDWIN = 84,        // wgvim "cmdwin" is not special. #40312
 
   KE_C_LEFT = 85,           // control-left
   KE_C_RIGHT = 86,          // control-right

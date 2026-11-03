@@ -10,7 +10,7 @@
 
 typedef struct {
   char *name;
-  ObjectType type;  // Lua type in decoded $NVIM_TERMDEFS
+  ObjectType type;  // Lua type in decoded $WGVIM_TERMDEFS
   size_t offset;  // offset in TerminfoEntry
 } TermdefField;
 

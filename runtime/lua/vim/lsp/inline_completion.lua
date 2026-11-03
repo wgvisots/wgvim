@@ -19,8 +19,8 @@
 ---      root_markers = { '.git' },
 ---       init_options = {
 ---         editorInfo = {
----           name = 'Neovim', version = tostring(vim.version()) },
----           editorPluginInfo = { name = 'Neovim', version = tostring(vim.version()) },
+---           name = 'wgvim', version = tostring(vim.version()) },
+---           editorPluginInfo = { name = 'wgvim', version = tostring(vim.version()) },
 ---         },
 ---    })
 ---    ```

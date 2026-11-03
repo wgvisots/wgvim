@@ -1001,11 +1001,85 @@ static bool nlua_state_init(lua_State *const lstate) FUNC_ATTR_NONNULL_ALL
   return true;
 }
 
-/// Initializes global Lua interpreter, or exits Nvim on failure.
+/// Initializes global Lua interpreter, or exits wgvim on failure.
+/// wgvim: the LuaJIT "ffi" library lets Lua call any libc function (including socket() and
+/// connect()), which would bypass every other network restriction. It is disabled: require("ffi")
+/// raises this error and the attempt is written to the log.
+static int nlua_ffi_disabled(lua_State *lstate)
+{
+  WLOG("require('ffi') was attempted and refused (the LuaJIT ffi library is disabled in wgvim)");
+
+  // require() stores a "loading" marker in package.loaded.ffi before calling this loader and
+  // leaves it there when the loader raises. Clear it, or every later require("ffi") would fail
+  // with a vague "loop or previous error loading module" message instead of this one.
+  lua_getglobal(lstate, "package");
+  lua_getfield(lstate, -1, "loaded");
+  lua_pushnil(lstate);
+  lua_setfield(lstate, -2, "ffi");
+  lua_pop(lstate, 2);
+
+  return luaL_error(lstate,
+                    "wgvim: the LuaJIT 'ffi' library is disabled because it gives Lua direct "
+                    "access to libc, including network sockets (see SECURITY-AUDIT.md)");
+}
+
+/// Removes LuaJIT's ffi library from a freshly opened Lua state and makes require("ffi") fail
+/// with an explanation. Must run right after luaL_openlibs().
+static void nlua_disable_ffi(lua_State *lstate)
+{
+  lua_getglobal(lstate, "package");
+
+  // package.loaded.ffi = nil
+  lua_getfield(lstate, -1, "loaded");
+  lua_pushnil(lstate);
+  lua_setfield(lstate, -2, "ffi");
+  lua_pop(lstate, 1);
+
+  // package.preload.ffi = <function that raises the error>; preload is searched first.
+  lua_getfield(lstate, -1, "preload");
+  lua_pushcfunction(lstate, nlua_ffi_disabled);
+  lua_setfield(lstate, -2, "ffi");
+  lua_pop(lstate, 2);
+}
+
+static int nlua_loadlib_disabled(lua_State *lstate)
+{
+  const char *path = luaL_optstring(lstate, 1, "");
+  WLOG("package.loadlib(\"%s\") was attempted and refused (native Lua modules are disabled)", path);
+  return luaL_error(lstate,
+                    "wgvim: loading native Lua modules (.so) is disabled because native code "
+                    "bypasses the editor's restrictions (see SECURITY-AUDIT.md): %s", path);
+}
+
+/// Stops Lua from loading native code: package.loadlib() raises an error, package.cpath is
+/// empty, and the C and all-in-one searchers are removed from package.loaders. Built-in
+/// modules (luv, lpeg, mpack, ...) are linked into the binary and unaffected.
+/// Must run right after luaL_openlibs(), before anything is inserted into package.loaders.
+static void nlua_disable_native_modules(lua_State *lstate)
+{
+  lua_getglobal(lstate, "package");
+
+  lua_pushcfunction(lstate, nlua_loadlib_disabled);
+  lua_setfield(lstate, -2, "loadlib");
+
+  lua_pushstring(lstate, "");
+  lua_setfield(lstate, -2, "cpath");
+
+  // Fresh LuaJIT/Lua 5.1 state: loaders = { preload, lua, c, croot }. Keep the first two.
+  lua_getfield(lstate, -1, "loaders");
+  if (lua_istable(lstate, -1)) {
+    for (int i = (int)lua_objlen(lstate, -1); i > 2; i--) {
+      lua_pushnil(lstate);
+      lua_rawseti(lstate, -2, i);
+    }
+  }
+  lua_pop(lstate, 2);
+}
+
 void nlua_init(char **argv, int argc, int lua_arg0)
 {
 #ifdef NLUA_TRACK_REFS
-  if (os_env_exists("NVIM_LUA_NOTRACK", true)) {
+  if (os_env_exists("WGVIM_LUA_NOTRACK", true)) {
     nlua_track_refs = true;
   }
 #endif
@@ -1016,6 +1090,8 @@ void nlua_init(char **argv, int argc, int lua_arg0)
     os_exit(1);
   }
   luaL_openlibs(lstate);
+  nlua_disable_ffi(lstate);
+  nlua_disable_native_modules(lstate);
   if (!nlua_state_init(lstate)) {
     fprintf(stderr, _("E970: Failed to initialize builtin Lua modules\n"));
 #ifdef EXITFREE
@@ -1048,6 +1124,8 @@ static lua_State *nlua_init_state(bool thread)
 
   // Add in the lua standard libraries
   luaL_openlibs(lstate);
+  nlua_disable_ffi(lstate);
+  nlua_disable_native_modules(lstate);
 
   // print
   lua_pushcfunction(lstate, &nlua_print);
@@ -1128,7 +1206,7 @@ static void nlua_print_event(void **argv)
   msg_multihl(NIL, msg, "lua_print", true, false, NULL, &needs_clear, raw);
 }
 
-/// Implements Lua print() as a Nvim message.
+/// Implements Lua print() as a wgvim message.
 ///
 /// @param  lstate  Lua interpreter state.
 static int nlua_print(lua_State *const lstate)

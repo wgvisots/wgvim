@@ -62,17 +62,17 @@ static const char *const xdg_defaults[] = {
 #endif
 };
 
-/// Gets the value of $NVIM_APPNAME, or "nvim" if not set.
+/// Gets the value of $WGVIM_APPNAME, or "nvim" if not set.
 ///
 /// @param namelike Write "name-like" value (no path separators) in `NameBuff`.
 ///
-/// @return $NVIM_APPNAME value
+/// @return $WGVIM_APPNAME value
 const char *get_appname(bool namelike)
 {
-  const char *env_val = os_getenv_noalloc("NVIM_APPNAME");
+  const char *env_val = os_getenv_noalloc("WGVIM_APPNAME");
 
   if (!env_val) {
-    xstrlcpy(NameBuff, "nvim", sizeof(NameBuff));
+    xstrlcpy(NameBuff, "wgvim", sizeof(NameBuff));
   }
 
   TO_SLASH(NameBuff);
@@ -196,14 +196,14 @@ char *stdpaths_get_xdg_var(const XDGVarType idx)
   return ret;
 }
 
-/// Return Nvim-specific XDG directory subpath.
+/// Return wgvim-specific XDG directory subpath.
 ///
-/// Windows: Uses "…/$NVIM_APPNAME-data" for kXDGDataHome to avoid storing
+/// Windows: Uses "…/$WGVIM_APPNAME-data" for kXDGDataHome to avoid storing
 /// configuration and data files in the same path. #4403
 ///
 /// @param[in]  idx  XDG directory to use.
 ///
-/// @return [allocated] "{xdg_directory}/$NVIM_APPNAME"
+/// @return [allocated] "{xdg_directory}/$WGVIM_APPNAME"
 char *get_xdg_home(const XDGVarType idx)
   FUNC_ATTR_WARN_UNUSED_RESULT
 {
@@ -228,7 +228,7 @@ char *get_xdg_home(const XDGVarType idx)
 ///
 /// @param[in]  fname  New component of the path.
 ///
-/// @return [allocated] `$XDG_CACHE_HOME/$NVIM_APPNAME/{fname}`
+/// @return [allocated] `$XDG_CACHE_HOME/$WGVIM_APPNAME/{fname}`
 char *stdpaths_user_cache_subpath(const char *fname)
   FUNC_ATTR_WARN_UNUSED_RESULT FUNC_ATTR_NONNULL_ALL FUNC_ATTR_NONNULL_RET
 {
@@ -239,7 +239,7 @@ char *stdpaths_user_cache_subpath(const char *fname)
 ///
 /// @param[in]  fname  New component of the path.
 ///
-/// @return [allocated] `$XDG_CONFIG_HOME/$NVIM_APPNAME/{fname}`
+/// @return [allocated] `$XDG_CONFIG_HOME/$WGVIM_APPNAME/{fname}`
 char *stdpaths_user_conf_subpath(const char *fname)
   FUNC_ATTR_WARN_UNUSED_RESULT FUNC_ATTR_NONNULL_ALL FUNC_ATTR_NONNULL_RET
 {
@@ -250,7 +250,7 @@ char *stdpaths_user_conf_subpath(const char *fname)
 ///
 /// @param[in]  fname  New component of the path.
 ///
-/// @return [allocated] `$XDG_DATA_HOME/$NVIM_APPNAME/{fname}`
+/// @return [allocated] `$XDG_DATA_HOME/$WGVIM_APPNAME/{fname}`
 char *stdpaths_user_data_subpath(const char *fname)
   FUNC_ATTR_WARN_UNUSED_RESULT FUNC_ATTR_NONNULL_ALL FUNC_ATTR_NONNULL_RET
 {
@@ -263,7 +263,7 @@ char *stdpaths_user_data_subpath(const char *fname)
 /// @param[in]  trailing_pathseps  Amount of trailing path separators to add.
 /// @param[in]  escape_commas  If true, all commas will be escaped.
 ///
-/// @return [allocated] `$XDG_STATE_HOME/$NVIM_APPNAME/{fname}`.
+/// @return [allocated] `$XDG_STATE_HOME/$WGVIM_APPNAME/{fname}`.
 char *stdpaths_user_state_subpath(const char *fname, const size_t trailing_pathseps,
                                   const bool escape_commas)
   FUNC_ATTR_WARN_UNUSED_RESULT FUNC_ATTR_NONNULL_ALL FUNC_ATTR_NONNULL_RET

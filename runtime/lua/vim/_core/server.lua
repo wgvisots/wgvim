@@ -8,8 +8,8 @@ local M = {}
 ---
 ---@class vim.ServerInfo
 ---@field addr string Server address (socket path, named pipe, or TCP host:port).
----@field pid integer PID of the Nvim process.
----@field own boolean True if this server belongs to the current Nvim instance.
+---@field pid integer PID of the wgvim process.
+---@field own boolean True if this server belongs to the current wgvim instance.
 ---@field active integer Timestamp of last user activity.
 
 --- @param opts? table Options:
@@ -54,7 +54,7 @@ function M.serverlist(opts, addrs)
   -- TODO: support Windows named pipes.
   local root = vim.fs.normalize(vim.fn.stdpath('run') .. '/..')
   local socket_paths = vim.fs.find(function(name, _)
-    return name:match('nvim.*')
+    return name:match('wgvim.*') -- server_address_new() names sockets <appname>.<pid>.<n>
   end, { path = root, type = 'socket', limit = math.huge })
 
   for _, socket in ipairs(socket_paths) do
@@ -171,11 +171,11 @@ function M.ex_session_restart(eap, extra)
   -- Use custom +cmd if given.
   local quit_cmd = extra.quit_cmd == '' and 'qall' or extra.quit_cmd
 
-  -- Preserve v:this_session in the restarted Nvim.
+  -- Preserve v:this_session in the restarted wgvim.
   local this_session = vim.v.this_session
   assert(not this_session:find(']==]'))
 
-  -- Nvim temp "root dir": "/tmp/…/nvim.<user>/"
+  -- wgvim temp "root dir": "/tmp/…/nvim.<user>/"
   local tmproot = vim.fs.abspath(vim.fs.dirname(vim.fs.dirname(vim.fn.tempname())))
   assert(not tmproot:find(']==]'))
   local fd, session = vim.uv.fs_mkstemp(vim.fs.joinpath(tmproot, 'restart_session_XXXXXX'))
@@ -199,7 +199,7 @@ function M.ex_session_restart(eap, extra)
   end
   local after = 'lua ' .. table.concat(after_list, ';')
 
-  -- Restart Neovim and run our Lua commands
+  -- Restart wgvim and run our Lua commands
   local success, msg = pcall(function()
     -- "+:::" dummy prefix tells the C handler that this is actually a non-bang restart.
     -- Then v:startreason (if any) can be preserved.

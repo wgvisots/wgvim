@@ -1,4 +1,4 @@
-*spell.txt*     Nvim
+*spell.txt*     wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -336,26 +336,26 @@ Exceptions:
   spell file is used.
 
 For example, with these values:
-	'runtimepath' is "~/.config/nvim,/usr/share/nvim/runtime/,~/.config/nvim/after"
+	'runtimepath' is "~/.config/wgvim,/usr/share/wgvim/runtime/,~/.config/wgvim/after"
 	'encoding'    is "iso-8859-2"
 	'spelllang'   is "pl"
 
 Vim will look for:
-1. ~/.config/nvim/spell/pl.iso-8859-2.spl
-2. /usr/share/nvim/runtime/spell/pl.iso-8859-2.spl
-3. ~/.config/nvim/spell/pl.iso-8859-2.add.spl
-4. /usr/share/nvim/runtime/spell/pl.iso-8859-2.add.spl
-5. ~/.config/nvim/after/spell/pl.iso-8859-2.add.spl
+1. ~/.config/wgvim/spell/pl.iso-8859-2.spl
+2. /usr/share/wgvim/runtime/spell/pl.iso-8859-2.spl
+3. ~/.config/wgvim/spell/pl.iso-8859-2.add.spl
+4. /usr/share/wgvim/runtime/spell/pl.iso-8859-2.add.spl
+5. ~/.config/wgvim/after/spell/pl.iso-8859-2.add.spl
 
 This assumes 1. is not found and 2. is found.
 
 If 'encoding' is "latin1" Vim will look for:
-1. ~/.config/nvim/spell/pl.latin1.spl
-2. /usr/share/nvim/runtime/spell/pl.latin1.spl
-3. ~/.config/nvim/after/spell/pl.latin1.spl
-4. ~/.config/nvim/spell/pl.ascii.spl
-5. /usr/share/nvim/runtime/spell/pl.ascii.spl
-6. ~/.config/nvim/after/spell/pl.ascii.spl
+1. ~/.config/wgvim/spell/pl.latin1.spl
+2. /usr/share/wgvim/runtime/spell/pl.latin1.spl
+3. ~/.config/wgvim/after/spell/pl.latin1.spl
+4. ~/.config/wgvim/spell/pl.ascii.spl
+5. /usr/share/wgvim/runtime/spell/pl.ascii.spl
+6. ~/.config/wgvim/after/spell/pl.ascii.spl
 
 This assumes none of them are found (Polish doesn't make sense when leaving
 out the non-ASCII characters).
@@ -538,7 +538,7 @@ then Vim will try to guess.
 
 			Multiple {inname} arguments can be given to combine
 			regions into one Vim spell file.  Example: >
-		:mkspell ~/.config/nvim/spell/en /tmp/en_US /tmp/en_CA /tmp/en_AU
+		:mkspell ~/.config/wgvim/spell/en /tmp/en_US /tmp/en_CA /tmp/en_AU
 <			This combines the English word lists for US, CA and AU
 			into one en.spl file.
 			Up to eight regions can be combined. *E754* *E755*
@@ -647,10 +647,13 @@ Comment lines with the name of the .spl file are used as a header above the
 words that were generated from that .spl file.
 
 
-SPELL FILE MISSING				    *spell-SpellFileMissing*
+SPELL FILE MISSING		    *spell-SpellFileMissing* *package-spellfile*
 
-If a spell file is missing, the user is asked whether to download it. See
-|package-spellfile|.
+If a spell file is missing, wgvim only shows a warning; it does not offer to
+download one (wgvim makes no network requests). English ("en") is bundled.
+For other languages, build a spell file from a word list with |:mkspell| and
+put it in a "spell" directory on 'runtimepath'. A |SpellFileMissing|
+autocommand can still be used to react to a missing file.
 
 							*E797*
 Note that the SpellFileMissing autocommand must not change or destroy the

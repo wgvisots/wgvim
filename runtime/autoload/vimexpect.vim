@@ -17,7 +17,7 @@
 " set as the Parser target. Advanced control flow is achieved by changing the
 " current state with the `push`/`pop`/`switch` parser methods.
 "
-" An example of this library in action can be found in Neovim source
+" An example of this library in action can be found in wgvim source
 " code(contrib/neovim_gdb subdirectory)
 
 let s:State = {}

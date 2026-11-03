@@ -153,7 +153,7 @@ function vim.api.nvim__option_to_object(name, value) end
 
 --- WARNING: This feature is experimental/unstable.
 ---
---- Instruct Nvim to redraw various components.
+--- Instruct wgvim to redraw various components.
 ---
 ---
 --- @see `:help :redraw`
@@ -848,7 +848,7 @@ function vim.api.nvim_call_function(fn, args) end
 
 --- Sends raw data to channel `chan`. `channel-bytes`
 --- - For a job, it writes it to the stdin of the process.
---- - For the stdio channel `channel-stdio`, it writes to Nvim's stdout.
+--- - For the stdio channel `channel-stdio`, it writes to wgvim's stdout.
 --- - For an internal terminal instance (`nvim_open_term()`) it writes directly to terminal output.
 ---
 --- This function writes raw data, not RPC messages. Use `vim.rpcrequest()` and `vim.rpcnotify()` if
@@ -864,7 +864,7 @@ function vim.api.nvim_chan_send(chan, data) end
 ---
 --- @param chan integer Channel id, or 0 for current (RPC) channel.
 --- @param config vim.api.keyset.chan_set Properties:
---- - detach: (boolean, default: true) Closing the channel does not self-exit Nvim. Nvim
+--- - detach: (boolean, default: true) Closing the channel does not self-exit wgvim. wgvim
 ---   self-exits when the last `detach=false` `RPC` channel closes. See also `:detach!`.
 function vim.api.nvim_chan_set(chan, config) end
 
@@ -1246,7 +1246,7 @@ function vim.api.nvim_exec2(src, opts) end
 --- - pattern (`string|array?`, default: current file name) `autocmd-pattern`. Not allowed with {buf}.
 function vim.api.nvim_exec_autocmds(event, opts) end
 
---- Sends input-keys to Nvim, subject to various quirks controlled by `mode` flags. This is
+--- Sends input-keys to wgvim, subject to various quirks controlled by `mode` flags. This is
 --- a blocking call, unlike `nvim_input()`.
 ---
 --- On execution error: does not fail, but updates v:errmsg.
@@ -1329,7 +1329,7 @@ function vim.api.nvim_get_autocmds(opts) end
 --- - "buffer"   (optional) Deprecated alias for `buf`.
 --- - "client"   (optional) Info about the peer (client on the other end of the channel), as set
 ---              by |nvim_set_client_info()|.
---- - "detach"   (optional) Closing the |RPC| channel does not exit Nvim. |nvim_chan_set()|
+--- - "detach"   (optional) Closing the |RPC| channel does not exit wgvim. |nvim_chan_set()|
 --- - "exitcode" (optional) Exit code of the |terminal| process.
 --- - "id"       Channel id.
 --- - "internal" (optional) In-process channel (stream=socket).
@@ -1341,8 +1341,8 @@ function vim.api.nvim_get_autocmds(opts) end
 ---              "/dev/pts/1". If unknown, the key will still be present if a pty is used (e.g.
 ---              for conpty on Windows).
 --- - "stream"   Stream underlying the channel.
----      - "stdio"      stdin and stdout of this Nvim instance
----      - "stderr"     stderr of this Nvim instance
+---      - "stdio"      stdin and stdout of this wgvim instance
+---      - "stderr"     stderr of this wgvim instance
 ---      - "socket"     TCP/IP socket or named pipe
 ---      - "job"        Job with communication over its stdio.
 function vim.api.nvim_get_chan_info(chan) end
@@ -1488,7 +1488,7 @@ function vim.api.nvim_get_keymap(mode) end
 function vim.api.nvim_get_mark(name, opts) end
 
 --- Gets the current mode. `mode()`
---- "blocking" is true if Nvim is waiting for input.
+--- "blocking" is true if wgvim is waiting for input.
 ---
 --- @return vim.api.keyset.get_mode # Dict { "mode": String, "blocking": Boolean }
 function vim.api.nvim_get_mode() end
@@ -1642,7 +1642,7 @@ function vim.api.nvim_input(keys) end
 --- The same specifiers are used as for a key press, except
 --- that the "-" separator is optional, so "C-A-", "c-a"
 --- and "CA" can all be used to specify Ctrl+Alt+click.
---- @param grid integer Grid number (used by `ui-multigrid` client), or 0 to let Nvim decide positioning of
+--- @param grid integer Grid number (used by `ui-multigrid` client), or 0 to let wgvim decide positioning of
 --- windows. For more information, see [dev-ui-multigrid]
 --- @param row integer Mouse row-position (zero-based, like redraw events)
 --- @param col integer Mouse column-position (zero-based, like redraw events)
@@ -1674,7 +1674,7 @@ function vim.api.nvim_list_tabpages() end
 
 --- Gets a list of dictionaries representing attached UIs.
 ---
---- Example: The Nvim builtin `TUI` sets its channel info as described in `startup-tui`. In
+--- Example: The wgvim builtin `TUI` sets its channel info as described in `startup-tui`. In
 --- particular, it sets `client.name` to "nvim-tui". So you can check if the TUI is running by
 --- inspecting the client name of each UI:
 ---
@@ -1736,7 +1736,7 @@ function vim.api.nvim_open_tabpage(buf, enter, config) end
 ---    intended size (defined by the window width/height).
 ---
 --- Example: this `TermHl` command can be used to display and highlight raw ANSI termcodes, so you
---- can use Nvim as a "scrollback pager" (for terminals like kitty): [ansi-colorize]()
+--- can use wgvim as a "scrollback pager" (for terminals like kitty): [ansi-colorize]()
 --- [terminal-scrollback-pager]()
 ---
 --- ```lua
@@ -1761,7 +1761,7 @@ function vim.api.nvim_open_term(buf, opts) end
 ---   relative to a position in some other window. See `api-floatwin`.
 ---   - Floats must specify `width` and `height`.
 --- - Specify `external` to create an external window. External windows are displayed as separate
----   top-level windows managed by the `ui-multigrid` UI (not Nvim).
+---   top-level windows managed by the `ui-multigrid` UI (not wgvim).
 --- - If `relative` and `external` are omitted, a normal "split" window is created.
 ---   - The `win` key decides which window to split. If nil or 0, the split will be adjacent to
 ---     the current window. If -1, a top-level split will be created.
@@ -1868,7 +1868,7 @@ function vim.api.nvim_open_term(buf, opts) end
 --- - split: Split direction: "left", "right", "above", "below".
 --- - style: (optional) Configure the appearance of the window:
 ---     - ""         No special style.
----     - "minimal"  Nvim will display the window with many UI options
+---     - "minimal"  wgvim will display the window with many UI options
 ---                  disabled. This is useful when displaying a temporary
 ---                  float where the text should not be edited. Disables
 ---                  'number', 'relativenumber', 'cursorline', 'cursorcolumn',

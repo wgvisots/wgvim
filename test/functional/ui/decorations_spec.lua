@@ -1389,7 +1389,7 @@ end)
 describe('decoration_providers', function()
   it('errors and logs gracefully', function()
     local testlog = 'Xtest_decorations_log'
-    clear({ env = { NVIM_LOG_FILE = testlog } })
+    clear({ env = { WGVIM_LOG_FILE = testlog } })
     local screen = Screen.new(65, 7)
     setup_provider([[
       function on_do(...)

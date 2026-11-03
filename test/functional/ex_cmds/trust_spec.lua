@@ -16,7 +16,7 @@ describe(':trust', function()
   local empty_file = 'Xtest_functional_ex_cmds_trust_empty'
 
   before_each(function()
-    n.mkdir_p(vim.fs.joinpath(xstate, is_os('win') and 'nvim-data' or 'nvim'))
+    n.mkdir_p(vim.fs.joinpath(xstate, is_os('win') and 'wgvim-data' or 'wgvim'))
     t.write_file(test_file, 'test')
     t.write_file(empty_file, '')
     clear { env = { XDG_STATE_HOME = xstate } }

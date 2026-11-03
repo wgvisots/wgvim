@@ -39,7 +39,7 @@ describe(':mkview', function()
     command('lcd ' .. local_dir)
     command('mkview')
 
-    -- Create a new instance of Nvim to remove the 'lcd'
+    -- Create a new instance of wgvim to remove the 'lcd'
     clear()
 
     -- Disable saving the local current directory for the second view
@@ -49,7 +49,7 @@ describe(':mkview', function()
     command('lcd ' .. local_dir)
     command('mkview')
 
-    -- Create a new instance of Nvim to test saved 'lcd' option
+    -- Create a new instance of wgvim to test saved 'lcd' option
     clear()
     command(set_view_dir_command)
 

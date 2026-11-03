@@ -147,6 +147,10 @@ static void scroll(VTermState *state, VTermRect rect, int downward, int rightwar
     return;
   }
 
+  // wgvim: never scroll an empty or inverted rectangle (would give negative memmove sizes).
+  if (rect.end_row <= rect.start_row || rect.end_col <= rect.start_col) {
+    return;
+  }
   int rows = rect.end_row - rect.start_row;
   if (downward > rows) {
     downward = rows;
@@ -568,6 +572,22 @@ static void savecursor(VTermState *state, int save)
     VTermPos oldpos = state->pos;
 
     state->pos = state->saved.pos;
+    // wgvim: the saved position may predate a resize. Restoring it unclamped (ESC 8 / DECRC
+    // after the terminal shrank) put the cursor outside the screen, and the next printed
+    // character wrote past the end of the line-info and screen buffers (heap overflow from
+    // :terminal output). Found by test/fuzz/vterm_fuzzer.
+    if (state->pos.row > state->rows - 1) {
+      state->pos.row = state->rows - 1;
+    }
+    if (state->pos.row < 0) {
+      state->pos.row = 0;
+    }
+    if (state->pos.col > state->cols - 1) {
+      state->pos.col = state->cols - 1;
+    }
+    if (state->pos.col < 0) {
+      state->pos.col = 0;
+    }
 
     settermprop_bool(state, VTERM_PROP_CURSORVISIBLE, state->saved.mode.cursor_visible);
     settermprop_bool(state, VTERM_PROP_CURSORBLINK,   state->saved.mode.cursor_blink);
@@ -1381,6 +1401,12 @@ static int on_csi(const char *leader, const long args[], int argcount, const cha
     break;
 
   case 0x62: {  // REP - ECMA-48 8.3.103
+    // wgvim: with no preceding graphic character (e.g. right after reset), combine_width is 0
+    // and the loop below never advanced: a program printing "ESC [ b" in :terminal hung the
+    // editor (found by test/fuzz/vterm_fuzzer). REP then has nothing to repeat.
+    if (state->combine_width <= 0) {
+      break;
+    }
     const int row_width = THISROWWIDTH(state);
     count = CSI_ARG_COUNT(args[0]);
     col = state->pos.col + count;
@@ -1903,6 +1929,9 @@ static void osc_selection(VTermState *state, VTermStringFragment frag)
           frag.str++, frag.len--;
         }
 
+        // wgvim: also reset the partial value; it kept growing across "=" padding, and the
+        // bits above 24 later came back as a bogus sextet count (UB in the shift below).
+        x = 0;
         n = 0;
       } else {
         uint8_t b = unbase64one(frag.str[0]);
@@ -1953,7 +1982,7 @@ static void osc_selection(VTermState *state, VTermStringFragment frag)
     }
 
     if (n) {
-      state->tmp.selection.recvpartial = (uint32_t)(n << 24) | x;
+      state->tmp.selection.recvpartial = ((uint32_t)n << 24) | (x & 0x03FFFF);
     }
   }
 }
@@ -2015,7 +2044,10 @@ static void request_status_string(VTermState *state, VTermStringFragment frag)
     return;
   }
 
-  switch (tmp[0] | tmp[1] << 8 | tmp[2] << 16) {
+  // wgvim: unsigned, so a byte >= 0x80 in the request does not left-shift a negative value (UB;
+  // found by test/fuzz/vterm_fuzzer). Such requests match no case either way.
+  switch ((unsigned char)tmp[0] | (unsigned)(unsigned char)tmp[1] << 8
+          | (unsigned)(unsigned char)tmp[2] << 16) {
   case 'm': {
     // Query SGR
     long args[20];
@@ -2192,6 +2224,20 @@ static int on_resize(int rows, int cols, void *user)
   if (state->scrollregion_right > -1) {
     UBOUND(state->scrollregion_right, state->cols);
   }
+  // wgvim: clamping only the bottom/right edge could leave top >= bottom (or left >= right) when
+  // the terminal shrinks below a scroll region a program had set, e.g. DECSTBM 40;50 and then a
+  // resize to 20 rows. The next scroll computed a negative height and called memmove() with a
+  // negative (huge) size. Reset such regions, as DECSTBM/DECSLRM do for invalid ones. Found by
+  // test/fuzz/vterm_fuzzer.
+  if (SCROLLREGION_BOTTOM(state) <= state->scrollregion_top) {
+    state->scrollregion_top = 0;
+    state->scrollregion_bottom = -1;
+  }
+  if (state->scrollregion_right > -1 && state->scrollregion_right <= state->scrollregion_left) {
+    state->scrollregion_left = 0;
+    state->scrollregion_right = -1;
+  }
+  UBOUND(state->scrollregion_left, state->cols);
 
   VTermStateFields fields = {
     .pos = state->pos,

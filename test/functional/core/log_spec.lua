@@ -16,7 +16,7 @@ describe('log', function()
 
   after_each(function()
     expect_exit(command, 'qa!')
-    vim.uv.sleep(10) -- Wait for Nvim to fully exit
+    vim.uv.sleep(10) -- Wait for wgvim to fully exit
     os.remove(testlog)
   end)
 
@@ -35,7 +35,7 @@ describe('log', function()
   it('TUI client name is "ui"', function()
     local function setup(env)
       clear()
-      -- Start Nvim with builtin UI.
+      -- Start wgvim with builtin UI.
       local screen = tt.setup_child_nvim({
         '-u',
         'NONE',
@@ -54,21 +54,21 @@ describe('log', function()
       ]])
     end
 
-    -- Without $NVIM parent.
+    -- Without $WGVIM parent.
     setup({
-      NVIM = '',
-      NVIM_LISTEN_ADDRESS = '',
-      NVIM_LOG_FILE = testlog,
-      __NVIM_TEST_LOG = '1',
+      WGVIM = '',
+      WGVIM_LISTEN_ADDRESS = '',
+      WGVIM_LOG_FILE = testlog,
+      __WGVIM_TEST_LOG = '1',
     })
     -- Example:
     --    ERR 2024-09-11T16:40:02.421 ui.47056   ui_client_run:165: test log message
     assert_log(' ui%.%d+% +ui_client_run:%d+: test log message', testlog, 100)
 
-    -- With $NVIM parent.
+    -- With $WGVIM parent.
     setup({
-      NVIM_LOG_FILE = testlog,
-      __NVIM_TEST_LOG = '1',
+      WGVIM_LOG_FILE = testlog,
+      __WGVIM_TEST_LOG = '1',
     })
     -- Example:
     --    ERR 2024-09-11T16:41:17.539 ui/c/T2.47826.0 ui_client_run:165: test log message
@@ -83,9 +83,9 @@ describe('log', function()
 
     clear({
       env = {
-        NVIM_LOG_FILE = testlog,
+        WGVIM_LOG_FILE = testlog,
         -- TODO: remove this after nvim_log #7062 is merged.
-        __NVIM_TEST_LOG = '1',
+        __WGVIM_TEST_LOG = '1',
       },
     })
 
@@ -97,15 +97,15 @@ describe('log', function()
       vim.fn.jobwait({ j1 }, 5000)
     ]])
 
-    -- Child Nvim spawned by jobstart() prepends "c/" to parent name.
+    -- Child wgvim spawned by jobstart() prepends "c/" to parent name.
     assert_log('c/' .. tid .. '%.%d+%.%d +server_init:%d+: test log message', testlog, 100)
   end)
 
-  it('warns when $NVIM_LOG_FILE is inaccessible', function()
+  it('warns when $WGVIM_LOG_FILE is inaccessible', function()
     clear({
       args_rm = { '-u' },
       args = { '--clean' },
-      env = { NVIM_LOG_FILE = '/foo/bar' },
+      env = { WGVIM_LOG_FILE = '/foo/bar' },
     })
     t.retry(nil, nil, function()
       t.matches('log: "/foo/bar" not accessible, logging to', n.exec_capture('messages'))
@@ -114,7 +114,7 @@ describe('log', function()
     clear({
       args_rm = { '-u' },
       args = { '--clean' },
-      env = { NVIM_LOG_FILE = '/foo/bar', XDG_STATE_HOME = '/foo2/bar2' },
+      env = { WGVIM_LOG_FILE = '/foo/bar', XDG_STATE_HOME = '/foo2/bar2' },
     })
     t.retry(nil, nil, function()
       t.matches('log: "/foo/bar" not accessible, logging to', n.exec_capture('messages'))

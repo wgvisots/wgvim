@@ -568,7 +568,7 @@ end
 
 --- Default autocommands. See |default-autocmds|
 do
-  -- Warn if $NVIM_LOG_FILE or $XDG_STATE_HOME are inaccessible. #38039
+  -- Warn if $WGVIM_LOG_FILE or $XDG_STATE_HOME are inaccessible. #38039
   if vim.v.vim_did_enter then
     require('vim._core.log').check_log_file()
   else
@@ -657,8 +657,8 @@ do
     if fg_request or bg_request then
       -- WARN: This does not return the actual foreground/background color,
       -- but rather returns:
-      --   - fg=white/bg=black when Nvim option 'background' is 'dark'
-      --   - fg=black/bg=white when Nvim option 'background' is 'light'
+      --   - fg=white/bg=black when wgvim option 'background' is 'dark'
+      --   - fg=black/bg=white when wgvim option 'background' is 'light'
       local red, green, blue = 0, 0, 0
       local bg_option_dark = vim.o.background == 'dark'
       if (fg_request and bg_option_dark) or (bg_request and not bg_option_dark) then
@@ -764,7 +764,7 @@ do
 
   nvim_on('SwapExists', vim.api.nvim_create_augroup('nvim.swapfile'), {
     pattern = '*',
-    desc = 'Skip the swapfile prompt when the swapfile is owned by a running Nvim process',
+    desc = 'Skip the swapfile prompt when the swapfile is owned by a running wgvim process',
   }, function()
     local info = vim.fn.swapinfo(vim.v.swapname)
     local passwd = vim.uv.os_get_passwd()
@@ -776,7 +776,7 @@ do
     end
     vim.v.swapchoice = 'e' -- Choose "(E)dit".
     vim.notify(
-      ('W325: Ignoring swapfile from Nvim process %d'):format(info.pid),
+      ('W325: Ignoring swapfile from wgvim process %d'):format(info.pid),
       vim.log.levels.WARN,
       { _truncate = true }
     )
@@ -792,7 +792,7 @@ do
   end
 
   -- Shared TTY option detection used by two paths: the startup path (a TTY is
-  -- present when Nvim starts) and the UIEnter path (a TTY attaches to a
+  -- present when wgvim starts) and the UIEnter path (a TTY attaches to a
   -- previously |--headless| server, e.g. behind |--remote-ui|). The helpers are
   -- hoisted here so both paths share one implementation instead of duplicating
   -- it.
@@ -820,7 +820,7 @@ do
       return
     end
 
-    -- Wait until Nvim is finished starting to set the option to ensure the
+    -- Wait until wgvim is finished starting to set the option to ensure the
     -- OptionSet event fires.
     if vim.v.vim_did_enter == 1 then
       --- @diagnostic disable-next-line:no-unknown
@@ -994,7 +994,7 @@ do
         return did_dsr_response
       end, 1)
       -- Don't show the warning when running tests to avoid flakiness.
-      and os.getenv('NVIM_TEST') == nil
+      and os.getenv('WGVIM_TEST') == nil
     then
       vim.notify(
         "E1568: Terminal did not respond to DSR request for 'background' color. Startup may be slower. :help 'ttyfast'",

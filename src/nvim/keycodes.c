@@ -691,7 +691,7 @@ int get_mouse_button(int code, bool *is_click, bool *is_drag)
   return 0;         // Shouldn't get here
 }
 
-/// Encode `<key>` notation into Nvim's internal key representation. (Does NOT process raw terminal
+/// Encode `<key>` notation into wgvim's internal key representation. (Does NOT process raw terminal
 /// escape sequences, despite the legacy "termcode" terminology.)
 ///
 /// Parses keycode notation like `<C-Up>`, `<CR>`, `<Esc>`, `<F1>`, `<Leader>`, `<SID>`, and emits

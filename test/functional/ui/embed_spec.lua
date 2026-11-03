@@ -109,7 +109,7 @@ describe('--embed UI', function()
     local writer = assert(uv.new_pipe(false))
     writer:open(pipe.write)
 
-    clear { args_rm = { '--headless' }, io_extra = pipe.read, env = { NVIM_LOG_FILE = testlog } }
+    clear { args_rm = { '--headless' }, io_extra = pipe.read, env = { WGVIM_LOG_FILE = testlog } }
 
     -- attach immediately after startup, for early UI
     -- rpc_async: Avoid hanging. #24888
@@ -374,7 +374,7 @@ describe('--embed --listen', function()
     local child_screen = Screen.new(40, 6, nil, child_session)
     child_screen:expect({ any = vim.pesc('[No Name]') })
 
-    -- The UI can claim the server: Nvim self-exits when the UI disconnects.
+    -- The UI can claim the server: wgvim self-exits when the UI disconnects.
     child_session:request('nvim_chan_set', 0, { detach = false })
     child_session:close()
     screen:expect({ any = 'Process exited' })

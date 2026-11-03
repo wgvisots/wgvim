@@ -321,7 +321,7 @@ describe('jobs', function()
     skip(is_os('win'), 'N/A for Windows')
 
     local logfile = 'Xchdir_fail_log'
-    clear({ env = { NVIM_LOG_FILE = logfile } })
+    clear({ env = { WGVIM_LOG_FILE = logfile } })
 
     local dir = 'Xtest_not_executable_dir'
     mkdir(dir)
@@ -506,7 +506,7 @@ describe('jobs', function()
     eq(NIL, api.nvim_get_proc(pid))
   end)
 
-  it('disposed on Nvim exit', function()
+  it('disposed on wgvim exit', function()
     -- Start a child process which doesn't die on stdin close.
     local j = n.fn.jobstart({ n.nvim_prog, '--clean', '--headless' })
     local pid = n.fn.jobpid(j)
@@ -515,7 +515,7 @@ describe('jobs', function()
     eq(NIL, api.nvim_get_proc(pid))
   end)
 
-  it('can survive Nvim exit with "detach"', function()
+  it('can survive wgvim exit with "detach"', function()
     local j = n.fn.jobstart({ n.nvim_prog, '--clean', '--headless' }, { detach = true })
     local pid = n.fn.jobpid(j)
     eq('number', type(api.nvim_get_proc(pid).pid))
@@ -812,7 +812,7 @@ describe('jobs', function()
     end)
   end)
 
-  it('jobstart() environment: $NVIM, $NVIM_LISTEN_ADDRESS #11009', function()
+  it('jobstart() environment: $WGVIM, $WGVIM_LISTEN_ADDRESS #11009', function()
     local function get_child_env(envname, env)
       return exec_lua(
         [[
@@ -838,20 +838,20 @@ describe('jobs', function()
 
     local addr = eval('v:servername')
     ok((addr):len() > 0)
-    -- $NVIM is _not_ defined in the top-level Nvim process.
-    eq('', eval('$NVIM'))
-    -- jobstart() shares its v:servername with the child via $NVIM.
-    eq('NVIM=' .. addr, get_child_env('NVIM'))
-    -- $NVIM_LISTEN_ADDRESS is unset by server_init in the child.
-    eq('NVIM_LISTEN_ADDRESS=v:null', get_child_env('NVIM_LISTEN_ADDRESS'))
+    -- $WGVIM is _not_ defined in the top-level wgvim process.
+    eq('', eval('$WGVIM'))
+    -- jobstart() shares its v:servername with the child via $WGVIM.
+    eq('WGVIM=' .. addr, get_child_env('WGVIM'))
+    -- $WGVIM_LISTEN_ADDRESS is unset by server_init in the child.
+    eq('WGVIM_LISTEN_ADDRESS=v:null', get_child_env('WGVIM_LISTEN_ADDRESS'))
     eq(
-      'NVIM_LISTEN_ADDRESS=v:null',
-      get_child_env('NVIM_LISTEN_ADDRESS', { NVIM_LISTEN_ADDRESS = 'Xtest_jobstart_env' })
+      'WGVIM_LISTEN_ADDRESS=v:null',
+      get_child_env('WGVIM_LISTEN_ADDRESS', { WGVIM_LISTEN_ADDRESS = 'Xtest_jobstart_env' })
     )
-    -- User can explicitly set $NVIM_LOG_FILE, $VIM, $VIMRUNTIME.
+    -- User can explicitly set $WGVIM_LOG_FILE, $VIM, $VIMRUNTIME.
     eq(
-      'NVIM_LOG_FILE=Xtest_jobstart_env',
-      get_child_env('NVIM_LOG_FILE', { NVIM_LOG_FILE = 'Xtest_jobstart_env' })
+      'WGVIM_LOG_FILE=Xtest_jobstart_env',
+      get_child_env('WGVIM_LOG_FILE', { WGVIM_LOG_FILE = 'Xtest_jobstart_env' })
     )
     os.remove('Xtest_jobstart_env')
   end)

@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
 project(${PARSERLANG} C)
 
+# wgvim: tree-sitter parsers are C11 (see TreesitterParserCMakeLists.txt).
+set(CMAKE_C_STANDARD 11)
+
 add_compile_options(-w)
 
 add_library(markdown MODULE
@@ -23,6 +26,6 @@ set_target_properties(
     PREFIX ""
 )
 
-install(TARGETS markdown markdown_inline LIBRARY DESTINATION lib/nvim/parser)
+install(TARGETS markdown markdown_inline LIBRARY DESTINATION lib/wgvim/parser)
 
 # vim: set ft=cmake:

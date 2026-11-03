@@ -945,7 +945,7 @@ void time_msg(const char *mesg, const proftime_T *start)
 /// Initializes the `time_fd` stream for the --startuptime report.
 ///
 /// @param fname startuptime report file path
-/// @param proc_name name of the current Nvim process to write in the report.
+/// @param proc_name name of the current wgvim process to write in the report.
 void time_init(const char *fname, const char *proc_name)
 {
   const size_t bufsize = 8192;  // Big enough for the entire --startuptime report.
@@ -955,7 +955,7 @@ void time_init(const char *fname, const char *proc_name)
     return;
   }
   startuptime_buf = xmalloc(sizeof(char) * (bufsize + 1));
-  // The startuptime file is (potentially) written by multiple Nvim processes concurrently. So each
+  // The startuptime file is (potentially) written by multiple wgvim processes concurrently. So each
   // report is buffered, and flushed to disk (`time_finish`) once after startup. `_IOFBF` mode
   // ensures the buffer is not auto-flushed ("controlled buffering").
   int r = setvbuf(time_fd, startuptime_buf, _IOFBF, bufsize + 1);

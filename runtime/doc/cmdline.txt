@@ -1,4 +1,4 @@
-*cmdline.txt*   Nvim
+*cmdline.txt*   wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -1253,8 +1253,8 @@ CTRL-C		Continue in Command-line mode.  The command-line under the
 :quit		Discard the command line and go back to Normal mode.
 		":close", CTRL-W c, ":exit", ":xit" and CTRL-\ CTRL-N also
 		work.
-:qall		Quit Nvim, unless there are changes in some buffer.
-:qall!		Quit Nvim, discarding changes to any buffer.
+:qall		Quit wgvim, unless there are changes in some buffer.
+:qall!		Quit wgvim, discarding changes to any buffer.
 
 When the cmdwin closes, focus returns to the window where the command-line
 was started from (if possible).  The cmdwin scratch buffer is destroyed
@@ -1298,7 +1298,7 @@ You could put these lines in your vimrc file.
 The |getcmdwintype()| function returns the type of the command-line being
 edited as described in |cmdwin-char|.
 
-Nvim defines this default CmdwinEnter autocmd in the "nvim.cmdwin" group: >
+wgvim defines this default CmdwinEnter autocmd in the "nvim.cmdwin" group: >
     autocmd CmdwinEnter [:>] syntax sync minlines=1 maxlines=1
 <
 You can disable this in your config with "autocmd! nvim.cmdwin". |default-autocmds|

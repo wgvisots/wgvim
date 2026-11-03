@@ -262,7 +262,7 @@ func Test_let_no_type_checking()
 endfunc
 
 func Test_let_termcap()
-  throw 'Skipped: Nvim does not support termcap options'
+  throw 'Skipped: wgvim does not support termcap options'
   " Terminal code
   let old_t_te = &t_te
   let &t_te = "\<Esc>[yes;"

@@ -96,7 +96,9 @@ end
 
 --- Load parser with name {lang}
 ---
---- Parsers are searched in the `parser` runtime directory, or the provided {path}.
+--- wgvim: only the parsers bundled at build time are loaded, from the install directory's
+--- `parser/` folder (not 'runtimepath'), and only if their SHA256 matches. A {path} outside that
+--- folder is refused.
 --- Can be used to check for available parsers before enabling treesitter features, e.g.,
 --- ```lua
 ---   if vim.treesitter.language.add('markdown') then
@@ -130,12 +132,13 @@ function M.add(lang, opts)
       return nil, string.format('Invalid language name "%s"', lang)
     end
 
-    local fname = 'parser/' .. lang .. '.*'
-    local paths = api.nvim_get_runtime_file(fname, false)
-    if #paths == 0 then
+    -- wgvim: only the parsers bundled at build time, from the install directory, are loaded
+    -- (not 'runtimepath'). The C loader also checks their SHA256. See SECURITY-AUDIT.md.
+    local candidate = M._parser_dir() .. '/' .. lang .. '.so'
+    if not vim.uv.fs_stat(candidate) then
       return nil, string.format('No parser for language "%s"', lang)
     end
-    path = assert(paths[1])
+    path = candidate
   end
 
   local res = loadparser(path, lang, symbol_name)
@@ -190,9 +193,15 @@ function M.inspect(lang)
   return vim._ts_inspect_language(lang)
 end
 
+--- wgvim: directory holding the bundled parsers (<libdir>/parser).
+--- @return string
+function M._parser_dir()
+  return api.nvim__get_lib_dir() .. '/parser'
+end
+
 --- Returns available treesitter languages.
 function M._complete()
-  local parsers = api.nvim_get_runtime_file('parser/*', true)
+  local parsers = vim.fn.glob(M._parser_dir() .. '/*.so', true, true)
   local parser_names_set = {} ---@type table<string, boolean>
   for _, parser in ipairs(parsers) do
     local parser_name = vim.fn.fnamemodify(parser, ':t:r')

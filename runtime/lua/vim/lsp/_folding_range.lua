@@ -221,7 +221,7 @@ function State:new(bufnr)
       if row > 0 then
         vim._list_insert(row_level, start_row, start_row + math.abs(row) - 1, { -1 })
         -- If the previous row ends a fold,
-        -- Nvim treats the first row after consecutive `-1`s as a new fold start,
+        -- wgvim treats the first row after consecutive `-1`s as a new fold start,
         -- which is not the desired behavior.
         local prev_level = row_level[start_row - 1]
         if prev_level and prev_level[2] == '<' then

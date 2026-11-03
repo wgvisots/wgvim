@@ -523,7 +523,7 @@ describe('nvim_set_keymap, nvim_del_keymap', function()
     return to_return
   end
 
-  -- Gets a maparg() dict from Nvim, if one exists.
+  -- Gets a maparg() dict from wgvim, if one exists.
   local function get_mapargs(mode, lhs)
     local mapargs = fn.maparg(lhs, normalize_mapmode(mode), mode:sub(-1) == 'a', true)
     -- drop "lhsraw" and "lhsrawalt" which are hard to check

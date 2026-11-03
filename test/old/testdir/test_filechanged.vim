@@ -117,7 +117,7 @@ func Test_FileChangedShell_edit()
     au FileChangedShell Xchanged_r let g:reason = v:fcs_reason | let v:fcs_choice = 'reload'
   augroup END
   call assert_equal(&fileformat, 'unix')
-  sleep 10m  " make the test less flaky in Nvim
+  sleep 10m  " make the test less flaky in wgvim
   call writefile(["line1\r", "line2\r"], 'Xchanged_r')
   let g:reason = ''
   checktime
@@ -134,7 +134,7 @@ func Test_FileChangedShell_edit()
     au FileChangedShell Xchanged_r let g:reason = v:fcs_reason | let v:fcs_choice = 'edit'
   augroup END
   call assert_equal(&fileformat, 'unix')
-  sleep 10m  " make the test less flaky in Nvim
+  sleep 10m  " make the test less flaky in wgvim
   call writefile(["line1\r", "line2\r"], 'Xchanged_r')
   let g:reason = ''
   checktime
@@ -166,7 +166,7 @@ func Test_FileChangedShell_edit_dialog()
     au FileChangedShell Xchanged_r let g:reason = v:fcs_reason | let v:fcs_choice = 'ask'
   augroup END
   call assert_equal(&fileformat, 'unix')
-  sleep 10m  " make the test less flaky in Nvim
+  sleep 10m  " make the test less flaky in wgvim
   call writefile(["line1\r", "line2\r"], 'Xchanged_r')
   let g:reason = ''
   call feedkeys('L', 'L') " load file content only
@@ -184,7 +184,7 @@ func Test_FileChangedShell_edit_dialog()
     au FileChangedShell Xchanged_r let g:reason = v:fcs_reason | let v:fcs_choice = 'ask'
   augroup END
   call assert_equal(&fileformat, 'unix')
-  sleep 10m  " make the test less flaky in Nvim
+  sleep 10m  " make the test less flaky in wgvim
   call writefile(["line1\r", "line2\r"], 'Xchanged_r')
   let g:reason = ''
   call feedkeys('a', 'L') " load file content and options
@@ -282,7 +282,7 @@ func Test_FileChangedShell_newbuf()
   augroup testnewbuf
     autocmd FileChangedShell * enew
   augroup END
-  sleep 10m  " make the test less flaky in Nvim
+  sleep 10m  " make the test less flaky in wgvim
   call writefile(['red'], 'Xfile')
   call assert_fails('checktime', 'E811:')
   au! testnewbuf

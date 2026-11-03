@@ -1,4 +1,4 @@
-#if defined(__APPLE__) && !defined(ZIG_BUILD)
+#if defined(__APPLE__)
 # define Boolean CFBoolean  // Avoid conflict with API's Boolean
 # define FileInfo CSFileInfo  // Avoid conflict with API's Fileinfo
 # include <CoreServices/CoreServices.h>
@@ -345,16 +345,9 @@ void lang_init(void)
 {
 #if defined(__APPLE__)
   if (!os_env_exists("LANG", true)) {
-# if defined(ZIG_BUILD)
-    // fuck it just use the objectively correct values:
-    os_setenv("LANG", "C.UTF-8", true);
-    setlocale(LC_ALL, "C.UTF-8");
-    // Make sure strtod() uses a decimal point, not a comma.
-    setlocale(LC_NUMERIC, "C");
-# else
     char buf[50] = { 0 };
 
-    // $LANG is not set, either because it was unset or Nvim was started
+    // $LANG is not set, either because it was unset or wgvim was started
     // from the Dock. Query the system locale.
     if (LocaleRefGetPartString(NULL,
                                kLocaleLanguageMask | kLocaleLanguageVariantMask |
@@ -370,7 +363,6 @@ void lang_init(void)
     } else {
       ELOG("$LANG is empty and the macOS primary language cannot be inferred.");
     }
-# endif
   }
 #endif
 }

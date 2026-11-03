@@ -822,7 +822,7 @@ func s:BMHash(name)
   " convert first five chars into a number for sorting by compressing each
   " char into 5 bits (0-63), to a total of 30 bits. If any character is not
   " ASCII, it will simply be clamped to prevent overflow.
-  " Nvim: no << operator
+  " wgvim: no << operator
   return (max([0, min([63, char2nr(nm->slice(0, 1)) - sp])]) * 0x1000000) +
         \ (max([0, min([63, char2nr(nm->slice(1, 2)) - sp])]) * 0x40000) +
         \ (max([0, min([63, char2nr(nm->slice(2, 3)) - sp])]) * 0x1000) +

@@ -184,7 +184,7 @@ static void tinput_done_event(void **argv)
   os_exit(1);
 }
 
-/// Send all pending input in key buffer to Nvim server.
+/// Send all pending input in key buffer to wgvim server.
 static void tinput_flush(TermInput *input)
 {
   String keys = { .data = input->key_buffer, .size = input->key_buffer_len };
@@ -256,7 +256,7 @@ enum {
 };
 
 /// Handle modifiers not handled by libtermkey.
-/// Currently only Super ("D-") and Meta ("T-") are supported in Nvim.
+/// Currently only Super ("D-") and Meta ("T-") are supported in wgvim.
 ///
 /// @return  The number of bytes written into "buf", excluding the final NUL.
 static size_t handle_more_modifiers(TermKeyKey *key, char *buf, size_t buflen)
@@ -510,7 +510,7 @@ static void bg_query_timer_cb(uv_timer_t *handle)
 ///
 /// If the upcoming sequence of bytes in the input stream matches the termcode
 /// for "focus gained" or "focus lost", consume that sequence and send an event
-/// to Nvim server.
+/// to wgvim server.
 ///
 /// @param input the input stream
 /// @return true iff handle_focus_event consumed some input

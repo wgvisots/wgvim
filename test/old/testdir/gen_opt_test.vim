@@ -67,7 +67,7 @@ let fontname = has('win32') ? 'fixedsys' : 'fixed'
 " When both lists are empty, skip tests for the option.
 " For boolean options, if non-empty a fixed test will be run, otherwise skipped.
 let test_values = {
-      "\ Nvim-only options
+      "\ wgvim-only options
       \ 'channel': [[], []],
       \ 'inccommand': [['', 'nosplit', 'split'], ['xxx']],
       \ 'mousescroll': [['ver:1', 'hor:2', 'ver:1,hor:2', 'hor:1,ver:2'],
@@ -80,7 +80,7 @@ let test_values = {
       \ 'winhighlight': [['', 'a:b', 'a:', 'a:b,c:d'],
       \		['a', ':', ':b', 'a:b:c', 'a:/', '/:b', ',', 'a:b,,', 'a:b,c']],
       \
-      "\ Options for which Nvim has different allowed values
+      "\ Options for which wgvim has different allowed values
       \ 'backspace': [[2, '', 'indent', 'eol', 'start', 'nostop',
       \		'eol,start', 'indent,eol,nostop'],
       \		[-1, 4, 'xxx']],
@@ -394,6 +394,9 @@ let test_values = {
       "\ 'pythondll': [[], []],
       "\ 'pythonthreedll': [[], []],
       \ 'pyxversion': [[], []],
+      "\ wgvim: 'exrc' is immutable (always off)
+      \ 'exrc': [[], []],
+      \ 'modelineexpr': [[], []],
       "\ 'rubydll': [[], []],
       "\ 'tcldll': [[], []],
       \ 'term': [[], []],

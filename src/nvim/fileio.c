@@ -58,6 +58,7 @@
 #include "nvim/option.h"
 #include "nvim/option_defs.h"
 #include "nvim/option_vars.h"
+#include "nvim/os/landlock.h"
 #include "nvim/os/fs.h"
 #include "nvim/os/fs_defs.h"
 #include "nvim/os/input.h"
@@ -161,7 +162,7 @@ void filemess_bufwrite(buf_T *buf, char *name, const char *msg_id)
 /// If a file read/write is slower than this, emit a progress-message.
 uint64_t slow_io_ns(void)
 {
-  // XXX: combine v:testing + $NVIM_TEST. this is a shitty hack but i dont want another gd flag.
+  // XXX: combine v:testing + $WGVIM_TEST. this is a shitty hack but i dont want another gd flag.
   return nvim_testing && get_vim_var_nr(VV_TESTING) ? 0 : NS_PER_SEC / 2;
 }
 
@@ -539,7 +540,10 @@ int readfile(char *fname, char *sfname, linenr_T from, linenr_T lines_to_skip,
              ((fd == UV_EFBIG)
               ? _("[File too big]")
               // libuv only returns -errno in Unix; Windows open() does not set EOVERFLOW.
-              : (fd == -EOVERFLOW) ? _("[File too big]") : _("[Permission Denied]")),
+              : (fd == -EOVERFLOW) ? _("[File too big]")
+              : landlock_blocked(fname, fd, false)
+              ? _("[Permission Denied: outside the wgvim sandbox]")
+              : _("[Permission Denied]")),
              NULL);
 #else
     filemess(curbuf, sfname, ((fd == UV_EFBIG) ? _("[File too big]") : _("[Permission Denied]")),
@@ -3372,13 +3376,13 @@ void write_lnum_adjust(linenr_T offset)
   }
 }
 
-/// Path to Nvim's own temp dir. Ends in a slash.
+/// Path to wgvim's own temp dir. Ends in a slash.
 static char *vim_tempdir = NULL;
 #ifdef HAVE_DIRFD_AND_FLOCK
 static DIR *vim_tempdir_dp = NULL;  ///< File descriptor of temp dir
 #endif
 
-/// Creates a directory for private use by this instance of Nvim, trying each of
+/// Creates a directory for private use by this instance of wgvim, trying each of
 /// `TEMP_DIR_NAMES` until one succeeds.
 ///
 /// Only done once, the same directory is used for all temp files.
@@ -3401,7 +3405,7 @@ static void vim_mktempdir(void)
   // "repl" has been reported to use "0177".
   mode_t umask_save = umask(0077);
   for (size_t i = 0; i < ARRAY_SIZE(temp_dirs); i++) {
-    // Expand environment variables, leave room for "/tmp/nvim.<user>/XXXXXX/999999999".
+    // Expand environment variables, leave room for "/tmp/wgvim.<user>/XXXXXX/999999999".
     size_t tmplen = expand_env((char *)temp_dirs[i], tmp, TEMP_FILE_PATH_MAXLEN - 64);
     if (!os_isdir(tmp)) {
       if (strequal("$TMPDIR", temp_dirs[i])) {
@@ -3414,13 +3418,24 @@ static void vim_mktempdir(void)
       continue;
     }
 
-    // "/tmp/" exists, now try to create "/tmp/nvim.<user>/".
+    // "/tmp/" exists, now try to create "/tmp/wgvim.<user>/".
     if (!after_pathsep(tmp, tmp + tmplen)) {
       tmplen += (size_t)vim_snprintf(tmp + tmplen, sizeof(tmp) - tmplen, PATHSEPSTR);
       assert(tmplen < sizeof(tmp));
     }
-    tmplen += (size_t)vim_snprintf(tmp + tmplen, sizeof(tmp) - tmplen,
-                                   "nvim.%s", user);
+    // wgvim: under the sandbox, child processes get $TMPDIR="/tmp/wgvim.<user>/"; a wgvim
+    // started from one uses that directory as its root instead of nesting another in it.
+    char root_name[64];
+    snprintf(root_name, sizeof(root_name), "wgvim.%s" PATHSEPSTR, user);
+    size_t rnlen = strlen(root_name);
+    bool is_root = tmplen > rnlen && strcmp(tmp + tmplen - rnlen, root_name) == 0
+                   && vim_ispathsep(tmp[tmplen - rnlen - 1]);
+    if (is_root) {
+      tmp[--tmplen] = NUL;  // drop the trailing separator, as if just appended below
+    } else {
+      tmplen += (size_t)vim_snprintf(tmp + tmplen, sizeof(tmp) - tmplen,
+                                     "wgvim.%s", user);
+    }
     assert(tmplen < sizeof(tmp));
     os_mkdir(tmp, 0700);  // Always create, to avoid a race.
     bool owned = os_file_owned(tmp);
@@ -3453,7 +3468,7 @@ static void vim_mktempdir(void)
       tmp[tmplen] = NUL;
     }
 
-    // Now try to create "/tmp/nvim.<user>/XXXXXX".
+    // Now try to create "/tmp/wgvim.<user>/XXXXXX".
     // "XXXXXX" is mkdtemp "template", will be replaced with random alphanumeric chars.
     tmplen += (size_t)vim_snprintf(tmp + tmplen, sizeof(tmp) - tmplen, "XXXXXX");
     assert(tmplen < sizeof(tmp));
@@ -3607,7 +3622,7 @@ void vim_deltempdir(void)
   XFREE_CLEAR(vim_tempdir);
 }
 
-/// Gets path to Nvim's own temp dir (ending with slash).
+/// Gets path to wgvim's own temp dir (ending with slash).
 ///
 /// Creates the directory on the first call.
 char *vim_gettempdir(void)
@@ -3629,7 +3644,7 @@ char *vim_gettempdir(void)
   return vim_tempdir;
 }
 
-/// Sets Nvim's own temporary directory name to `tempdir`. This directory must
+/// Sets wgvim's own temporary directory name to `tempdir`. This directory must
 /// already exist. Expands the name to a full path and put it in `vim_tempdir`.
 /// This avoids that using `:cd` would confuse us.
 ///
@@ -3668,7 +3683,7 @@ static bool vim_settempdir(char *tempdir)
 ///
 /// @note The temp file is NOT created.
 ///
-/// @return  pointer to the temp file name or NULL if Nvim can't create
+/// @return  pointer to the temp file name or NULL if wgvim can't create
 ///          temporary directory for its own temporary files.
 char *vim_tempname(void)
 {

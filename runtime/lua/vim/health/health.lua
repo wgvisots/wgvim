@@ -79,7 +79,7 @@ local function check_runtime()
         'Found old files in $VIMRUNTIME (this can cause weird behavior):\n%s',
         bad_files_msg
       ),
-      { 'Delete the $VIMRUNTIME directory, then reinstall Nvim.' }
+      { 'Delete the $VIMRUNTIME directory, then reinstall wgvim.' }
     )
   end
 end
@@ -110,9 +110,9 @@ local function check_config()
     health.error('$VIM is invalid: ' .. vim.env.VIM)
   end
 
-  if vim.env.NVIM_TUI_ENABLE_CURSOR_SHAPE then
+  if vim.env.WGVIM_TUI_ENABLE_CURSOR_SHAPE then
     ok = false
-    health.warn('$NVIM_TUI_ENABLE_CURSOR_SHAPE is ignored in Nvim 0.2+', {
+    health.warn('$WGVIM_TUI_ENABLE_CURSOR_SHAPE is ignored in wgvim 0.2+', {
       "Use the 'guicursor' option to configure cursor shape. :help 'guicursor'",
       'https://github.com/neovim/neovim/wiki/Following-HEAD#20170402',
     })
@@ -160,7 +160,7 @@ local function check_config()
     or (vim.o.shadafile == 'NONE' and '' or vim.o.shadafile)
   )
   if shadafile ~= '' and vim.fn.glob(shadafile) == '' then
-    -- Since this may be the first time Nvim has been run, try to create a shada file.
+    -- Since this may be the first time wgvim has been run, try to create a shada file.
     if not pcall(vim.cmd.wshada) then
       writeable = false
     end
@@ -233,7 +233,7 @@ end
 -- Note: this is part of check_performance().
 ---@async
 local function check_limits()
-  -- 'ulimit -n' (RLIMIT_NOFILE): each Nvim buffer may hold an open swapfile. Sockets, channels, filewatchers also consume file descriptors.
+  -- 'ulimit -n' (RLIMIT_NOFILE): each wgvim buffer may hold an open swapfile. Sockets, channels, filewatchers also consume file descriptors.
   if vim.fn.has('win32') == 0 then
     local ok, out = system({ 'sh', '-c', 'ulimit -Sn' }) -- Must use a shell.
     out = vim.trim(out or '')
@@ -291,8 +291,8 @@ local function check_performance()
     health.ok(buildtype)
   else
     health.info(buildtype)
-    health.warn('Non-optimized debug build. Nvim will be slower.', {
-      'Install a different Nvim package, or rebuild with `CMAKE_BUILD_TYPE=RelWithDebInfo` (CMake) or `-Doptimize=ReleaseFast` (Zig).',
+    health.warn('Non-optimized debug build. wgvim will be slower.', {
+      'Install a different wgvim package, or rebuild with `CMAKE_BUILD_TYPE=RelWithDebInfo` (CMake) or `-Doptimize=ReleaseFast` (Zig).',
       suggest_faq,
     })
   end
@@ -314,71 +314,6 @@ local function check_performance()
 end
 
 -- Load the remote plugin manifest file and check for unregistered plugins
-local function check_rplugin_manifest()
-  health.start('Remote Plugins')
-
-  local existing_rplugins = {} --- @type table<string,string>
-  --- @type {path:string}[]
-  local items = vim.fn['remote#host#PluginsForHost']('python3')
-  for _, item in ipairs(items) do
-    existing_rplugins[item.path] = 'python3'
-  end
-
-  local require_update = false
-  --- @param path string
-  local function handle_path(path)
-    --- @type string[]
-    local python_glob = vim.fn.glob(path .. '/rplugin/python*', true, true)
-    if vim.tbl_isempty(python_glob) then
-      return
-    end
-
-    local python_dir = assert(python_glob[1])
-    local python_version = vim.fs.basename(python_dir)
-
-    --- @type string[]
-    local scripts = vim.fn.glob(python_dir .. '/*.py', true, true)
-    vim.list_extend(scripts, vim.fn.glob(python_dir .. '/*/__init__.py', true, true))
-
-    for _, script in ipairs(scripts) do
-      local contents = vim.fn.join(vim.fn.readfile(script))
-      if vim.regex([[\<\%(from\|import\)\s\+neovim\>]]):match_str(contents) then
-        if vim.regex([[[\/]__init__\.py$]]):match_str(script) then
-          script = vim.fs.normalize(vim.fs.dirname(script))
-        end
-        if not existing_rplugins[script] then
-          local msg = vim.fn.printf('"%s" is not registered.', vim.fs.basename(path))
-          if python_version == 'pythonx' then
-            if vim.fn.has('python3') == 0 then
-              msg = msg .. ' (python3 not available)'
-            end
-          elseif vim.fn.has(python_version) == 0 then
-            msg = msg .. vim.fn.printf(' (%s not available)', python_version)
-          else
-            require_update = true
-          end
-
-          health.warn(msg)
-        end
-
-        break
-      end
-    end
-  end
-
-  --- @type string[]
-  local paths = vim.fn.map(vim.split(vim.o.runtimepath, ','), 'resolve(v:val)')
-
-  for _, path in ipairs(paths) do
-    handle_path(path)
-  end
-
-  if require_update then
-    health.warn('Out of date', { 'Run `:UpdateRemotePlugins`' })
-  else
-    health.ok('Up to date')
-  end
-end
 
 ---@async
 local function check_tmux()
@@ -589,83 +524,6 @@ local function check_external_tools()
     --- @cast err string
     health.warn(err)
   end
-
-  -- `vim.pack` prefers git 2.36 but tries to work with 2.x.
-  if vim.fn.executable('git') == 1 then
-    local git = vim.fn.exepath('git')
-    local version = run_system({ 'git', 'version' }).stdout or ''
-    health.ok(('%s (%s)'):format(vim.trim(version), git))
-  else
-    health.warn('git not available (required by `vim.pack`)')
-  end
-
-  if vim.fn.executable('curl') == 1 then
-    local curl_path = vim.fn.exepath('curl')
-    local curl_job = run_system({ curl_path, '--version' })
-
-    if curl_job.code == 0 then
-      local curl_out = curl_job.stdout
-      if not curl_out or curl_out == '' then
-        health.warn(
-          string.format('`%s --version` produced no output', curl_path),
-          { curl_job.stderr }
-        )
-        return
-      end
-      local curl_version = vim.version.parse(curl_out)
-      if not curl_version then
-        health.warn('Unable to parse curl version from `curl --version`')
-        return
-      end
-      if vim.version.le(curl_version, { 7, 12, 3 }) then
-        health.warn(('curl version %s not compatible'):format(curl_version))
-        return
-      end
-      local lines = { string.format('curl %s (%s)', curl_version, curl_path) }
-
-      for line in vim.gsplit(curl_out, '\n', { plain = true }) do
-        if line ~= '' then
-          table.insert(lines, line)
-        end
-      end
-
-      -- Add subtitle only if any env var is present
-      local added_env_header = false
-      for _, var in ipairs({
-        'curl_ca_bundle',
-        'curl_home',
-        'curl_ssl_backend',
-        'ssl_cert_dir',
-        'ssl_cert_file',
-        'https_proxy',
-        'http_proxy',
-        'all_proxy',
-        'no_proxy',
-      } --[[@as string[] ]]) do
-        local val = vim.env[var]
-        if not val then
-          var = var:upper()
-          val = vim.env[var]
-        end
-        if val then
-          if not added_env_header then
-            table.insert(lines, 'curl-related environment variables:')
-            added_env_header = true
-          end
-          table.insert(lines, string.format('  %s=%s', var, val))
-        end
-      end
-
-      health.ok(table.concat(lines, '\n'))
-    else
-      health.warn('curl is installed but failed to run `curl --version`', { curl_job.stderr })
-    end
-  else
-    health.error('curl not found', {
-      'Required for vim.net.request() to function.',
-      'Install curl using your package manager.',
-    })
-  end
 end
 
 local function detect_terminal()
@@ -714,7 +572,7 @@ local function check_stable_version(nvim_version)
   local current = vim.version.parse(current_version)
   local latest = vim.version.parse(latest_version)
   if current and latest and vim.version.lt(current, latest) then
-    vim.health.warn(('Nvim %s is available (current: %s)'):format(latest_version, current_version))
+    vim.health.warn(('wgvim %s is available (current: %s)'):format(latest_version, current_version))
   else
     vim.health.ok(('Up to date (%s)'):format(current_version))
   end
@@ -763,7 +621,7 @@ local function check_sysinfo()
 
   -- Use :version because `vim.version().build` returns "Homebrew" for brew installs.
   local version_out = vim.api.nvim_exec2('version', { output = true }).output --[[@as string]]
-  local nvim_version = version_out:match('NVIM (v[^\n]+)') or 'unknown'
+  local nvim_version = version_out:match('WGVIM (v[^\n]+)') or 'unknown'
   local commit = (version_out:match('%+g(%x+)') or ''):sub(1, 12)
 
   if vim.fn.executable('git') ~= 1 then
@@ -779,7 +637,7 @@ local function check_sysinfo()
   local terminal = detect_terminal()
   local term_env = vim.env.TERM or 'unknown'
 
-  vim.health.info(('Nvim version: `%s` %s'):format(nvim_version, commit))
+  vim.health.info(('wgvim version: `%s` %s'):format(nvim_version, commit))
   vim.health.info('Operating system: ' .. os_string)
   vim.health.info('Terminal: ' .. terminal)
   vim.health.info('$TERM: ' .. term_env)
@@ -803,7 +661,7 @@ local function check_sysinfo()
     ## System info
 
     - Nvim version (nvim -v): `%s` neovim/neovim@%s
-    - Vim (not Nvim) behaves the same?: ?
+    - Vim (not wgvim) behaves the same?: ?
     - Operating system/version: %s
     - Terminal name/version: %s
     - $TERM environment variable: `%s`
@@ -849,7 +707,6 @@ function M.check()
   check_config()
   check_runtime()
   check_performance()
-  check_rplugin_manifest()
   check_terminal()
   check_tmux()
   check_external_tools()

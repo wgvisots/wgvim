@@ -57,7 +57,7 @@ if !exists("g:no_plugin_maps")
         endfor
     endfunction
 
-    " Nvim: <scriptcmd> hasn't been ported yet.
+    " wgvim: <scriptcmd> hasn't been ported yet.
     " nnoremap <silent><buffer> ]] <scriptcmd>NextSection(false, v:count1)<CR>
     " nnoremap <silent><buffer> [[ <scriptcmd>NextSection(true, v:count1)<CR>
     nnoremap <silent><buffer> ]] <Cmd>call <SID>NextSection(v:false, v:count1)<CR>

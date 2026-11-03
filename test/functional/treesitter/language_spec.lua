@@ -25,9 +25,9 @@ describe('treesitter language API', function()
       error
     )
 
-    -- actual message depends on platform
+    -- wgvim: a path that does not resolve to a bundled parser is refused before dlopen()
     matches(
-      "Failed to load parser for language 'borklang': uv_dlopen: .+",
+      'wgvim: cannot load parser borkbork.so: file not found',
       pcall_err(
         exec_lua,
         "parser = vim.treesitter.language.add('borklang', { path = 'borkbork.so' })"
@@ -45,6 +45,35 @@ describe('treesitter language API', function()
       'Failed to load parser: uv_dlsym: .+',
       pcall_err(exec_lua, 'vim.treesitter.language.add("c", { symbol_name = "borklang" })')
     )
+  end)
+
+  it('only loads bundled parsers, from the install directory, with matching SHA256', function()
+    -- A copy of a bundled parser outside the install directory is refused...
+    local copy = t.tmpname(false) .. '.so'
+    local bundled = exec_lua(function()
+      return vim.treesitter.language._parser_dir() .. '/c.so'
+    end)
+    t.write_file(copy, assert(t.read_file(bundled)), true)
+    t.finally(function()
+      os.remove(copy)
+    end)
+    matches(
+      'wgvim: refusing to load parser .*: only bundled parsers in .* may be loaded',
+      pcall_err(exec_lua, function()
+        vim.treesitter.language.add('copied_c', { path = copy, symbol_name = 'c' })
+      end)
+    )
+    -- ...also when calling the internal loader directly.
+    matches(
+      'wgvim: refusing to load parser .*: only bundled parsers in .* may be loaded',
+      pcall_err(exec_lua, function()
+        vim._ts_add_language_from_object(copy, 'copied_c', 'c')
+      end)
+    )
+    -- A parser on 'runtimepath' is never used.
+    eq(false, exec_lua(function()
+      return vim.list_contains(vim.treesitter.language._complete(), 'copied_c')
+    end))
   end)
 
   it('does not load parser for invalid language name', function()

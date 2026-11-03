@@ -1108,7 +1108,7 @@ M.funcs = {
     desc = [=[
       Send data to channel {id}. For a job, it writes it to the
       stdin of the process. For the stdio channel |channel-stdio|,
-      it writes to Nvim's stdout.  Returns the number of bytes
+      it writes to wgvim's stdout.  Returns the number of bytes
       written if the write succeeded, 0 otherwise.
       See |channel-bytes| for more information.
 
@@ -4199,7 +4199,7 @@ M.funcs = {
       If a user does not have a given permission the flag for this
       is replaced with the string "-".  Examples: >vim
       	echo getfperm("/etc/passwd")
-      	echo getfperm(expand("~/.config/nvim/init.vim"))
+      	echo getfperm(expand("~/.config/wgvim/init.vim"))
       <This will hopefully (from a security point of view) display
       the string "rw-r--r--" or even "rw-------".
 
@@ -5226,7 +5226,7 @@ M.funcs = {
     args = { 0, 1 },
     base = 1,
     desc = [=[
-      Returns the [x, y] screen position of the Nvim GUI window as
+      Returns the [x, y] screen position of the wgvim GUI window as
       a |List| with two numbers (result of |getwinposx()| and
       |getwinposy()| combined).
 
@@ -5254,7 +5254,7 @@ M.funcs = {
   getwinposx = {
     desc = [=[
       Returns the X coordinate in pixels of the left hand side of
-      the Nvim GUI window, or -1 if not available. The value can be
+      the wgvim GUI window, or -1 if not available. The value can be
       used with `:winpos`.
     ]=],
     name = 'getwinposx',
@@ -5264,7 +5264,7 @@ M.funcs = {
   },
   getwinposy = {
     desc = [=[
-      Returns the Y coordinate in pixels of the top of the Nvim GUI
+      Returns the Y coordinate in pixels of the top of the wgvim GUI
       window, or -1 if not available. The value can be used with
       `:winpos`.
     ]=],
@@ -5431,12 +5431,12 @@ M.funcs = {
       	endif
       <
       Vim's compile-time feature-names (prefixed with "+") are not
-      recognized because Nvim is always compiled with all possible
+      recognized because wgvim is always compiled with all possible
       features. |feature-compile|
 
       Feature names can be:
-      1.  Nvim version. For example the "nvim-0.2.1" feature means
-          that Nvim is version 0.2.1 or later: >vim
+      1.  wgvim version. For example the "nvim-0.2.1" feature means
+          that wgvim is version 0.2.1 or later: >vim
       	if has("nvim-0.2.1")
       	  " ...
       	endif
@@ -5454,12 +5454,12 @@ M.funcs = {
       	clipboard	|clipboard| provider is available.
       	fname_case	Case in file names matters (for Darwin and MS-Windows
       			this is not present).
-      	gui_running	Nvim has a GUI.
+      	gui_running	wgvim has a GUI.
       	hurd		GNU/Hurd system.
       	iconv		Can use |iconv()| for conversion.
       	linux		Linux system.
       	mac		MacOS system.
-      	nvim		This is Nvim.
+      	nvim		This is wgvim.
       	python3		Legacy Vim |python3| interface. |has-python|
       	pythonx		Legacy Vim |python_x| interface. |has-pythonx|
       	sun		SunOS system.
@@ -5480,7 +5480,7 @@ M.funcs = {
       	endif
 
       <4.  Vim version. For example the "patch-7.4.237" feature means
-          that Nvim is Vim-compatible to version 7.4.237 or later. >vim
+          that wgvim is Vim-compatible to version 7.4.237 or later. >vim
       	if has("patch-7.4.237")
       	  " ...
       	endif
@@ -5756,7 +5756,7 @@ M.funcs = {
   },
   hostname = {
     desc = [=[
-      Returns the hostname of the machine on which the Nvim server
+      Returns the hostname of the machine on which the wgvim server
       (not the UI client) is currently running.
     ]=],
     fast = true,
@@ -6410,9 +6410,9 @@ M.funcs = {
 
       					*jobstart-env*
       The job environment is initialized as follows:
-        $NVIM                is set to |v:servername| of the parent Nvim
-        $NVIM_LISTEN_ADDRESS is unset
-        $NVIM_LOG_FILE       is unset
+        $WGVIM                is set to |v:servername| of the parent wgvim
+        $WGVIM_LISTEN_ADDRESS is unset
+        $WGVIM_LOG_FILE       is unset
         $VIM                 is unset
         $VIMRUNTIME          is unset
       You can set these with the `env` option.
@@ -6424,8 +6424,8 @@ M.funcs = {
         cwd:	      (string, default=|current-directory|) Working
       	      directory of the job.
         detach:     (boolean) Detach the job process: it will not be
-      	      killed when Nvim exits. If the process exits
-      	      before Nvim, `on_exit` will be invoked.
+      	      killed when wgvim exits. If the process exits
+      	      before wgvim, `on_exit` will be invoked.
         env:	      (dict) Map of environment variable name:value
       	      pairs extending (or replace with "clear_env")
       	      the current environment. |jobstart-env|
@@ -7041,7 +7041,7 @@ M.funcs = {
         "nowait"   Do not wait for other, longer mappings.
       	     (|:map-<nowait>|).
         "abbr"     True if this is an |abbreviation|.
-        "mode_bits" Nvim's internal binary representation of "mode".
+        "mode_bits" wgvim's internal binary representation of "mode".
       	     |mapset()| ignores this; only "mode" is used.
       	     See |maplist()| for usage examples.  The values
       	     are from src/nvim/state_defs.h and may change in
@@ -7145,7 +7145,7 @@ M.funcs = {
       	    endif
       	endfor
       	echo saved_maps->mapnew({_, m -> m.lhs})
-      <The values of the mode_bits are defined in Nvim's
+      <The values of the mode_bits are defined in wgvim's
       src/nvim/state_defs.h file and they can be discovered at
       runtime using |:map-commands| and "maplist()".  Example: >vim
       	omap xyzzy <Nop>
@@ -8118,10 +8118,10 @@ M.funcs = {
       Convert a |readfile()|-style list or a |Blob| to a list of
       Vimscript objects.
       Example: >vim
-      	let fname = expand('~/.config/nvim/shada/main.shada')
+      	let fname = expand('~/.config/wgvim/shada/main.shada')
       	let mpack = readfile(fname, 'b')
       	let shada_objects = msgpackparse(mpack)
-      <This will read ~/.config/nvim/shada/main.shada file to
+      <This will read ~/.config/wgvim/shada/main.shada file to
       `shada_objects` list.
 
       Limitations:
@@ -8280,10 +8280,10 @@ M.funcs = {
       components in the path are reduced to {len} letters in length.
       If {len} is omitted or smaller than 1 then 1 is used (single
       letters).  Leading '~' and '.' characters are kept.  Examples: >vim
-      	echo pathshorten('~/.config/nvim/autoload/file1.vim')
+      	echo pathshorten('~/.config/wgvim/autoload/file1.vim')
       	~/.c/n/a/file1.vim
       >vim
-      	echo pathshorten('~/.config/nvim/autoload/file2.vim', 2)
+      	echo pathshorten('~/.config/wgvim/autoload/file2.vim', 2)
       	~/.co/nv/au/file2.vim
       <It doesn't matter if the path exists or not.
       Returns an empty string on error.
@@ -10080,9 +10080,9 @@ M.funcs = {
                 instead of addresses. Implies `peer=true`. Each Dict
                 has the following items:
                   addr          (string)  Server address.
-                  pid           (number)  PID of the Nvim process.
+                  pid           (number)  PID of the wgvim process.
                   own           (bool)    Whether this server belongs to
-                                          the current Nvim instance.
+                                          the current wgvim instance.
                   active        (number)  |v:useractive| of the server.
                 (default: |FALSE|)
 
@@ -10101,7 +10101,7 @@ M.funcs = {
     desc = [=[
       Opens a socket or named pipe at {address} and listens for
       |RPC| messages. Clients can send |API| commands to the
-      returned address to control Nvim.
+      returned address to control wgvim.
 
       Returns the address string (which may differ from the
       {address} argument, see below).
@@ -10116,10 +10116,10 @@ M.funcs = {
       <  - If {address} is omitted the name is "nvim". >vim
       	echo serverstart()
       < >
-      	=> /tmp/nvim.bram/oknANW/nvim.15430.5
+      	=> /tmp/wgvim.bram/oknANW/wgvim.15430.5
       <
 
-      Example bash command to list all Nvim servers: >bash
+      Example bash command to list all wgvim servers: >bash
       	ls ${XDG_RUNTIME_DIR:-${TMPDIR}nvim.${USER}}/*/nvim.*.0
 
       <Example named pipe: >vim
@@ -11868,7 +11868,7 @@ M.funcs = {
 
       {opts} is a dictionary with these keys:
         |on_stdin| : callback invoked when stdin is written to.
-        on_print : callback invoked when Nvim needs to print a
+        on_print : callback invoked when wgvim needs to print a
       	     message, with the message (whose type is string)
       	     as sole argument.
         stdin_buffered : read stdin in |channel-buffered| mode.
@@ -11888,7 +11888,7 @@ M.funcs = {
     desc = [=[
       Returns |standard-path| locations of various default files and
       directories. The locations are driven by |base-directories|
-      which you can configure via |$NVIM_APPNAME| or the `$XDG_…`
+      which you can configure via |$WGVIM_APPNAME| or the `$XDG_…`
       environment variables.
 
       {what}       Type    Description ~
@@ -12570,7 +12570,7 @@ M.funcs = {
       	user	user name
       	host	host name
       	fname	original file name
-      	pid	PID of the Nvim process that created the swap
+      	pid	PID of the wgvim process that created the swap
       		file, or zero if not running.
       	mtime	last modification time in seconds
       	inode	Optional: INODE number of the file
@@ -13045,7 +13045,7 @@ M.funcs = {
   },
   tempname = {
     desc = [=[
-      Generates a (non-existent) filename located in the Nvim root
+      Generates a (non-existent) filename located in the wgvim root
       |tempdir|. Scripts can use the filename as a temporary file.
       Example: >vim
       	let tmpfile = tempname()
@@ -13057,7 +13057,7 @@ M.funcs = {
     returns = 'string',
     signature = 'tempname()',
     see_lua = {
-      "|os.tmpname()| for a temporary name; Nvim's |tempdir| and nonexistence are not guaranteed",
+      "|os.tmpname()| for a temporary name; wgvim's |tempdir| and nonexistence are not guaranteed",
     },
   },
   termopen = {
@@ -14166,7 +14166,7 @@ M.funcs = {
       To get the buffer "viewport", use |getwininfo()|: >vim
           :echo getwininfo(win_getid())[0].width - getwininfo(win_getid())[0].textoff
       <
-      To get the Nvim screen size, see the 'columns' option.
+      To get the wgvim screen size, see the 'columns' option.
     ]=],
     name = 'winwidth',
     params = { { 'nr', 'integer' } },

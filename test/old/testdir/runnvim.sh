@@ -39,7 +39,7 @@ main() {(
     -S runnvim.vim \
     "$tlog" > "out-$tlog" 2> "err-$tlog"
   then
-    fail "$test_name" "Nvim exited with non-zero code"
+    fail "$test_name" "wgvim exited with non-zero code"
   fi
   {
     echo "Stdout of :terminal runner"
@@ -77,7 +77,7 @@ main() {(
   rm -f "$tlog"
   if test "$FAILED" = 1 ; then
     echo "Test $test_name failed, see output above and summary for more details" >> test.log
-    # When Neovim crashed/aborted it might not have created messages.
+    # When wgvim crashed/aborted it might not have created messages.
     # test.log itself is used as an indicator to exit non-zero in the Makefile.
     if ! test -f message; then
       cp -a test.log messages

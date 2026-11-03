@@ -1,4 +1,4 @@
-*vimscript.txt*    Nvim
+*vimscript.txt*    wgvim
 
 
                             NVIM REFERENCE MANUAL
@@ -75,7 +75,7 @@ For writing a Vim script, see chapter 41 of the user manual |usr_41.txt|.
 			When {file} contains wildcards it is expanded to all
 			matching files.  Example: >
 				:runtime! plugin/**/*.{vim,lua}
-<			This is what Nvim uses to load the plugin files when
+<			This is what wgvim uses to load the plugin files when
 			starting up.  This similar command: >
 				:runtime plugin/**/*.{vim,lua}
 <			would source the first file only.
@@ -97,7 +97,8 @@ For writing a Vim script, see chapter 41 of the user manual |usr_41.txt|.
 <			If the directory pack/*/opt/{name}/after exists it is
 			added at the end of 'runtimepath'.
 
-			Note: Use |vim.pack.add()| to install from a URL.
+			Note: wgvim cannot install packages from a URL
+			(|vim.pack| is removed); copy them into place.
 
 			If loading packages from "pack/*/start" was skipped,
 			then this directory is searched first: >

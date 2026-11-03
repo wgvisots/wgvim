@@ -1,0 +1,164 @@
+*wgvim.txt*	wgvim
+
+
+                            NVIM REFERENCE MANUAL
+
+
+==============================================================================
+wgvim                                           *wgvim* *wgvim-differences*
+
+wgvim is an offline, hardened build of Neovim (|nvim|). Neovim, and Vim
+before it, are the work of their contributors; wgvim only removes and
+restricts features. See |credits| and the NOTICE file for the full origin
+and licence. Please do not report wgvim problems to the Neovim project.
+
+Everything not listed here works as described in the rest of this manual.
+
+                                      Type |gO| to see the table of contents.
+
+==============================================================================
+No network access                                       *wgvim-network*
+
+The editor itself makes no network connections:
+
+- |vim.net| and the "http(s)://" buffer reader are removed.
+- |vim.pack| (which used `git`) is removed. Copy plugins into a
+  "pack/*/start/" or "pack/*/opt/" directory instead (|packages|).
+- Spell files are not downloaded (|spell-SpellFileMissing|). English is
+  bundled.
+- |netrw| works only on local files and "file://" URLs.
+- RPC servers (|--listen|, |serverstart()|) and |sockconnect()| accept only
+  pipes and Unix-domain sockets, not TCP. LSP servers are started over stdio
+  or a pipe (|vim.lsp.rpc.connect()| refuses a port).
+- `vim.uv` has no TCP, UDP or DNS functions.
+
+Programs you start (|:!|, |jobstart()|, |vim.system()|, |:terminal|, LSP
+servers) cannot make or accept TCP connections either when the |wgvim-sandbox|
+is active and the kernel supports it (Landlock ABI 4, Linux 6.7). UDP is not
+covered. For a hard guarantee, run wgvim without network access at the
+operating-system level.
+
+==============================================================================
+Restricted features                                     *wgvim-restricted*
+
+- No server is started at startup; |v:servername| is empty unless |--listen|
+  is given or |serverstart()| is called.
+- 'exrc' and 'modelineexpr' are always off and cannot be set (E519).
+- LuaJIT's `ffi` library is disabled, and native Lua modules (.so files)
+  cannot be loaded (`package.loadlib()` raises an error).
+- Treesitter parsers are loaded only from the install directory, and only
+  the parsers bundled at build time, after checking their SHA256.
+- `lsp/*.lua` configs are read only from |stdpath()| "config" and $VIMRUNTIME.
+- Programs running in |:terminal| cannot set the system clipboard (OSC 52).
+- The Python 3, Ruby, Perl and Node.js providers and remote plugins are
+  removed (|provider-python|, |remote-plugin|). The clipboard provider stays.
+
+==============================================================================
+Sandbox                                                 *wgvim-sandbox*
+
+At startup, before any config or plugin runs, wgvim confines itself with the
+Linux Landlock security module. The restriction cannot be lifted afterwards:
+not by a plugin, a modeline or an exploited bug, and not by the programs wgvim
+starts (|:!|, |:terminal|, jobs, LSP servers), which are confined too.
+
+What it allows:
+
+  Read-write, and execute ~
+  - The current directory and everything below it.
+  - Files and directories named on the command line: a file gives access to
+    that file only, a directory to everything below it. A new file that does
+    not exist yet can only be created inside the current directory.
+  - Paths given with |--sandbox-allow|.
+  Read-write ~
+  - |stdpath()| "state" and "cache" (ShaDa, swap, undo and backup files, logs)
+    and the temp directory ("/tmp/wgvim.<user>/").
+  - "~/.cache/clangd", when clangd is installed (its index for files outside
+    a project; the index of a project goes to ".cache/clangd" in the project).
+  Read and execute ~
+  - "/usr", "/bin", "/sbin", "/lib", "/lib64", "/opt", the directory of the
+    wgvim executable, "~/.local/bin", "~/bin", and |--sandbox-allow-ro| paths.
+  Read-only ~
+  - "/etc", "/proc", "/sys", |stdpath()| "config" and "data" (your config and
+    installed plugins), $VIMRUNTIME, the parser directory, $XDG_CONFIG_DIRS
+    and $XDG_DATA_DIRS.
+  - A few files that shells, git and clangd read: "~/.bashrc",
+    "~/.bash_profile", "~/.profile", "~/.inputrc", "~/.gitconfig",
+    "~/.config/git", "~/.config/clangd", "~/.clang-format", "~/.clang-tidy",
+    "~/.editorconfig".
+  Devices ~
+  - "/dev/null", "/dev/tty", your terminal, and "/dev/ptmx" and "/dev/pts"
+    for |:terminal|.
+
+Everything else is refused: other people's projects, "~/.ssh", "~/.gnupg",
+browser profiles, and so on. When the sandbox refuses a file, the error says
+so, e.g. "E212: Can't open file for writing: permission denied (outside the
+wgvim sandbox, see :help wgvim-sandbox)".
+
+When the kernel supports it, the sandbox also blocks TCP connections and
+listening (Landlock ABI 4, Linux 6.7) and connections to abstract Unix
+sockets outside the sandbox (ABI 6, Linux 6.12).
+
+                                                *wgvim-sandbox-home*
+Starting wgvim in your home directory gives access only to its entries that
+are not hidden ("~/notes.txt", "~/projects/", but not "~/.ssh" or
+"~/.bashrc"), and a new file cannot be created there. Starting it in "/" or
+in a top-level directory that contains home directories ("/home") gives no
+write access to the current directory at all. If your home directory is
+inside a deeper current directory (as some test setups do), it is reachable
+like the rest of that directory. Start wgvim inside the project you work on.
+
+Things that work differently ~
+- ":e" and ":w" outside the current directory fail, unless the file was named
+  on the command line. Use |--sandbox-allow| for another directory.
+- Setuid programs cannot gain privileges ("no new privileges"), so ":!sudo"
+  and ":w !sudo tee %" do not work.
+- Child programs get $TMPDIR set to the temp directory above, because "/tmp"
+  itself is not writable (compilers and clangd write temporary files there).
+- Your config directory is read-only, so editing "init.lua" in wgvim needs
+  wgvim to be started in "~/.config/wgvim", or |--sandbox-allow|.
+- A shell in |:terminal| cannot read most dotfiles and cannot write its
+  history file.
+- clangd: system headers and the project are readable. Include directories
+  outside both (from "compile_commands.json") need |--sandbox-allow-ro|, and
+  an index for a project whose root is above the current directory is not
+  saved.
+
+Limits ~
+- Landlock needs Linux 5.13 or later; on RHEL 9 it is available from 9.6.
+  On a kernel without it, wgvim starts unconfined unless "--sandbox require"
+  is given. Older Landlock versions do not control truncating files (ABI 3),
+  and with ABI 1 renaming files across directories is refused outright.
+- Other terminals of the same user under "/dev/pts" can be written to.
+- UDP, signals and System V IPC are not restricted.
+- The policy is fixed at startup. A directory created later, or a file named
+  in |:cd|, |:e| or a plugin, gets no extra access.
+
+Use |:checkhealth| wgvim to see whether the sandbox is active and its rules.
+The test suite and the build turn it off ($WGVIM_SANDBOX=off).
+
+                                                *--sandbox*
+--sandbox {mode}
+		"on" (the default), "off", or "require": like "on", but exit if
+		the kernel cannot apply the sandbox. Without this argument the
+		mode is taken from $WGVIM_SANDBOX. A sandbox that is already
+		active (wgvim started from a confined wgvim) cannot be turned off.
+
+                                                *--sandbox-allow*
+--sandbox-allow {path}
+		Also allow reading, writing and running programs below {path}.
+		Can be repeated.
+
+                                                *--sandbox-allow-ro*
+--sandbox-allow-ro {path}
+		Also allow reading and running programs below {path}. Can be
+		repeated.
+
+==============================================================================
+Names                                                   *wgvim-names*
+
+The executable is `wgvim`. Per-user directories and environment variables use
+"wgvim" / "WGVIM" instead of "nvim" / "NVIM": for example the config directory
+is "~/.config/wgvim" and the log file is set with $WGVIM_LOG_FILE. Internal
+names used by plugins (the `nvim_*` API, the `vim` Lua module) are unchanged.
+
+ vim:tw=78:ts=8:noet:ft=help:norl:

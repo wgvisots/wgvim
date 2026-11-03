@@ -746,7 +746,7 @@ int highlight_link_id(int id)
   return hl_table[id].sg_link;
 }
 
-/// Create default links for Nvim* highlight groups used for cmdline coloring
+/// Create default links for wgvim* highlight groups used for cmdline coloring
 void syn_init_cmdline_highlight(bool reset, bool init)
 {
   for (size_t i = 0; highlight_init_cmdline[i] != NULL; i++) {
@@ -2961,7 +2961,7 @@ color_name_table_T color_name_table[] = {
   { "NavajoWhite4", RGB_(0x8b, 0x79, 0x5e) },
   { "Navy", RGB_(0x00, 0x00, 0x80) },
   { "NavyBlue", RGB_(0x0, 0x0, 0x80) },
-  // Default Neovim palettes.
+  // Default wgvim palettes.
   // Dark/light palette is used for background in dark/light color scheme and
   // for foreground in light/dark color scheme.
   { "NvimDarkBlue", RGB_(0x00, 0x4c, 0x73) },

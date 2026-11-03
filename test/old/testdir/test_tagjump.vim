@@ -237,7 +237,7 @@ func Test_tag_symbolic()
   call assert_equal('Xtest.c', expand('%:t'))
   call assert_equal(2, col('.'))
 
-  set nohidden  " Accommodate Nvim default
+  set nohidden  " Accommodate wgvim default
   set tags&
   enew!
   call delete('Xtags')
@@ -1239,7 +1239,7 @@ func Test_tselect_listing()
 
   call feedkeys("\<CR>", "t")
   let l = split(execute("tselect first"), "\n")
-  " Nvim: :tselect goes through vim.ui.select().
+  " wgvim: :tselect goes through vim.ui.select().
   let expected =<< [DATA]
 Select a tag:
 1:   FS  v    first              Xfoo

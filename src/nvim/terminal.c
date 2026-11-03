@@ -10,7 +10,7 @@
 // vterm_keyboard_key/vterm_keyboard_unichar, which generates byte streams that
 // must be fed back to the master fd.
 //
-// Nvim buffers are used as the display mechanism for both the visible screen
+// wgvim buffers are used as the display mechanism for both the visible screen
 // and the scrollback buffer.
 //
 // When a line becomes invisible due to a decrease in screen height or because
@@ -134,7 +134,6 @@ typedef struct {
 #define REFRESH_DELAY 10
 
 #define TEXTBUF_SIZE      0x1fff
-#define SELECTIONBUF_SIZE 0x0400
 
 static TimeWatcher refresh_timer;
 static bool refresh_pending = false;
@@ -206,8 +205,6 @@ struct terminal {
 
   bool color_set[16];
 
-  char *selection_buffer;  ///< libvterm selection buffer
-  StringBuilder selection;  ///< Growable array containing full selection data
 
   StringBuilder termrequest_buffer;  ///< Growable array containing unfinished request sequence
   VTermTerminator termrequest_terminator;  ///< Terminator (BEL or ST) used in the termrequest
@@ -225,12 +222,6 @@ static VTermScreenCallbacks vterm_screen_callbacks = {
   .sb_pushline = term_sb_push,  // Called before a line goes offscreen.
   .sb_popline = term_sb_pop,
   .sb_clear = term_sb_clear,
-};
-
-static VTermSelectionCallbacks vterm_selection_callbacks = {
-  .set = term_selection_set,
-  // For security reasons we don't support querying the system clipboard from the embedded terminal
-  .query = NULL,
 };
 
 static Set(ptr_t) invalidated_terminals = SET_INIT;
@@ -533,9 +524,10 @@ Terminal *terminal_alloc(buf_T *buf, TerminalOptions opts)
   vterm_screen_reset(term->vts, 1);
   vterm_output_set_callback(term->vt, term_output_callback, term);
 
-  term->selection_buffer = xcalloc(SELECTIONBUF_SIZE, 1);
-  vterm_state_set_selection_callbacks(state, &vterm_selection_callbacks, term,
-                                      term->selection_buffer, SELECTIONBUF_SIZE);
+  // wgvim: no OSC 52 selection callbacks. Programs running in :terminal must not be able to
+  // set (or read) the system clipboard; otherwise the output of an untrusted program could
+  // replace what is pasted next. OSC 52 is passed on as a TermRequest event like other unknown
+  // OSC sequences. See SECURITY-AUDIT.md.
 
   VTermValue cursor_shape;
   switch (shape_table[SHAPE_IDX_TERM].shape) {
@@ -1251,8 +1243,6 @@ void terminal_destroy(Terminal **termpp)
     }
     xfree(term->sb_buffer);
     xfree(term->title);
-    xfree(term->selection_buffer);
-    kv_destroy(term->selection);
     kv_destroy(term->termrequest_buffer);
     vterm_free(term->vt);
     multiqueue_free(term->pending.events);
@@ -1827,63 +1817,6 @@ static int term_sb_clear(void *data)
   term->sb_current = 0;
   term->sb_pending = 0;
   invalidate_terminal(term, -1, -1);
-
-  return 1;
-}
-
-static void term_clipboard_set(void **argv)
-{
-  VTermSelectionMask mask = (VTermSelectionMask)(long)argv[0];
-  char *data = argv[1];
-
-  char regname;
-  switch (mask) {
-  case VTERM_SELECTION_CLIPBOARD:
-    regname = '+';
-    break;
-  case VTERM_SELECTION_PRIMARY:
-    regname = '*';
-    break;
-  default:
-    regname = '+';
-    break;
-  }
-
-  // Split the payload into readfile()-style list (:h chansend()).
-  // TODO(justinmk): drop this, support Blob in clipboard provider: #41097
-  list_T *lines = tv_list_alloc(kListLenMayKnow);
-  char *start = data;
-  char *end;
-  while ((end = strchr(start, '\n')) != NULL) {
-    tv_list_append_string(lines, start, end - start);
-    start = end + 1;
-  }
-  tv_list_append_string(lines, start, -1);
-  xfree(data);
-
-  list_T *args = tv_list_alloc(3);
-  tv_list_append_list(args, lines);
-
-  const char regtype = 'v';
-  tv_list_append_string(args, &regtype, 1);
-
-  tv_list_append_string(args, &regname, 1);
-  eval_call_provider("clipboard", "set", args, true);
-}
-
-static int term_selection_set(VTermSelectionMask mask, VTermStringFragment frag, void *user)
-{
-  Terminal *term = user;
-  if (frag.initial) {
-    kv_size(term->selection) = 0;
-  }
-
-  kv_concat_len(term->selection, frag.str, frag.len);
-
-  if (frag.final) {
-    char *data = xmemdupz(term->selection.items, kv_size(term->selection));
-    multiqueue_put(main_loop.events, term_clipboard_set, (void *)mask, data);
-  }
 
   return 1;
 }

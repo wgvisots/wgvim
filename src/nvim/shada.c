@@ -655,14 +655,14 @@ static const void *shada_hist_iter(const void *const iter, const uint8_t history
 /// according to the timestamp). If entry was already in the ring buffer
 /// existing entry will be removed unless it has greater timestamp.
 ///
-/// Before the new entry entries from the current Neovim history will be
+/// Before the new entry entries from the current wgvim history will be
 /// inserted unless `do_iter` argument is false.
 ///
 /// @param[in,out]  hms_p           Ring buffer and associated structures.
 /// @param[in]      entry           Inserted entry.
-/// @param[in]      do_iter         Determines whether Neovim own history should
+/// @param[in]      do_iter         Determines whether wgvim own history should
 ///                                 be used. Must be true only if inserting
-///                                 entry from current Neovim history.
+///                                 entry from current wgvim history.
 static void hms_insert(HistoryMergerState *const hms_p, const ShadaEntry entry, const bool do_iter)
   FUNC_ATTR_NONNULL_ALL
 {
@@ -687,7 +687,7 @@ static void hms_insert(HistoryMergerState *const hms_p, const ShadaEntry entry, 
     if (entry.timestamp > existing_entry->data.timestamp) {
       hmll_remove(hmll, existing_entry);
     } else if (!do_iter && entry.timestamp == existing_entry->data.timestamp) {
-      // Prefer entry from the current Neovim instance.
+      // Prefer entry from the current wgvim instance.
       shada_free_shada_entry(&existing_entry->data);
       existing_entry->data = entry;
       // Previous key was freed above, as part of freeing the ShaDa entry.
@@ -714,7 +714,7 @@ static void hms_insert(HistoryMergerState *const hms_p, const ShadaEntry entry, 
 /// @param[in]   num_elements  Number of elements in the result.
 /// @param[in]   do_merge      Prepare structure for merging elements.
 /// @param[in]   reading       If true, then merger is reading history for use
-///                            in Neovim.
+///                            in wgvim.
 static inline void hms_init(HistoryMergerState *const hms_p, const uint8_t history_type,
                             const size_t num_elements, const bool do_merge, const bool reading)
   FUNC_ATTR_NONNULL_ALL
@@ -727,7 +727,7 @@ static inline void hms_init(HistoryMergerState *const hms_p, const uint8_t histo
   hms_p->history_type = history_type;
 }
 
-/// Merge in all remaining Neovim own history entries
+/// Merge in all remaining wgvim own history entries
 ///
 /// @param[in,out]  hms_p  Merger structure into which history should be
 ///                        inserted.
@@ -744,7 +744,7 @@ static inline void hms_insert_whole_neovim_history(HistoryMergerState *const hms
   }
 }
 
-/// Convert merger structure to Neovim internal structure for history
+/// Convert merger structure to wgvim internal structure for history
 ///
 /// @param[in]   hms_p       Converted merger structure.
 /// @param[out]  hist_array  Array with the results.
@@ -1229,7 +1229,7 @@ static void shada_read(FileDescriptor *const sd_reader, const int flags)
 shada_read_main_cycle_end:
   // Warning: shada_hist_iter returns ShadaEntry elements which use strings from
   //          original history list. This means that once such entry is removed
-  //          from the history Neovim array will no longer be valid. To reduce
+  //          from the history wgvim array will no longer be valid. To reduce
   //          amount of memory allocations ShaDa file reader allocates enough
   //          memory for the history string itself and separator character which
   //          may be assigned right away.
@@ -2242,7 +2242,7 @@ static void flush_file_buffer(PackerBuffer *buffer)
 /// @param[in]  sd_writer  Structure containing file writer definition.
 /// @param[in]  sd_reader  Structure containing file reader definition. If it is
 ///                        not NULL then contents of this file will be merged
-///                        with current Neovim runtime.
+///                        with current wgvim runtime.
 static ShaDaWriteResult shada_write(FileDescriptor *const sd_writer,
                                     FileDescriptor *const sd_reader)
   FUNC_ATTR_NONNULL_ARG(1)
@@ -2893,7 +2893,7 @@ int shada_read_marks(void)
 ///
 /// @param[in]  fname    File to write to. If it is NULL or empty then default
 /// @param[in]  forceit  If true, use forced reading (prioritize file contents
-///                      over current Neovim state).
+///                      over current wgvim state).
 /// @param[in]  missing_ok  If true, do not error out when file is missing.
 ///
 /// @return OK in case of success, FAIL otherwise.

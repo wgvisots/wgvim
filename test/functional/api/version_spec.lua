@@ -26,7 +26,7 @@ describe("api_info()['version']", function()
     assert(current >= compat)
   end)
 
-  it('returns Nvim version', function()
+  it('returns wgvim version', function()
     local version = fn.api_info()['version']
     local major = version['major']
     local minor = version['minor']
@@ -158,7 +158,7 @@ describe('api metadata', function()
         clean_level_0(old_api[level])
       end
     end
-    -- No Nvim session will be used in the following tests.
+    -- No wgvim session will be used in the following tests.
     n.check_close()
   end)
 
@@ -185,7 +185,7 @@ describe('api metadata', function()
         if funcs_new[f.name] == nil then
           if f.since >= compat then
             local msg =
-              'function "%s" was removed but exists in level %s which Nvim claims to be compatible with'
+              'function "%s" was removed but exists in level %s which wgvim claims to be compatible with'
             error((msg):format(f.name, f.since))
           end
         else

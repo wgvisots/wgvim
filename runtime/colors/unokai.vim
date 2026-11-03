@@ -9,14 +9,14 @@
 set background=dark
 
 " hi clear
-source $VIMRUNTIME/colors/vim.lua " Nvim: revert to Vim default color scheme
+source $VIMRUNTIME/colors/vim.lua " wgvim: revert to Vim default color scheme
 let g:colors_name = 'unokai'
 
 let s:t_Co = &t_Co
 let s:tgc = has('termguicolors') && &termguicolors
 
 let g:terminal_ansi_colors = ['#282923', '#c61e5c', '#81af24', '#fd971f', '#51aebe', '#ae81ff', '#80beb5', '#bababa', '#74705d', '#f92672', '#a6e22e', '#e6db74', '#66d9ef', '#fd5ff0', '#a1efe4', '#f8f8f2']
-" Nvim uses g:terminal_color_{0-15} instead
+" wgvim uses g:terminal_color_{0-15} instead
 for i in range(g:terminal_ansi_colors->len())
   let g:terminal_color_{i} = g:terminal_ansi_colors[i]
 endfor

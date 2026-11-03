@@ -39,6 +39,7 @@
 #include "nvim/message.h"
 #include "nvim/option.h"
 #include "nvim/option_vars.h"
+#include "nvim/os/landlock.h"
 #include "nvim/os/fs.h"
 #include "nvim/os/fs_defs.h"
 #include "nvim/os/input.h"
@@ -1354,7 +1355,10 @@ int buf_write(buf_T *buf, char *fname, char *sfname, linenr_T start, linenr_T en
                   && !os_fileinfo_id_equal(&file_info, &file_info_old))) {
             err = set_err(_("E166: Can't open linked file for writing"));
           } else {
-            err = set_err_arg(_("E212: Can't open file for writing: %s"), fd);
+            err = set_err_arg(landlock_blocked(wfname, fd, true)
+                              ? _("E212: Can't open file for writing: %s (outside the wgvim "
+                                  "sandbox, see :help wgvim-sandbox)")
+                              : _("E212: Can't open file for writing: %s"), fd);
             if (forceit && vim_strchr(p_cpo, kCpoFwrite) == NULL && perm >= 0) {
               // we write to the file, thus it should be marked
               // writable after all

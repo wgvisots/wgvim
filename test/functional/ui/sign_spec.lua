@@ -554,7 +554,7 @@ describe('Signs', function()
     ]])
     exec('norm 2Gdd')
     exec('silent undo')
-    -- Nvim: undo restores the cursor to where "2Gdd" started (|restore-undo-cursor|).
+    -- wgvim: undo restores the cursor to where "2Gdd" started (|restore-undo-cursor|).
     screen:expect([[
       {7:  }^1                                                  |
       {7:S1}2                                                  |

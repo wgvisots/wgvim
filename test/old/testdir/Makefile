@@ -3,14 +3,18 @@
 #
 
 ifeq ($(OS),Windows_NT)
-  NVIM_PRG ?= ../../../build/bin/nvim.exe
+  WGVIM_PRG ?= ../../../build/bin/nvim.exe
 else
-  NVIM_PRG ?= ../../../build/bin/nvim
+  WGVIM_PRG ?= ../../../build/bin/wgvim
 endif
 ROOT := ../../..
 
 export SHELL := sh
-export NVIM_PRG := $(NVIM_PRG)
+export WGVIM_PRG := $(WGVIM_PRG)
+# wgvim: many tests read and write outside this directory (../, the build tree); run them without
+# the sandbox. "make oldtest WGVIM_SANDBOX=on" runs them confined.
+WGVIM_SANDBOX ?= off
+export WGVIM_SANDBOX
 export TMPDIR := $(abspath X-test-tmpdir)
 
 ifeq ($(OS),Windows_NT)
@@ -63,7 +67,7 @@ nongui: nolog $(FIXFF) newtests report
 	@echo 'set $$_exitcode = -1\nrun\nif $$_exitcode != -1\n  quit\nend' > .gdbinit
 
 report:
-	$(NVIM_PRG) -u NONE $(NO_INITS) -S summarize.vim messages
+	$(WGVIM_PRG) -u NONE $(NO_INITS) -S summarize.vim messages
 	@echo
 	@echo 'Test results:'
 	@cat test_result.log
@@ -73,7 +77,7 @@ report:
 		fi"
 	@rm -f starttime
 
-test1.out: $(NVIM_PRG)
+test1.out: $(WGVIM_PRG)
 
 # In vim, if the -u command line option is specified, compatible is turned on
 # and viminfo is not read. Unlike vim, neovim reads viminfo and requires the
@@ -82,9 +86,9 @@ NO_INITS = -u NONE -i NONE --noplugin --headless
 
 # TODO: find a way to avoid changing the distributed files.
 fixff:
-	-$(NVIM_PRG) $(NO_INITS) -u unix.vim "+argdo set ff=dos|upd" +q \
+	-$(WGVIM_PRG) $(NO_INITS) -u unix.vim "+argdo set ff=dos|upd" +q \
 	  *.in *.ok
-	-$(NVIM_PRG) $(NO_INITS) -u unix.vim "+argdo set ff=dos|upd" +q \
+	-$(WGVIM_PRG) $(NO_INITS) -u unix.vim "+argdo set ff=dos|upd" +q \
 	  dotest.in
 
 # File to delete when testing starts
@@ -102,7 +106,7 @@ $(NEW_TESTS):
 
 RM_ON_RUN   := test.out X* viminfo
 RM_ON_START := test.ok
-RUN_VIM     := $(TOOL) $(NVIM_PRG) -u unix.vim -U NONE -i viminfo --headless --noplugin -s dotest.in
+RUN_VIM     := $(TOOL) $(WGVIM_PRG) -u unix.vim -U NONE -i viminfo --headless --noplugin -s dotest.in
 
 # Delete files that may interfere with running tests.  This includes some files
 # that may result from working on the tests, not only from running them.
@@ -132,7 +136,7 @@ test1.out: .gdbinit test1.in
 	@echo "[OLDTEST-PREP] Running test1"
 	@rm -rf $*.failed $(RM_ON_RUN) $(RM_ON_START) wrongtermsize
 	@mkdir -p $(TMPDIR)
-	@/bin/sh runnvim.sh $(ROOT) $(NVIM_PRG) $* $(RUN_VIM) $*.in
+	@/bin/sh runnvim.sh $(ROOT) $(WGVIM_PRG) $* $(RUN_VIM) $*.in
 	@rm -f wrongtermsize
 	@rm -rf X* viminfo
 
@@ -144,7 +148,7 @@ nolog:
 # New style of tests uses Vim script with assert calls.  These are easier
 # to write and a lot easier to read and debug.
 # Limitation: Only works with the +eval feature.
-RUN_VIMTEST = $(TOOL) $(NVIM_PRG)
+RUN_VIMTEST = $(TOOL) $(WGVIM_PRG)
 
 newtests: newtestssilent
 	@/bin/sh -c "if test -f messages; then cat messages; fi"
@@ -154,7 +158,7 @@ newtestssilent: $(NEW_TESTS_RES)
 GEN_OPT_DEPS = gen_opt_test.vim ../../../src/nvim/options.lua ../../../runtime/doc/options.txt
 
 opt_test.vim: $(GEN_OPT_DEPS)
-	$(NVIM_PRG) -e -s $(NO_INITS) -S $(GEN_OPT_DEPS)
+	$(WGVIM_PRG) -e -s $(NO_INITS) -S $(GEN_OPT_DEPS)
 	@if test -f gen_opt_test.log; then \
 		cat gen_opt_test.log; \
 		exit 1; \
@@ -167,4 +171,4 @@ test_options_all.res: opt_test.vim
 	@echo "[OLDTEST] Running" $*
 	@rm -rf $*.failed test.ok $(RM_ON_RUN)
 	@mkdir -p $(TMPDIR)
-	@/bin/sh runnvim.sh $(ROOT) $(NVIM_PRG) $* $(RUN_VIMTEST) $(NO_INITS) --cmd "set shortmess-=F backupdir=. undodir=. viewdir=." -S runtest.vim $*.vim
+	@/bin/sh runnvim.sh $(ROOT) $(WGVIM_PRG) $* $(RUN_VIMTEST) $(NO_INITS) --cmd "set shortmess-=F backupdir=. undodir=. viewdir=." -S runtest.vim $*.vim

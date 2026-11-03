@@ -176,7 +176,7 @@ func Test_jumpoptions()
         \  {'lnum': 20, 'bufnr': bnr, 'col': 0, 'coladd': 0},
         \  {'lnum': 30, 'bufnr': bnr, 'col': 0, 'coladd': 0},
         \  {'lnum': 90, 'bufnr': bnr, 'col': 0, 'coladd': 0},
-        "\ Nvim: avoids useless/phantom jumps
+        "\ wgvim: avoids useless/phantom jumps
         "\  {'lnum': 60, 'bufnr': bnr, 'col': 0, 'coladd': 0},
         "\ ], 6], getjumplist())
         \ ], 5], getjumplist())

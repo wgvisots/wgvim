@@ -5,7 +5,7 @@
 //
 // 1. Expressions are first fully parsed and only then executed.  This means
 //    that while ":echo [system('touch abc')" will create file "abc" in Vim and
-//    only then raise syntax error regarding missing comma in list in Neovim
+//    only then raise syntax error regarding missing comma in list in wgvim
 //    trying to execute that will immediately raise syntax error regarding
 //    missing list end without actually executing anything.
 // 2. Expressions are first fully parsed, without considering any runtime
@@ -16,7 +16,7 @@
 // 3. Expressions parser is aware whether it is called for :echo or <C-r>=.
 //    This means that while "<C-r>=1 | 2<CR>" is equivalent to "<C-r>=1<CR>"
 //    because "| 2" part is left to be treated as a command separator and then
-//    ignored in Neovim it is an error.
+//    ignored in wgvim it is an error.
 // 4. Expressions parser has generally better error reporting.  But for
 //    compatibility reasons most errors have error code E15 while error messages
 //    are significantly different from Vim’s E15.  Also some error codes were
@@ -24,7 +24,7 @@
 //    a result of differences in parsing process: e.g. with ":echo {a, b}" Vim
 //    will attempt to parse expression as lambda, fail, check whether it is
 //    a curly-braces-name, fail again, and evaluate that as a dictionary, giving
-//    error regarding undefined variable "a" (or about missing colon).  Neovim
+//    error regarding undefined variable "a" (or about missing colon).  wgvim
 //    will not try to evaluate anything here: comma right after an argument name
 //    means that expression may not be anything, but lambda, so the resulting
 //    error message will never be about missing variable or colon: it will be
@@ -39,7 +39,7 @@
 // <  , just exactly one E697 message.
 // 6. Some expressions involving calling parenthesis which are treated
 //    separately by Vim even when not separated by spaces are treated as one
-//    expression by Neovim: e.g. ":echo (1)(1)" will yield runtime error after
+//    expression by wgvim: e.g. ":echo (1)(1)" will yield runtime error after
 //    failing to call "1", while Vim will echo "1 1". Reasoning is the same:
 //    type of what is in the first expression is generally not known when
 //    parsing, so to have separate expressions like this separate them with

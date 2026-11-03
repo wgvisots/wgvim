@@ -46,26 +46,32 @@ describe('server', function()
   it('broken $XDG_RUNTIME_DIR is not fatal #30282', function()
     clear {
       args_rm = { '--listen' },
-      env = { NVIM_LOG_FILE = testlog, XDG_RUNTIME_DIR = '/non-existent-dir/subdir//' },
+      env = { WGVIM_LOG_FILE = testlog, XDG_RUNTIME_DIR = '/non-existent-dir/subdir//' },
     }
 
-    if is_os('win') then
-      -- Windows pipes have a special namespace and thus aren't decided by $XDG_RUNTIME_DIR.
-      matches('nvim', api.nvim_get_vvar('servername'))
-    else
-      eq('', api.nvim_get_vvar('servername'))
-      t.assert_log('Failed to start server%: no such file or directory', testlog, 100)
-    end
+    -- wgvim: no server is started automatically, so a broken $XDG_RUNTIME_DIR is not even
+    -- touched at startup.
+    eq('', api.nvim_get_vvar('servername'))
+    t.assert_nolog('Failed to start server', testlog, 100)
   end)
 
-  it('serverstart(), serverstop() does not set $NVIM', function()
+  it('does not listen unless asked (wgvim)', function()
+    clear { args_rm = { '--listen' }, env = { WGVIM_LISTEN_ADDRESS = '' } }
+    eq('', api.nvim_get_vvar('servername'))
+    eq({}, fn.serverlist())
+    local addr = fn.serverstart()
+    matches('wgvim%.%d+%.%d+$', addr)
+    eq(addr, api.nvim_get_vvar('servername'))
+  end)
+
+  it('serverstart(), serverstop() does not set $WGVIM', function()
     clear()
     local s = eval('serverstart()')
     assert(s ~= nil and s:len() > 0, 'serverstart() returned empty')
-    eq('', eval('$NVIM'))
-    eq('', eval('$NVIM_LISTEN_ADDRESS'))
+    eq('', eval('$WGVIM'))
+    eq('', eval('$WGVIM_LISTEN_ADDRESS'))
     eq(1, eval("serverstop('" .. s .. "')"))
-    eq('', eval('$NVIM_LISTEN_ADDRESS'))
+    eq('', eval('$WGVIM_LISTEN_ADDRESS'))
   end)
 
   it('sets v:servername at startup or if all servers were stopped', function()
@@ -87,7 +93,7 @@ describe('server', function()
     eq(1, fn.serverstop(fn.serverlist()[1]))
     eq('', api.nvim_get_vvar('servername'))
 
-    -- v:servername and $NVIM take the next available server.
+    -- v:servername and $WGVIM take the next available server.
     local servername = (
       is_os('win') and [[//./pipe/Xtest-functional-server-pipe]]
       or './Xtest-functional-server-socket'
@@ -95,72 +101,20 @@ describe('server', function()
     fn.serverstart(servername)
     eq(servername, api.nvim_get_vvar('servername'))
     -- Not set in the current process, only in children.
-    eq('', eval('$NVIM'))
+    eq('', eval('$WGVIM'))
   end)
 
   it('serverstop() returns false for invalid input', function()
     clear {
       args_rm = { '--listen' },
       env = {
-        NVIM_LOG_FILE = testlog,
-        NVIM_LISTEN_ADDRESS = '',
+        WGVIM_LOG_FILE = testlog,
+        WGVIM_LISTEN_ADDRESS = '',
       },
     }
     eq(0, eval("serverstop('')"))
     eq(0, eval("serverstop('bogus-socket-name')"))
     t.assert_log('Not listening on bogus%-socket%-name', testlog, 10)
-  end)
-
-  it('parses endpoints', function()
-    clear {
-      args_rm = { '--listen' },
-      env = {
-        NVIM_LOG_FILE = testlog,
-        NVIM_LISTEN_ADDRESS = '',
-      },
-    }
-    clear_serverlist()
-    eq({}, fn.serverlist())
-
-    local s = fn.serverstart('127.0.0.1:0') -- assign random port
-    if #s > 0 then
-      matches('127.0.0.1:%d+', s)
-      eq(s, fn.serverlist()[1])
-      clear_serverlist()
-    end
-
-    s = fn.serverstart('127.0.0.1:') -- assign random port
-    if #s > 0 then
-      matches('127.0.0.1:%d+', s)
-      eq(s, fn.serverlist()[1])
-      clear_serverlist()
-    end
-
-    local expected = {}
-    local v4 = '127.0.0.1:12345'
-    local status, _ = pcall(fn.serverstart, v4)
-    if status then
-      table.insert(expected, v4)
-      pcall(fn.serverstart, v4) -- exists already; ignore
-      t.assert_log('Failed to start server: address already in use: 127%.0%.0%.1', testlog, 10)
-    end
-
-    local v6 = '::1:12345'
-    status, _ = pcall(fn.serverstart, v6)
-    if status then
-      table.insert(expected, v6)
-      pcall(fn.serverstart, v6) -- exists already; ignore
-      t.assert_log('Failed to start server: address already in use: ::1', testlog, 10)
-    end
-    eq(expected, fn.serverlist())
-    clear_serverlist()
-
-    -- Address without slashes is a "name" which is appended to a generated path. #8519
-    matches([[[/\\]xtest1%.2%.3%.4[^/\\]*]], fn.serverstart('xtest1.2.3.4'))
-    clear_serverlist()
-
-    eq('Vim:Failed to start server: invalid argument', pcall_err(fn.serverstart, '127.0.0.1:65536')) -- invalid port
-    eq({}, fn.serverlist())
   end)
 
   it('serverlist() returns the list of servers', function()
@@ -191,7 +145,7 @@ describe('server', function()
     -- After serverstop() the servers should NOT be in the list.
     eq(_n, eval('len(serverlist())'))
 
-    -- serverlist({peer=true}) returns servers from other Nvim sessions.
+    -- serverlist({peer=true}) returns servers from other wgvim sessions.
     if t.is_os('win') then
       return
     end
@@ -204,7 +158,8 @@ describe('server', function()
     local peer_addr = ('%s/%s'):format(tmp_dir2, peer_name)
     -- Set XDG_RUNTIME_DIR to a temp dir in this session to properly test serverlist({peer = true}). See #35492
     local client = n.new_session(true, {
-      args = { '--clean', '--listen', peer_addr, '--embed' },
+      -- wgvim: the peer listens outside the current directory, so no sandbox.
+      args = { '--sandbox', 'off', '--clean', '--listen', peer_addr, '--embed' },
       env = { XDG_RUNTIME_DIR = tmp_dir2 },
       merge = false,
     })
@@ -307,11 +262,11 @@ describe('server', function()
       return vim
         .system(
           { vim.v.progpath, '--headless', '--listen', sock },
-          { text = true, env = { NVIM_LOG_FILE = testlog } }
+          { text = true, env = { WGVIM_LOG_FILE = testlog } }
         )
         :wait()
     end, socket_path)
-    t.assert_log('Socket already in use by another Nvim instance: ', testlog, 100)
+    t.assert_log('Socket already in use by another wgvim instance: ', testlog, 100)
     t.assert_log('Failed to start server: address already in use: ', testlog, 100)
 
     neq(0, result.code)
@@ -327,7 +282,7 @@ describe('server', function()
     clear { args_rm = { '--listen' } }
     matches('//./pipe/', fn.eval('v:servername'), true)
 
-    clear({ args_rm = { '--listen' }, env = { NVIM_LISTEN_ADDRESS = named_pipe } })
+    clear({ args_rm = { '--listen' }, env = { WGVIM_LISTEN_ADDRESS = named_pipe } })
     eq(vim.fs.normalize(named_pipe), fn.eval('v:servername'))
 
     clear({ args_rm = { '--listen' }, args = { '--listen', name } })
@@ -355,7 +310,7 @@ describe('server', function()
 end)
 
 describe('startup --listen', function()
-  -- Tests Nvim output when failing to start, with and without "--headless".
+  -- Tests wgvim output when failing to start, with and without "--headless".
   local function _test(args, env, expected)
     local function run(cmd)
       return n.spawn_wait {
@@ -364,7 +319,7 @@ describe('startup --listen', function()
         env = vim.tbl_extend(
           'force',
           -- Avoid noise in the logs; we expect failures for these tests.
-          { NVIM_LOG_FILE = testlog },
+          { WGVIM_LOG_FILE = testlog },
           env or {}
         ),
       }
@@ -386,59 +341,57 @@ describe('startup --listen', function()
   end
 
   it('validates', function()
-    clear { env = { NVIM_LOG_FILE = testlog } }
+    clear { env = { WGVIM_LOG_FILE = testlog } }
     local in_use = n.eval('v:servername') ---@type string Address already used by another server.
 
     t.assert_nolog('Failed to start server', testlog, 100)
     t.assert_nolog('Host lookup failed', testlog, 100)
 
-    _test({ '--listen' }, nil, 'nvim.*: Argument missing after: "%-%-listen"')
-    _test({ '--listen2' }, nil, 'nvim.*: Garbage after option argument: "%-%-listen2"')
+    _test({ '--listen' }, nil, 'wgvim.*: Argument missing after: "%-%-listen"')
+    _test({ '--listen2' }, nil, 'wgvim.*: Garbage after option argument: "%-%-listen2"')
     _test(
       { '--listen', in_use },
       nil,
-      ('nvim.*: Failed to %%-%%-listen: [^:]+ already [^:]+: "%s"'):format(vim.pesc(in_use))
+      ('wgvim.*: Failed to %%-%%-listen: [^:]+ already [^:]+: "%s"'):format(vim.pesc(in_use))
     )
-    _test({ '--listen', '/' }, nil, 'nvim.*: Failed to %-%-listen: [^:]+: "/"')
+    _test({ '--listen', '/' }, nil, 'wgvim.*: Failed to %-%-listen: [^:]+: "/"')
     if not is_os('win') then
       -- Too-long path is rejected, not silently truncated. #38623
       local too_long = './Xtest-listen-' .. ('x'):rep(192)
       _test(
         { '--listen', too_long },
         nil,
-        ('nvim.*: Failed to %%-%%-listen: invalid argument: "%s"'):format(vim.pesc(too_long))
+        ('wgvim.*: Failed to %%-%%-listen: invalid argument: "%s"'):format(vim.pesc(too_long))
       )
     end
     _test(
       { '--listen', 'https://example.com' },
       nil,
-      ('nvim.*: Failed to %%-%%-listen: %s: "https://example.com"'):format(
-        is_os('mac') and 'unknown node or service' or 'service not available for socket type'
-      )
+      -- wgvim: host:port addresses are refused before any DNS lookup.
+      'wgvim.*: Failed to %-%-listen: invalid argument: "https://example%.com"'
     )
 
     t.assert_log('Failed to start server', testlog, 100)
-    t.assert_log('Host lookup failed', testlog, 100)
+    t.assert_nolog('Host lookup failed', testlog, 100)
 
     _test(
       {},
-      { NVIM_LISTEN_ADDRESS = in_use },
-      ('nvim.*: Failed $NVIM_LISTEN_ADDRESS: [^:]+ already [^:]+: "%s"'):format(vim.pesc(in_use))
+      { WGVIM_LISTEN_ADDRESS = in_use },
+      ('wgvim.*: Failed $WGVIM_LISTEN_ADDRESS: [^:]+ already [^:]+: "%s"'):format(vim.pesc(in_use))
     )
-    _test({}, { NVIM_LISTEN_ADDRESS = '/' }, 'nvim.*: Failed $NVIM_LISTEN_ADDRESS: [^:]+: "/"')
+    _test({}, { WGVIM_LISTEN_ADDRESS = '/' }, 'wgvim.*: Failed $WGVIM_LISTEN_ADDRESS: [^:]+: "/"')
     _test(
       {},
-      { NVIM_LISTEN_ADDRESS = 'https://example.com' },
-      ('nvim.*: Failed $NVIM_LISTEN_ADDRESS: %s: "https://example.com"'):format(
-        is_os('mac') and 'unknown node or service' or 'service not available for socket type'
-      )
+      { WGVIM_LISTEN_ADDRESS = 'https://example.com' },
+      'wgvim.*: Failed $WGVIM_LISTEN_ADDRESS: invalid argument: "https://example%.com"'
     )
+    t.assert_nolog('Host lookup failed', testlog, 100)
   end)
 
-  it('sets v:servername, overrides $NVIM_LISTEN_ADDRESS', function()
+  it('sets v:servername, overrides $WGVIM_LISTEN_ADDRESS', function()
     local addr = (is_os('win') and [[//./pipe/Xtest-listen-pipe]] or './Xtest-listen-pipe')
-    clear({ env = { NVIM_LISTEN_ADDRESS = './Xtest-env-pipe' }, args = { '--listen', addr } })
-    eq('', eval('$NVIM_LISTEN_ADDRESS')) -- Cleared on startup.
+    clear({ env = { WGVIM_LISTEN_ADDRESS = './Xtest-env-pipe' }, args = { '--listen', addr } })
+    eq('', eval('$WGVIM_LISTEN_ADDRESS')) -- Cleared on startup.
     eq(addr, api.nvim_get_vvar('servername'))
 
     -- Address without slashes is a "name" which is appended to a generated path. #8519

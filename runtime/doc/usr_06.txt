@@ -1,4 +1,4 @@
-*usr_06.txt*	Nvim
+*usr_06.txt*	wgvim
 
 
 		     VIM USER MANUAL	by Bram Moolenaar
@@ -26,7 +26,7 @@ Table of contents: |usr_toc.txt|
 ==============================================================================
 *06.1*	Switching it on
 
-Syntax highlighting is enabled by default.  Nvim will automagically detect the
+Syntax highlighting is enabled by default.  wgvim will automagically detect the
 type of file and load the right syntax highlighting.
 
 ==============================================================================
@@ -130,8 +130,8 @@ You could also write your own color scheme.  This is how you do it:
 1. Select a color scheme that comes close.  Copy this file to your own Vim
    directory.  For Unix, this should work: >
 
-	!mkdir -p ~/.config/nvim/colors
-	!cp $VIMRUNTIME/colors/morning.vim ~/.config/nvim/colors/mine.vim
+	!mkdir -p ~/.config/wgvim/colors
+	!cp $VIMRUNTIME/colors/morning.vim ~/.config/wgvim/colors/mine.vim
 <
    This is done from Vim, because it knows the value of $VIMRUNTIME.
 

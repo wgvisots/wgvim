@@ -1,4 +1,32 @@
 local api = vim.api
+
+--- wgvim: `lsp/*.lua` server configs are read only from the user's config directory
+--- (stdpath('config'), including its after/) and the bundled runtime ($VIMRUNTIME), not from
+--- every 'runtimepath' entry, so a config dropped into a plugin or data directory cannot start a
+--- program. Configs set with vim.lsp.config() in Lua are unaffected. See SECURITY-AUDIT.md.
+--- @param pattern string
+--- @return string[]
+local function trusted_lsp_config_files(pattern)
+  local roots = {} --- @type string[]
+  for _, dir in ipairs({ vim.fn.stdpath('config'), vim.env.VIMRUNTIME }) do
+    local real = type(dir) == 'string' and dir ~= '' and vim.uv.fs_realpath(dir)
+    if real then
+      roots[#roots + 1] = real
+    end
+  end
+  return vim.tbl_filter(function(file)
+    local real = vim.uv.fs_realpath(file)
+    if not real then
+      return false
+    end
+    for _, root in ipairs(roots) do
+      if vim.startswith(real, root .. '/') then
+        return true
+      end
+    end
+    return false
+  end, api.nvim_get_runtime_file(pattern, true))
+end
 local validate = vim.validate
 local nvim_on = require('vim._core.util').nvim_on
 
@@ -208,7 +236,7 @@ end
 --- Filename(s) (".git/", "package.json", …) used to decide the workspace root. Unused if `root_dir`
 --- is defined. The list order decides priority. To indicate "equal priority", specify names in
 --- a nested list `{ { 'a.txt', 'b.lua' }, ... }`.
---- - For each item, Nvim will search upwards (from the buffer file) for that marker, or list of
+--- - For each item, wgvim will search upwards (from the buffer file) for that marker, or list of
 ---   markers; search stops at the first directory containing that marker, and the directory is used
 ---   as the root dir (workspace folder).
 --- - Example: Find the first ancestor directory containing file or directory "stylua.toml"; if not
@@ -344,7 +372,7 @@ lsp.config = setmetatable({ _configs = {} }, {
       -- Resolve configs from lsp/*.lua
       -- Calls to vim.lsp.config in lsp/* have a lower precedence than calls from other sites.
       local rtp_config --- @type vim.lsp.Config?
-      for _, v in ipairs(api.nvim_get_runtime_file(('lsp/%s.lua'):format(name), true)) do
+      for _, v in ipairs(trusted_lsp_config_files(('lsp/%s.lua'):format(name))) do
         local chunk, err = loadfile(v)
         local config = assert(chunk, err)() ---@type any?
         if type(config) == 'table' then
@@ -397,7 +425,7 @@ lsp.config = setmetatable({ _configs = {} }, {
 --- @return string[]
 local function get_config_names()
   local config_names = vim
-    .iter(api.nvim_get_runtime_file('lsp/*.lua', true))
+    .iter(trusted_lsp_config_files('lsp/*.lua'))
     :map(function(path)
       local file_name = assert(path:match('[^/]*.lua$'))
       return file_name:sub(0, #file_name - 4)
@@ -1172,7 +1200,7 @@ function lsp.get_clients(filter)
   return clients
 end
 
--- Minimum time before warning about LSP exit_timeout on Nvim exit.
+-- Minimum time before warning about LSP exit_timeout on wgvim exit.
 local min_warn_exit_timeout = 100
 
 nvim_on('VimLeavePre', nil, { desc = 'vim.lsp: exit handler' }, function()
@@ -1308,7 +1336,7 @@ end
 
 --- Sends a request to all server and waits for the response of all of them.
 ---
---- Calls |vim.lsp.buf_request_all()| but blocks Nvim while awaiting the result.
+--- Calls |vim.lsp.buf_request_all()| but blocks wgvim while awaiting the result.
 --- Parameters are the same as |vim.lsp.buf_request_all()| but the result is
 --- different. Waits a maximum of {timeout_ms}.
 ---
@@ -1571,7 +1599,7 @@ end
 --- invoke. Each key is a unique command name; each value is a function which is called when an LSP
 --- action (code action, code lenses, …) requests it by name.
 ---
---- If an LSP response requests a command not defined client-side, Nvim will forward it to the
+--- If an LSP response requests a command not defined client-side, wgvim will forward it to the
 --- server as `workspace/executeCommand`.
 ---
 --- - Argument 1 is the `Command`:

@@ -61,8 +61,8 @@ async function freshNvim() {
   });
   await new Promise((res, rej) => m.FS.syncfs(true, e => e ? rej(e) : res())); // restore from IndexedDB
 
-  try { m.FS.mkdir('/home/user/.config/nvim'); } catch (e) {}
-  try { m.FS.mkdir('/home/user/.local/share/nvim'); } catch (e) {}
+  try { m.FS.mkdir('/home/user/.config/wgvim'); } catch (e) {}
+  try { m.FS.mkdir('/home/user/.local/share/wgvim'); } catch (e) {}
   try { m.FS.mkdir('/runtime/parser'); } catch (e) {}
   ['lua', 'c', 'vim', 'vimdoc', 'query', 'markdown', 'markdown_inline'].forEach(p => {
     try { m.FS.writeFile(`/runtime/parser/${p}.so`, ''); } catch (e) {}
@@ -138,8 +138,8 @@ async function runtimeSanityCheck() {
   try { log("/runtime contents: " + m.FS.readdir('/runtime').join(', ')); }
   catch (e) { log("ERROR reading /runtime: " + e); }
   try {
-    m.FS.writeFile('/home/user/.local/share/nvim/test.txt', 'hello from session ' + Date.now());
-    log("wrote+read dynamic test file: " + m.FS.readFile('/home/user/.local/share/nvim/test.txt', { encoding: 'utf8' }));
+    m.FS.writeFile('/home/user/.local/share/wgvim/test.txt', 'hello from session ' + Date.now());
+    log("wrote+read dynamic test file: " + m.FS.readFile('/home/user/.local/share/wgvim/test.txt', { encoding: 'utf8' }));
   } catch (e) { log("ERROR writing dynamic test file: " + e); }
   try { log("/runtime/doc contains " + m.FS.readdir('/runtime/doc').length + " entries"); }
   catch (e) { log("ERROR reading /runtime/doc: " + e); }

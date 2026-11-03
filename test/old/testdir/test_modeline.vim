@@ -290,6 +290,7 @@ func Test_modeline_fails_modelineexpr()
 endfunc
 
 func Test_modeline_complete_uses_sandbox()
+  throw 'Skipped: wgvim: ''modelineexpr'' is always off (immutable)'
   let modeline = &modeline
   let modelineexpr = &modelineexpr
 

@@ -226,7 +226,7 @@ func Test_cpo_g()
   normal 20G
   edit
   call assert_equal(20, line('.'))
-  " Nvim: no "g" flag in 'cpoptions'.
+  " wgvim: no "g" flag in 'cpoptions'.
   " set cpo+=g
   " edit
   " call assert_equal(1, line('.'))
@@ -242,7 +242,7 @@ func Test_cpo_H()
   call setline(1, '    ')
   normal! Ia
   call assert_equal('    a', getline(1))
-  " Nvim: no "H" flag in 'cpoptions'.
+  " wgvim: no "H" flag in 'cpoptions'.
   " set cpo+=H
   " call setline(1, '    ')
   " normal! Ia
@@ -564,7 +564,7 @@ endfunc
 func Test_cpo_w()
   let save_cpo = &cpo
   new
-  " Nvim: no "w" flag in 'cpoptions'.
+  " wgvim: no "w" flag in 'cpoptions'.
   " set cpo+=w
   " call setline(1, 'here      are   some words')
   " norm! 1gg0elcwZZZ
@@ -710,7 +710,7 @@ endfunc
 
 " Test for cursor movement with '-' in 'cpoptions'
 func Test_cpo_minus()
-  throw 'Skipped: Nvim does not support cpoptions flag "-"'
+  throw 'Skipped: wgvim does not support cpoptions flag "-"'
   new
   call setline(1, ['foo', 'bar', 'baz'])
   let save_cpo = &cpo
@@ -751,7 +751,7 @@ func Test_cpo_star()
   set cpo-=*
   let @a = 'let x += 1'
   call assert_fails('*a', 'E20:')
-  " Nvim: no "*" flag in 'cpoptions'.
+  " wgvim: no "*" flag in 'cpoptions'.
   " set cpo+=*
   " *a
   " call assert_equal(1, x)
@@ -826,7 +826,7 @@ func Test_cpo_hash()
   normal gg2Otwo
   call assert_equal(['two', 'two', 'three', 'four', 'four'], getline(1, '$'))
   %d
-  " Nvim: no "#" flag in 'cpoptions'.
+  " wgvim: no "#" flag in 'cpoptions'.
   " set cpo+=#
   " call setline(1, ['one', 'two', 'three'])
   " normal gg2D
@@ -842,7 +842,7 @@ endfunc
 " Test for the '&' flag in 'cpo'. The swap file is kept when a buffer is still
 " loaded and ':preserve' is used.
 func Test_cpo_ampersand()
-  throw 'Skipped: Nvim does not support cpoptions flag "&"'
+  throw 'Skipped: wgvim does not support cpoptions flag "&"'
   call writefile(['one'], 'XfileCpoAmp', 'D')
   let after =<< trim [CODE]
     set cpo+=&
@@ -863,7 +863,7 @@ func Test_cpo_backslash()
   set cpo-=\
   exe 'normal gg/[ \-]' .. "\<CR>n"
   call assert_equal(3, col('.'))
-  " Nvim: no "\" flag in 'cpoptions'.
+  " wgvim: no "\" flag in 'cpoptions'.
   " set cpo+=\
   " exe 'normal gg/[ \-]' .. "\<CR>n"
   " call assert_equal(2, col('.'))
@@ -884,7 +884,7 @@ func Test_cpo_brace()
   call assert_equal(5, line('.'))
   normal G{
   call assert_equal(1, line('.'))
-  " Nvim: no "{" flag in 'cpoptions'.
+  " wgvim: no "{" flag in 'cpoptions'.
   " set cpo+={
   " normal gg}
   " call assert_equal(2, line('.'))
@@ -897,7 +897,7 @@ endfunc
 " Test for the '.' flag in 'cpo' (:cd command fails if the current buffer is
 " modified)
 func Test_cpo_dot()
-  throw 'Skipped: Nvim does not support cpoptions flag "."'
+  throw 'Skipped: wgvim does not support cpoptions flag "."'
   let save_cpo = &cpo
   new Xfoo
   call setline(1, 'foo')

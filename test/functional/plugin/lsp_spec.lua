@@ -121,8 +121,8 @@ describe('LSP', function()
         function _G.test__start_client()
           return vim.lsp.start({
             cmd_env = {
-              NVIM_LOG_FILE = fake_lsp_logfile,
-              NVIM_APPNAME = 'nvim_lsp_test',
+              WGVIM_LOG_FILE = fake_lsp_logfile,
+              WGVIM_APPNAME = 'nvim_lsp_test',
             },
             cmd = {
               vim.v.progpath,
@@ -3313,32 +3313,6 @@ describe('LSP', function()
       end
     end)
 
-    it('connects to lsp server via rpc.connect using ip address', function()
-      exec_lua(create_tcp_echo_server)
-      exec_lua(function()
-        local port = _G._create_tcp_server('127.0.0.1')
-        vim.lsp.start({ name = 'dummy', cmd = vim.lsp.rpc.connect('127.0.0.1', port) })
-      end)
-      verify_single_notification(function(method, args) ---@param args [string]
-        eq('body', method)
-        eq('initialize', vim.json.decode(args[1]).method)
-      end)
-    end)
-
-    it('connects to lsp server via rpc.connect using hostname', function()
-      skip(is_os('bsd'), 'issue with host resolution in ci')
-      skip(t.is_arch('s390x'), 'issue with host resolution in ci')
-      exec_lua(create_tcp_echo_server)
-      exec_lua(function()
-        local port = _G._create_tcp_server('::1')
-        vim.lsp.start({ name = 'dummy', cmd = vim.lsp.rpc.connect('localhost', port) })
-      end)
-      verify_single_notification(function(method, args) ---@param args [string]
-        eq('body', method)
-        eq('initialize', vim.json.decode(args[1]).method)
-      end)
-    end)
-
     it('can connect to lsp server via pipe or domain_socket', function()
       local tmpfile = is_os('win') and '\\\\.\\\\pipe\\pipe.test' or tmpname(false)
       local result = exec_lua(function()
@@ -3367,42 +3341,19 @@ describe('LSP', function()
       end)
       eq('initialize', result.method)
     end)
-
-    it('clean up failed lsp client when rpc.connect fails', function()
-      exec_lua(function()
-        local server = assert(vim.uv.new_tcp())
-        server:bind('127.0.0.1', 0)
-        local port = server:getsockname().port
-        server:close()
-        local exited = false
-        vim.lsp.start({
-          name = 'dummy',
-          cmd = vim.lsp.rpc.connect('127.0.0.1', port),
-          on_exit = function()
-            exited = true
-          end,
-        })
-        assert(
-          vim.wait(1000, function()
-            return #vim.lsp.get_clients({ name = 'dummy', _uninitialized = true }) == 0
-          end),
-          'Timed out waiting for errored client to be cleaned up'
-        )
-        assert(exited)
-      end)
-    end)
   end)
 
   describe('handlers', function()
     it('handler can return false as response', function()
       local result = exec_lua(function()
-        local server = assert(vim.uv.new_tcp())
+        local server = assert(vim.uv.new_pipe(false))
         local messages = {}
         local responses = {}
-        server:bind('127.0.0.1', 0)
+        local path = vim.fn.tempname()
+        server:bind(path)
         server:listen(127, function(err)
           assert(not err, err)
-          local socket = assert(vim.uv.new_tcp())
+          local socket = assert(vim.uv.new_pipe(false))
           server:accept(socket)
           socket:read_start(require('vim.lsp.rpc').create_read_loop(function(body)
             local payload = vim.json.decode(body)
@@ -3432,14 +3383,13 @@ describe('LSP', function()
             end
           end))
         end)
-        local port = server:getsockname().port
         local handler_called = false
         vim.lsp.handlers['dummy'] = function(_, _)
           handler_called = true
           return false
         end
         local client_id =
-          assert(vim.lsp.start({ name = 'dummy', cmd = vim.lsp.rpc.connect('127.0.0.1', port) }))
+          assert(vim.lsp.start({ name = 'dummy', cmd = vim.lsp.rpc.connect(path) }))
         vim.lsp.get_client_by_id(client_id)
         vim.wait(1000, function()
           return #messages == 2 and handler_called and #responses == 1
@@ -3473,13 +3423,14 @@ describe('LSP', function()
     --- @return { on_error_called: table, notification_received: boolean, messages: boolean }.
     local function test_null_id_response(null_id_payload)
       return exec_lua(function()
-        local server = assert(vim.uv.new_tcp())
+        local server = assert(vim.uv.new_pipe(false))
         local accepted
         local messages = {}
-        server:bind('127.0.0.1', 0)
+        local path = vim.fn.tempname()
+        server:bind(path)
         server:listen(127, function(err)
           assert(not err, err)
-          accepted = assert(vim.uv.new_tcp())
+          accepted = assert(vim.uv.new_pipe(false))
           server:accept(accepted)
           accepted:read_start(require('vim.lsp.rpc').create_read_loop(function(body)
             local payload = vim.json.decode(body)
@@ -3516,7 +3467,6 @@ describe('LSP', function()
             end
           end))
         end)
-        local port = server:getsockname().port
         local on_error_called = false
         local notification_received = false
         local client_id = assert(vim.lsp.start({
@@ -3529,7 +3479,7 @@ describe('LSP', function()
                 notification(method, params)
               end
             end
-            return vim.lsp.rpc.connect('127.0.0.1', port)(dispatchers)
+            return vim.lsp.rpc.connect(path)(dispatchers)
           end,
           on_error = function(_code, _err)
             on_error_called = true

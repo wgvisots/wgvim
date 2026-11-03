@@ -239,7 +239,7 @@ local options = {
       cb = 'did_set_autochdir',
       defaults = false,
       desc = [=[
-        When on, Nvim will change its global |current-directory| to the parent
+        When on, wgvim will change its global |current-directory| to the parent
         of the current file, whenever you open a file, switch buffers, delete
         a buffer or open/close a window.
 
@@ -331,7 +331,7 @@ local options = {
       abbreviation = 'ar',
       defaults = true,
       desc = [=[
-        When a file was changed outside of Nvim, automatically read it again.
+        When a file was changed outside of wgvim, automatically read it again.
         Skipped if the file was deleted (so you still have the last-available
         text). If the file appears again, then it is read; you can |undo| to
         see the previous contents. |timestamp|
@@ -409,7 +409,7 @@ local options = {
         not be the most recently-attached UI, since it depends on response
         speed).
 
-        This option does NOT change the background color, it tells Nvim what
+        This option does NOT change the background color, it tells wgvim what
         the "inherited" (terminal/GUI) background looks like. See |:hi-normal|
         to set the background color explicitly.
         					*g:colors_name*
@@ -577,7 +577,7 @@ local options = {
       desc = [=[
         List of directories for the backup file, separated with commas.
         - The backup file will be created in the first directory in the list
-          where this is possible.  If none of the directories exist Nvim will
+          where this is possible.  If none of the directories exist wgvim will
           attempt to create the last directory in the list.
         - Empty means that no backup file will be created ('patchmode' is
           impossible!).  Writing may fail because of this.
@@ -2719,7 +2719,7 @@ local options = {
         is discouraged: if the system crashes you lose the swap file. And
         others on the computer may be able to see the files.
         Use |:set+=| and |:set-=| when adding or removing directories from the
-        list, this avoids problems if the Nvim default is changed.
+        list, this avoids problems if the wgvim default is changed.
       ]=],
       expand = 'nodefault',
       full_name = 'directory',
@@ -3041,32 +3041,17 @@ local options = {
       abbreviation = 'ex',
       defaults = false,
       desc = [=[
-        Enables project-local configuration. Nvim will execute any .nvim.lua,
-        .nvimrc, or .exrc file found in the |current-directory| and all parent
-        directories (ordered upwards), if the files are in the |trust| list.
-        Use |:trust| to manage trusted files. See also |vim.secure.read()|.
-
-        Unset 'exrc' to stop further searching of 'exrc' files in parent
-        directories, similar to |editorconfig.root|.
-
-        To get its own location, a Lua exrc file can use |debug.getinfo()|.
-        See |lua-script-location|.
-
-        Compare 'exrc' to |editorconfig|:
-        - 'exrc' can execute any code; editorconfig only specifies settings.
-        - 'exrc' is Nvim-specific; editorconfig works in other editors.
-
-        To achieve project-local LSP configuration:
-        1. Enable 'exrc'.
-        2. Place LSP configs at ".nvim/lsp/*.lua" in your project root.
-        3. Create ".nvim.lua" in your project root directory with this line: >lua
-            vim.cmd[[set runtimepath+=.nvim]]
-        <
+        DISABLED in wgvim. This option cannot be set (E519). wgvim never
+        executes project-local .nvim.lua, .nvimrc or .exrc files, because a
+        trusted file can extend 'runtimepath' and load further unchecked code
+        from the project. Put project settings in your own config instead, or
+        use |editorconfig| for settings that cannot run code.
       ]=],
       full_name = 'exrc',
       scope = { 'global' },
       secure = true,
-      short_desc = N_('read project-local configuration in parent directories'),
+      immutable = true,
+      short_desc = N_('disabled in wgvim (project-local config files)'),
       tags = { 'project-config', 'workspace-config' },
       type = 'boolean',
       varname = 'p_exrc',
@@ -4028,14 +4013,14 @@ local options = {
         When on, the OS function fsync() will be called after saving a file
         (|:write|, |writefile()|, …), |swap-file|, |undo-persistence| and |shada-file|.
         This flushes the file to disk, ensuring that it is safely written.
-        Slow on some systems: writing buffers, quitting Nvim, and other
+        Slow on some systems: writing buffers, quitting wgvim, and other
         operations may sometimes take a few seconds.
 
         Files are ALWAYS flushed ('fsync' is ignored) when:
         - |CursorHold| event is triggered
         - |:preserve| is called
         - system signals low battery life
-        - Nvim exits abnormally
+        - wgvim exits abnormally
 
         This is a |global-local| option, so it can be set per buffer, for
         example when writing to a slow filesystem.
@@ -6121,14 +6106,16 @@ local options = {
       abbreviation = 'mle',
       defaults = false,
       desc = [=[
-        When on allow some options that are an expression to be set in the
-        modeline.  Check the option for whether it is affected by
-        'modelineexpr'.  Also see |modeline|.
+        DISABLED in wgvim: always off and cannot be set (E519), so neither a
+        file's modeline nor a plugin can enable it. Options that take an
+        expression (see each option for "modelineexpr") can therefore never be
+        set from a modeline.  Also see |modeline|.
       ]=],
       full_name = 'modelineexpr',
       scope = { 'global' },
       secure = true,
-      short_desc = N_('allow some options to be set in modeline'),
+      immutable = true,
+      short_desc = N_('disabled in wgvim (expression options in modelines)'),
       type = 'boolean',
       varname = 'p_mle',
     },
@@ -6349,7 +6336,7 @@ local options = {
         middle click	    paste		paste
 
         In the "popup" model the right mouse button produces a pop-up menu.
-        Nvim creates a default |popup-menu| but you can redefine it.
+        wgvim creates a default |popup-menu| but you can redefine it.
 
         Note that you can further refine the meaning of buttons with mappings.
         See |mouse-overview|.  But mappings are NOT used for modeless selection.
@@ -6420,7 +6407,7 @@ local options = {
 
         Example: >vim
         	set mousescroll=ver:5,hor:2
-        <	Will make Nvim scroll 5 lines at a time when scrolling vertically, and
+        <	Will make wgvim scroll 5 lines at a time when scrolling vertically, and
         scroll 2 columns at a time when scrolling horizontally.
       ]=],
       full_name = 'mousescroll',
@@ -6688,7 +6675,7 @@ local options = {
     },
     {
       abbreviation = 'plf',
-      defaults = '$XDG_CONFIG_HOME/nvim/nvim-pack-lock.json',
+      defaults = '$XDG_CONFIG_HOME/wgvim/nvim-pack-lock.json',
       deny_duplicates = true,
       desc = [=[
         Path of |vim.pack-lockfile|. Must be set before the first usage of any
@@ -7415,11 +7402,11 @@ local options = {
       cb = 'did_set_runtimepackpath',
       defaults = {
         if_true = '',
-        doc = [["$XDG_CONFIG_HOME/nvim,
+        doc = [["$XDG_CONFIG_HOME/wgvim,
                      $XDG_CONFIG_DIRS[1]/nvim,
                      $XDG_CONFIG_DIRS[2]/nvim,
                      …
-                     $XDG_DATA_HOME/nvim[-data]/site,
+                     $XDG_DATA_HOME/wgvim[-data]/site,
                      $XDG_DATA_DIRS[1]/nvim/site,
                      $XDG_DATA_DIRS[2]/nvim/site,
                      …
@@ -7427,11 +7414,11 @@ local options = {
                      …
                      $XDG_DATA_DIRS[2]/nvim/site/after,
                      $XDG_DATA_DIRS[1]/nvim/site/after,
-                     $XDG_DATA_HOME/nvim[-data]/site/after,
+                     $XDG_DATA_HOME/wgvim[-data]/site/after,
                      …
                      $XDG_CONFIG_DIRS[2]/nvim/after,
                      $XDG_CONFIG_DIRS[1]/nvim/after,
-                     $XDG_CONFIG_HOME/nvim/after"]],
+                     $XDG_CONFIG_HOME/wgvim/after"]],
         meta = '...',
       },
       deny_duplicates = true,
@@ -7470,10 +7457,10 @@ local options = {
            Given by `stdpath("data")/site`.  |$XDG_DATA_HOME|
         4. nvim/site subdirectories for each directory in $XDG_DATA_DIRS.
            This is for plugins which were installed by system administrator,
-           but are not part of the Nvim distribution. XDG_DATA_DIRS defaults
+           but are not part of the wgvim distribution. XDG_DATA_DIRS defaults
            to /usr/local/share/:/usr/share/, so system administrators are
-           expected to install site plugins to /usr/share/nvim/site.
-        5. $VIMRUNTIME, for files distributed with Nvim.
+           expected to install site plugins to /usr/share/wgvim/site.
+        5. $VIMRUNTIME, for files distributed with wgvim.
         						*after-directory*
         6, 7, 8, 9. In after/ subdirectories of 1, 2, 3 and 4, with reverse
            ordering.  This is for preferences to overrule or add to the
@@ -7493,7 +7480,7 @@ local options = {
         Example: >vim
         	set runtimepath=~/vimruntime,/mygroup/vim,$VIMRUNTIME
         <	This will use the directory "~/vimruntime" first (containing your
-        personal Nvim runtime files), then "/mygroup/vim", and finally
+        personal wgvim runtime files), then "/mygroup/vim", and finally
         "$VIMRUNTIME" (the default runtime files).
         You can put a directory before $VIMRUNTIME to find files which replace
         distributed runtime files.  You can put a directory after $VIMRUNTIME
@@ -8851,7 +8838,7 @@ local options = {
         It may also be a comma-separated list of names.  A count before the
         |zg| and |zw| commands can be used to access each.  This allows using
         a personal word list file and a project word list file.
-        When a word is added while this option is empty Nvim will use
+        When a word is added while this option is empty wgvim will use
         (and auto-create) `stdpath('data')/site/spell/`. For the file name the
         first language name that appears in 'spelllang' is used, ignoring the
         region.
@@ -8907,9 +8894,9 @@ local options = {
         encoding is used, Vim doesn't check it.
         How the related spell files are found is explained here: |spell-load|.
 
-        If the |package-spellfile| plugin is active and you use a language name
-        for which Vim cannot find the .spl file in 'runtimepath' the plugin
-        will ask you if you want to download the file.
+        If the .spl file for a language cannot be found in 'runtimepath',
+        wgvim shows a warning; it does not download spell files (see
+        |spell-SpellFileMissing|).
 
         After this option has been set successfully, Vim will source the files
         "spell/LANG.vim" in 'runtimepath'.  "LANG" is the value of 'spelllang'
@@ -9025,7 +9012,7 @@ local options = {
 
         Only one of "best", "double" or "fast" may be used.  The others may
         appear several times in any order.  Example: >vim
-        	set sps=file:~/.config/nvim/sugg,best,expr:MySuggest()
+        	set sps=file:~/.config/wgvim/sugg,best,expr:MySuggest()
         <	Environment variables are expanded |:set_env|.
       ]=],
       expand = true,
@@ -9929,7 +9916,7 @@ local options = {
         attributes instead of "cterm" attributes. |guifg|
         Requires an ISO-8613-3 compatible terminal.
 
-        Nvim will automatically attempt to determine if the host terminal
+        wgvim will automatically attempt to determine if the host terminal
         supports 24-bit color and will enable this option if it does
         (unless explicitly disabled by the user).
       ]=],
@@ -9981,7 +9968,7 @@ local options = {
         If the host terminal supports it, buffer all screen updates
         made during a redraw cycle so that each screen is displayed in
         the terminal all at once. This can prevent tearing or flickering
-        when the terminal updates faster than Nvim can redraw.
+        when the terminal updates faster than wgvim can redraw.
       ]=],
       full_name = 'termsync',
       redraw = { 'ui_option' },
@@ -10081,7 +10068,7 @@ local options = {
       desc = [=[
         This option and 'timeoutlen' determine the behavior when part of a
         mapped key sequence has been received. For example, if <c-f> is
-        pressed and 'timeout' is set, Nvim will wait 'timeoutlen' milliseconds
+        pressed and 'timeout' is set, wgvim will wait 'timeoutlen' milliseconds
         for any key that can follow <c-f> in a mapping.
       ]=],
       full_name = 'timeout',
@@ -10106,9 +10093,9 @@ local options = {
       cb = 'did_set_title_icon',
       defaults = false,
       desc = [=[
-        If enabled, Nvim will update the (GUI or terminal) window title. The
+        If enabled, wgvim will update the (GUI or terminal) window title. The
         format is configured by 'titlestring'. By default it looks like: >
-        	filename [+=-] (path) - Nvim
+        	filename [+=-] (path) - wgvim
         <
         where: >
         	filename	the name of the file being edited
@@ -10117,7 +10104,7 @@ local options = {
         	=		indicates the file is read-only
         	=+		indicates the file is read-only and modified
         	(path)		is the path of the file being edited
-        	- Nvim		the server name |v:servername| or "Nvim"
+        	- wgvim		the server name |v:servername| or "wgvim"
         <
       ]=],
       full_name = 'title',
@@ -10171,7 +10158,7 @@ local options = {
         error will be given.
 
         The default (empty) behaviour is equivalent to: >vim
-            set titlestring=%t%(\ %M%)%(\ \(%{expand('%:p:~:h')}\)%)%a\ -\ Nvim
+            set titlestring=%t%(\ %M%)%(\ \(%{expand('%:p:~:h')}\)%)%a\ -\ wgvim
         <
         Example: >vim
             auto BufEnter * let &titlestring = hostname() .. "/" .. expand("%:p")
@@ -10204,13 +10191,13 @@ local options = {
         key code sequence has been received by the |TUI|.
 
         For example if <Esc> (the \x1b byte) is received and 'ttimeout' is
-        set, Nvim waits 'ttimeoutlen' milliseconds for the terminal to
+        set, wgvim waits 'ttimeoutlen' milliseconds for the terminal to
         complete a key code sequence. If no input arrives before the timeout,
         a single <Esc> is assumed. Many TUI cursor key codes start with <Esc>.
 
         On very slow systems this may fail, causing cursor keys not to work
         sometimes.  If you discover this problem you can ":set ttimeoutlen=9999".
-        Nvim will wait for the next character to arrive after an <Esc>.
+        wgvim will wait for the next character to arrive after an <Esc>.
       ]=],
       full_name = 'ttimeout',
       redraw = { 'ui_option' },
@@ -10238,15 +10225,15 @@ local options = {
       abbreviation = 'tf',
       defaults = true,
       desc = [=[
-        Enables Nvim |TUI| features which assume a fast (usually local) host
-        terminal. During startup, Nvim queries the terminal (for 'background'
+        Enables wgvim |TUI| features which assume a fast (usually local) host
+        terminal. During startup, wgvim queries the terminal (for 'background'
         detection, etc.) and must wait for a response (or timeout).
 
         If your terminal environment is slow (e.g. remote SSH), or broken
-        (doesn't respond to queries), Nvim startup may be slower. Therefore
-        you can disable this option by setting the `$NVIM_NOTTYFAST`
-        environment variable before starting Nvim: >
-        	NVIM_NOTTYFAST=1 nvim
+        (doesn't respond to queries), wgvim startup may be slower. Therefore
+        you can disable this option by setting the `$WGVIM_NOTTYFAST`
+        environment variable before starting wgvim: >
+        	WGVIM_NOTTYFAST=1 nvim
         <
 
         The queries are performed early, before |--cmd| and user |config|, so
@@ -10257,7 +10244,7 @@ local options = {
       scope = { 'global' },
       short_desc = N_('assume terminal responds quickly, enabling more features'),
       -- Vim E1568: https://github.com/vim/vim/blob/0f9218851dc91a855c3d186ccd05f550907cf37e/src/errors.h#L3791
-      tags = { 'E1568', '$NVIM_NOTTYFAST' },
+      tags = { 'E1568', '$WGVIM_NOTTYFAST' },
       type = 'boolean',
       varname = 'p_tf',
     },
@@ -10274,7 +10261,7 @@ local options = {
         file, with path separators replaced with "%".
         When writing: The first directory that exists is used.  "." always
         works, no directories after "." will be used for writing.  If none of
-        the directories exist Nvim will attempt to create the last directory in
+        the directories exist wgvim will attempt to create the last directory in
         the list.
         When reading all entries are tried to find an undo file.  The first
         undo file that exists is used.  When it cannot be read an error is
@@ -10469,7 +10456,7 @@ local options = {
         enabled at level 1; Lua scripts are not traced when 'verbose' is 0,
         for performance.
 
-        If greater than or equal to a given level, Nvim produces the following
+        If greater than or equal to a given level, wgvim produces the following
         messages:
 
         Level	Messages ~

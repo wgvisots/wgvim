@@ -1,4 +1,4 @@
-*pattern.txt*   Nvim
+*pattern.txt*   wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar

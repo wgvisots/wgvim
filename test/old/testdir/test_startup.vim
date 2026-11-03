@@ -7,7 +7,7 @@ source check.vim
 
 " Check that loading startup.vim works.
 func Test_startup_script()
-  throw 'skipped: Nvim does not need defaults.vim'
+  throw 'skipped: wgvim does not need defaults.vim'
   set compatible
   source $VIMRUNTIME/defaults.vim
 
@@ -162,7 +162,7 @@ func Test_help_arg()
 endfunc
 
 func Test_compatible_args()
-  throw "skipped: Nvim is always 'nocompatible'"
+  throw "skipped: wgvim is always 'nocompatible'"
   let after =<< trim [CODE]
     call writefile([string(&compatible)], "Xtestout")
     set viminfo+=nviminfo
@@ -307,7 +307,7 @@ endfunc
 
 " Test that an error is shown when the defaults.vim file could not be read
 func Test_defaults_error()
-  throw 'Skipped: Nvim does not support defaults.vim'
+  throw 'Skipped: wgvim does not support defaults.vim'
   " Can't catch the output of gvim.
   CheckNotGui
   CheckNotMSWindows
@@ -596,15 +596,15 @@ func Test_invalid_args()
   for opt in ['-Y', '--does-not-exist']
     let out = split(system(GetVimCommand() .. ' ' .. opt), "\n")
     call assert_equal(1, v:shell_error)
-    call assert_equal('nvim: Unknown option argument: "' .. opt .. '"', out[0])
-    call assert_equal('More info with "nvim -h"',                       out[1])
+    call assert_equal('wgvim: Unknown option argument: "' .. opt .. '"', out[0])
+    call assert_equal('More info with "wgvim -h"',                       out[1])
   endfor
 
   for opt in ['-c', '-i', '-s', '-t', '-u', '-U', '-w', '-W', '--cmd', '--startuptime']
     let out = split(system(GetVimCommand() .. ' '  .. opt), "\n")
     call assert_equal(1, v:shell_error)
-    call assert_equal('nvim: Argument missing after: "' .. opt .. '"', out[0])
-    call assert_equal('More info with "nvim -h"',                      out[1])
+    call assert_equal('wgvim: Argument missing after: "' .. opt .. '"', out[0])
+    call assert_equal('More info with "wgvim -h"',                      out[1])
   endfor
 
   if has('clientserver')
@@ -640,10 +640,10 @@ func Test_invalid_args()
 
   let out = split(system(GetVimCommand() .. ' -ix'), "\n")
   call assert_equal(1, v:shell_error)
-  call assert_equal('nvim: Garbage after option argument: "-ix"', out[0])
-  call assert_equal('More info with "nvim -h"',                   out[1])
+  call assert_equal('wgvim: Garbage after option argument: "-ix"', out[0])
+  call assert_equal('More info with "wgvim -h"',                   out[1])
 
-  " Not an error in Nvim.  The "-" file is allowed with -t, -q, or [file].
+  " Not an error in wgvim.  The "-" file is allowed with -t, -q, or [file].
   let out = split(system(GetVimCommand() .. ' - xxx -cq'), "\n")
   call assert_equal(0, v:shell_error)
 
@@ -652,8 +652,8 @@ func Test_invalid_args()
     for opt in ['-t', '-q']
       let out = split(system(GetVimCommand() .. repeat(' ' .. opt .. ' foo', 2)), "\n")
       call assert_equal(1, v:shell_error)
-      call assert_equal('nvim: Too many edit arguments: "' .. opt .. '"', out[0])
-      call assert_equal('More info with "nvim -h"',                       out[1])
+      call assert_equal('wgvim: Too many edit arguments: "' .. opt .. '"', out[0])
+      call assert_equal('More info with "wgvim -h"',                       out[1])
     endfor
   endif
 
@@ -662,8 +662,8 @@ func Test_invalid_args()
     call assert_equal(1, v:shell_error)
     " FIXME: The error message given by Vim is not ideal in case of repeated
     " -S foo since it does not mention -S.
-    call assert_equal('nvim: Too many "+command", "-c command" or "--cmd command" arguments', out[0])
-    call assert_equal('More info with "nvim -h"',                                             out[1])
+    call assert_equal('wgvim: Too many "+command", "-c command" or "--cmd command" arguments', out[0])
+    call assert_equal('More info with "wgvim -h"',                                             out[1])
   endfor
 
   if has('gui_gtk')
@@ -856,7 +856,7 @@ endfunc
 
 " Test for the "-r" recovery mode option
 func Test_r_arg()
-  throw 'Skipped: Nvim has different directories'
+  throw 'Skipped: wgvim has different directories'
   " Can't catch the output of gvim.
   CheckNotGui
   CheckUnix
@@ -904,7 +904,7 @@ endfunc
 
 " Test the '-T' argument which sets the 'term' option.
 func Test_T_arg()
-  throw 'skipped: Nvim does not support "-T" argument'
+  throw 'skipped: wgvim does not support "-T" argument'
   CheckNotGui
   let after =<< trim [CODE]
     call writefile([&term], "Xtest_T_arg")
@@ -952,7 +952,7 @@ endfunc
 
 " Test for entering the insert mode on startup
 func Test_start_insertmode()
-  throw "Skipped: Nvim does not support setting 'insertmode'"
+  throw "Skipped: wgvim does not support setting 'insertmode'"
   let before =<< trim [CODE]
     set insertmode
   [CODE]
@@ -980,7 +980,7 @@ endfunc
 
 " Test for enabling the lisp mode on startup
 func Test_l_arg()
-  throw 'Skipped: Nvim -l arg differs from Vim'
+  throw 'Skipped: wgvim -l arg differs from Vim'
   let after =<< trim [CODE]
     let s = 'lisp=' .. &lisp .. ', showmatch=' .. &showmatch
     call writefile([s], 'Xtestout')
@@ -1052,7 +1052,7 @@ endfunc
 
 " Test for using the 'exrc' option
 func Test_exrc()
-  throw 'Skipped: Nvim requires user input for the exrc option'
+  throw 'Skipped: wgvim requires user input for the exrc option'
   let after =<< trim [CODE]
     call assert_equal(1, &exrc)
     call assert_equal(1, &secure)
@@ -1072,7 +1072,7 @@ endfunc
 
 " Test for starting Vim with a non-terminal as input/output
 func Test_io_not_a_terminal()
-  throw 'Skipped: Nvim does not support --ttyfail'
+  throw 'Skipped: wgvim does not support --ttyfail'
   " Can't catch the output of gvim.
   CheckNotGui
   CheckUnix
@@ -1167,7 +1167,7 @@ endfunc
 
 " Test for the "-h" (help) argument
 func Test_h_arg()
-  throw 'Skipped: Nvim has different output for "-h" argument'
+  throw 'Skipped: wgvim has different output for "-h" argument'
   " Can't catch the output of gvim.
   CheckNotGui
   let l = systemlist(GetVimProg() .. ' -h')
@@ -1178,7 +1178,7 @@ endfunc
 
 " Test for the "-F" (farsi) argument
 func Test_F_arg()
-  throw 'Skipped: Nvim does not recognize "-F" argument'
+  throw 'Skipped: wgvim does not recognize "-F" argument'
   " Can't catch the output of gvim.
   CheckNotGui
   let l = systemlist(GetVimProg() .. ' -F')
@@ -1188,7 +1188,7 @@ endfunc
 " Test for the "-E" (improved Ex mode) argument
 func Test_E_arg()
   let after =<< trim [CODE]
-    " Nvim: "-E" enters the cmdwin REPL after startup scripts; mode()="n".
+    " wgvim: "-E" enters the cmdwin REPL after startup scripts; mode()="n".
     call assert_equal('n', mode(1))
     call writefile(v:errors, 'Xtestout')
     qall

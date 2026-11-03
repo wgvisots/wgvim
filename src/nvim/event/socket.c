@@ -50,42 +50,13 @@ int socket_watcher_init(Loop *loop, SocketWatcher *watcher, const char *endpoint
   char *host_end = socket_address_tcp_host_end(addr);
 
   if (host_end) {
-    // Split user specified address into two strings, addr (hostname) and port.
-    // The port part in watcher->addr will be updated later.
-    *host_end = NUL;
-    char *port = host_end + 1;
-    intmax_t iport;
-
-    int ok = try_getdigits(&(char *){ port }, &iport);
-    if (!ok || iport < 0 || iport > UINT16_MAX) {
-      ELOG("Invalid port: %s", port);
-      return UV_EINVAL;
-    }
-
-    if (*port == NUL) {
-      // When no port is given, (uv_)getaddrinfo expects NULL otherwise the
-      // implementation may attempt to lookup the service by name (and fail)
-      port = NULL;
-    }
-
-    uv_getaddrinfo_t request;
-
-    int retval = uv_getaddrinfo(&loop->uv, &request, NULL, addr, port,
-                                &(struct addrinfo){ .ai_family = AF_UNSPEC,
-                                                    .ai_socktype = SOCK_STREAM, });
-    if (retval != 0) {
-      ELOG("Host lookup failed: %s", endpoint);
-      return retval;
-    }
-    watcher->uv.tcp.addrinfo = request.addrinfo;
-
-    uv_tcp_init(&loop->uv, &watcher->uv.tcp.handle);
-    uv_tcp_nodelay(&watcher->uv.tcp.handle, true);
-    watcher->stream = (uv_stream_t *)(&watcher->uv.tcp.handle);
-  } else {
-    uv_pipe_init(&loop->uv, &watcher->uv.pipe.handle, 0);
-    watcher->stream = (uv_stream_t *)(&watcher->uv.pipe.handle);
+    // wgvim: TCP (and therefore DNS) support was removed; only pipes/Unix sockets.
+    ELOG("TCP addresses are not supported: %s", endpoint);
+    return UV_EINVAL;
   }
+
+  uv_pipe_init(&loop->uv, &watcher->uv.pipe.handle, 0);
+  watcher->stream = (uv_stream_t *)(&watcher->uv.pipe.handle);
 
   watcher->stream->data = watcher;
   watcher->cb = NULL;
@@ -140,75 +111,47 @@ int socket_watcher_start(SocketWatcher *watcher, int backlog, socket_cb cb)
   watcher->cb = cb;
   int result = UV_EINVAL;
 
-  if (watcher->stream->type == UV_TCP) {
-    struct addrinfo *ai = watcher->uv.tcp.addrinfo;
+  result = uv_pipe_bind2(&watcher->uv.pipe.handle, watcher->addr, strlen(watcher->addr),
+                         UV_PIPE_NO_TRUNCATE);
 
-    for (; ai; ai = ai->ai_next) {
-      result = uv_tcp_bind(&watcher->uv.tcp.handle, ai->ai_addr, 0);
-      if (result != 0) {
-        continue;
-      }
-      result = uv_listen(watcher->stream, backlog, connection_cb);
-      if (result == 0) {
-        struct sockaddr_storage sas;
+  // If bind failed with EACCES/EADDRINUSE, check if socket is stale
+  if (result == UV_EACCES || result == UV_EADDRINUSE) {
+    Loop *loop = watcher->stream->loop->data;
 
-        // When the endpoint in socket_watcher_init() didn't specify a port
-        // number, a free random port number will be assigned. sin_port will
-        // contain 0 in this case, unless uv_tcp_getsockname() is used first.
-        uv_tcp_getsockname(&watcher->uv.tcp.handle, (struct sockaddr *)&sas,
-                           &(int){ sizeof(sas) });
-        uint16_t port = (sas.ss_family == AF_INET) ? ((struct sockaddr_in *)(&sas))->sin_port
-                                                   : ((struct sockaddr_in6 *)(&sas))->sin6_port;
-        // v:servername uses the string from watcher->addr
-        size_t len = strlen(watcher->addr);
-        snprintf(watcher->addr + len, sizeof(watcher->addr) - len, ":%" PRIu16,
-                 ntohs(port));
-        break;
-      }
-    }
-    uv_freeaddrinfo(watcher->uv.tcp.addrinfo);
-  } else {
-    result = uv_pipe_bind2(&watcher->uv.pipe.handle, watcher->addr, strlen(watcher->addr),
-                           UV_PIPE_NO_TRUNCATE);
+    if (!socket_alive(loop, watcher->addr)) {
+      // Socket exists but is dead - remove it
+      ILOG("Removing stale socket: %s", watcher->addr);
+      int rm_result = os_remove(watcher->addr);
 
-    // If bind failed with EACCES/EADDRINUSE, check if socket is stale
-    if (result == UV_EACCES || result == UV_EADDRINUSE) {
-      Loop *loop = watcher->stream->loop->data;
-
-      if (!socket_alive(loop, watcher->addr)) {
-        // Socket exists but is dead - remove it
-        ILOG("Removing stale socket: %s", watcher->addr);
-        int rm_result = os_remove(watcher->addr);
-
-        if (rm_result != 0) {
-          WLOG("Failed to remove stale socket %s: %s",
-               watcher->addr, uv_strerror(rm_result));
-        } else {
-          // Close and reinit the pipe handle before retrying bind
-          uv_loop_t *uv_loop = watcher->uv.pipe.handle.loop;
-          bool closed = false;
-          watcher->uv.pipe.handle.data = &closed;
-          uv_close((uv_handle_t *)&watcher->uv.pipe.handle, early_server_close_cb);
-          LOOP_PROCESS_EVENTS_UNTIL(&main_loop, NULL, -1, closed);
-
-          uv_pipe_init(uv_loop, &watcher->uv.pipe.handle, 0);
-          watcher->stream = (uv_stream_t *)(&watcher->uv.pipe.handle);
-          watcher->stream->data = watcher;
-
-          // Retry bind with fresh handle
-          result = uv_pipe_bind2(&watcher->uv.pipe.handle, watcher->addr, strlen(watcher->addr),
-                                 UV_PIPE_NO_TRUNCATE);
-        }
+      if (rm_result != 0) {
+        WLOG("Failed to remove stale socket %s: %s",
+             watcher->addr, uv_strerror(rm_result));
       } else {
-        // Socket is alive - this is a real error
-        ELOG("Socket already in use by another Nvim instance: %s", watcher->addr);
-      }
-    }
+        // Close and reinit the pipe handle before retrying bind
+        uv_loop_t *uv_loop = watcher->uv.pipe.handle.loop;
+        bool closed = false;
+        watcher->uv.pipe.handle.data = &closed;
+        uv_close((uv_handle_t *)&watcher->uv.pipe.handle, early_server_close_cb);
+        LOOP_PROCESS_EVENTS_UNTIL(&main_loop, NULL, -1, closed);
 
-    if (result == 0) {
-      result = uv_listen(watcher->stream, backlog, connection_cb);
+        uv_pipe_init(uv_loop, &watcher->uv.pipe.handle, 0);
+        watcher->stream = (uv_stream_t *)(&watcher->uv.pipe.handle);
+        watcher->stream->data = watcher;
+
+        // Retry bind with fresh handle
+        result = uv_pipe_bind2(&watcher->uv.pipe.handle, watcher->addr, strlen(watcher->addr),
+                               UV_PIPE_NO_TRUNCATE);
+      }
+    } else {
+      // Socket is alive - this is a real error
+      ELOG("Socket already in use by another wgvim instance: %s", watcher->addr);
     }
   }
+
+  if (result == 0) {
+    result = uv_listen(watcher->stream, backlog, connection_cb);
+  }
+
 
   assert(result <= 0);  // libuv should return negative error code or zero.
   if (result < 0) {
@@ -229,16 +172,8 @@ int socket_watcher_start(SocketWatcher *watcher, int backlog, socket_cb cb)
 int socket_watcher_accept(SocketWatcher *watcher, RStream *stream)
   FUNC_ATTR_NONNULL_ARG(1) FUNC_ATTR_NONNULL_ARG(2)
 {
-  uv_stream_t *client;
-
-  if (watcher->stream->type == UV_TCP) {
-    client = (uv_stream_t *)(&stream->s.uv.tcp);
-    uv_tcp_init(watcher->uv.tcp.handle.loop, (uv_tcp_t *)client);
-    uv_tcp_nodelay((uv_tcp_t *)client, true);
-  } else {
-    client = (uv_stream_t *)&stream->s.uv.pipe;
-    uv_pipe_init(watcher->uv.pipe.handle.loop, (uv_pipe_t *)client, 0);
-  }
+  uv_stream_t *client = (uv_stream_t *)&stream->s.uv.pipe;
+  uv_pipe_init(watcher->uv.pipe.handle.loop, (uv_pipe_t *)client, 0);
 
   int result = uv_accept(watcher->stream, client);
 
@@ -292,50 +227,22 @@ static void connect_cb(uv_connect_t *req, int status)
 bool socket_connect(Loop *loop, RStream *stream, bool is_tcp, const char *address, int timeout,
                     const char **error)
 {
+  if (is_tcp) {
+    // wgvim: TCP (and therefore DNS) support was removed; only pipes/Unix sockets.
+    *error = _("TCP connections are not supported");
+    return false;
+  }
+
   bool success = false;
   bool closed;
   int status;
   uv_connect_t req;
   req.data = &status;
-  uv_stream_t *uv_stream;
 
-  uv_tcp_t *tcp = &stream->s.uv.tcp;
-  uv_getaddrinfo_t addr_req;
-  addr_req.addrinfo = NULL;
-  const struct addrinfo *addrinfo = NULL;
-  char *addr = NULL;
-  if (is_tcp) {
-    addr = xstrdup(address);
-    char *host_end = strrchr(addr, ':');
-    if (!host_end) {
-      *error = _("tcp address must be host:port");
-      goto cleanup;
-    }
-    *host_end = NUL;
-
-    const struct addrinfo hints = { .ai_family = AF_UNSPEC,
-                                    .ai_socktype = SOCK_STREAM,
-                                    .ai_flags = AI_NUMERICSERV };
-    int retval = uv_getaddrinfo(&loop->uv, &addr_req, NULL,
-                                addr, host_end + 1, &hints);
-    if (retval != 0) {
-      *error = _("failed to lookup host or port");
-      goto cleanup;
-    }
-    addrinfo = addr_req.addrinfo;
-
-tcp_retry:
-    uv_tcp_init(&loop->uv, tcp);
-    uv_tcp_nodelay(tcp, true);
-    uv_tcp_connect(&req,  tcp, addrinfo->ai_addr, connect_cb);
-    uv_stream = (uv_stream_t *)tcp;
-  } else {
-    uv_pipe_t *pipe = &stream->s.uv.pipe;
-    uv_pipe_init(&loop->uv, pipe, 0);
-    uv_pipe_connect(&req,  pipe, address, connect_cb);
-    uv_stream = (uv_stream_t *)pipe;
-  }
-  stream_init(NULL, &stream->s, -1, uv_stream);
+  uv_pipe_t *pipe = &stream->s.uv.pipe;
+  uv_pipe_init(&loop->uv, pipe, 0);
+  uv_pipe_connect(&req, pipe, address, connect_cb);
+  stream_init(NULL, &stream->s, -1, (uv_stream_t *)pipe);
   stream->s.internal_close_cb = connect_close_cb;
   stream->s.internal_data = &closed;
   closed = false;
@@ -345,22 +252,13 @@ tcp_retry:
     success = true;
   } else {
     stream_may_close(&stream->s);
-    // Wait for the close callback to arrive before retrying or returning, otherwise
-    // it may lead to a hang or stack-use-after-return.
+    // Wait for the close callback to arrive before returning, otherwise it may
+    // lead to a hang or stack-use-after-return.
     LOOP_PROCESS_EVENTS_UNTIL(&main_loop, NULL, -1, closed);
-
-    if (is_tcp && addrinfo->ai_next) {
-      addrinfo = addrinfo->ai_next;
-      goto tcp_retry;
-    } else {
-      *error = _("connection refused");
-    }
+    *error = _("connection refused");
   }
 
-cleanup:
   stream->s.internal_close_cb = NULL;
   stream->s.internal_data = NULL;
-  xfree(addr);
-  uv_freeaddrinfo(addr_req.addrinfo);
   return success;
 }

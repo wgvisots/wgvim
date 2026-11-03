@@ -44,7 +44,7 @@ all: nvim
 CMAKE_FLAGS := -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE)
 # Extra CMake flags which extend the default set
 CMAKE_EXTRA_FLAGS ?=
-NVIM_PRG := $(MAKEFILE_DIR)/build/bin/nvim
+WGVIM_PRG := $(MAKEFILE_DIR)/build/bin/wgvim
 
 # CMAKE_INSTALL_PREFIX
 #   - May be passed directly or as part of CMAKE_EXTRA_FLAGS.
@@ -132,23 +132,23 @@ build/.ran-deps-cmake::
 oldtest: | nvim
 	$(SINGLE_MAKE) -C test/old/testdir clean
 ifeq ($(strip $(TEST_FILE)),)
-	$(SINGLE_MAKE) -C test/old/testdir NVIM_PRG=$(NVIM_PRG) $(MAKEOVERRIDES)
+	$(SINGLE_MAKE) -C test/old/testdir WGVIM_PRG=$(WGVIM_PRG) $(MAKEOVERRIDES)
 else
 	@# Handle TEST_FILE=test_foo{,.res,.vim}.
-	$(SINGLE_MAKE) -C test/old/testdir NVIM_PRG=$(NVIM_PRG) SCRIPTS= $(MAKEOVERRIDES) $(patsubst %.vim,%,$(patsubst %.res,%,$(TEST_FILE)))
+	$(SINGLE_MAKE) -C test/old/testdir WGVIM_PRG=$(WGVIM_PRG) SCRIPTS= $(MAKEOVERRIDES) $(patsubst %.vim,%,$(patsubst %.res,%,$(TEST_FILE)))
 endif
 
 # Build oldtest by specifying the relative .vim filename.
 .PHONY: phony_force
 test/old/testdir/%.vim: phony_force nvim
-	$(SINGLE_MAKE) -C test/old/testdir NVIM_PRG=$(NVIM_PRG) SCRIPTS= $(MAKEOVERRIDES) $(patsubst test/old/testdir/%.vim,%,$@)
+	$(SINGLE_MAKE) -C test/old/testdir WGVIM_PRG=$(WGVIM_PRG) SCRIPTS= $(MAKEOVERRIDES) $(patsubst test/old/testdir/%.vim,%,$@)
 
 functionaltest-lua: | nvim
 	$(CMAKE) --build build --target functionaltest
 
 FORMAT=formatc formatlua formatquery format
 LINT=lintlua lintsh lintc clang-analyzer lintcommit lintdoc lintdocurls lint emmylua-check lintquery linterrcodes
-TEST=functionaltest unittest
+TEST=functionaltest
 generated-sources benchmark $(FORMAT) $(LINT) $(TEST) doc: | build/.ran-cmake
 	$(CMAKE) --build build --target $@
 
@@ -177,20 +177,9 @@ endif
 distclean:
 	$(call rmdir, $(DEPS_BUILD_DIR))
 	$(call rmdir, build)
-	$(call rmdir, .zig-cache)
-	$(call rmdir, zig-out)
 	$(MAKE) clean
 
 install: checkprefix nvim
 	$(CMAKE) --install build
 
-appimage:
-	bash scripts/genappimage.sh
-
-# Build an appimage with embedded update information.
-#   appimage-nightly: for nightly builds
-#   appimage-latest: for a release
-appimage-%:
-	bash scripts/genappimage.sh $*
-
-.PHONY: test clean distclean nvim libnvim cmake deps install appimage checkprefix benchmark $(FORMAT) $(LINT) $(TEST)
+.PHONY: test clean distclean nvim libnvim cmake deps install checkprefix benchmark $(FORMAT) $(LINT) $(TEST)

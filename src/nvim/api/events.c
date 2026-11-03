@@ -49,7 +49,7 @@ void nvim_error_event(uint64_t channel_id, Integer type, String msg)
 /// Supports these events:
 ///
 ///   - "termresponse": The host-terminal sent an OSC, DCS, APC, or recognized CSI (DA1, kitty
-///     multiple-cursors) response to Nvim. The payload is the received response. Sets
+///     multiple-cursors) response to wgvim. The payload is the received response. Sets
 ///     |v:termresponse| and fires |TermResponse|.
 ///
 /// @param channel_id

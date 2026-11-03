@@ -92,6 +92,7 @@
 #include "nvim/os/os.h"
 #include "nvim/os/os_defs.h"
 #include "nvim/os/signal.h"
+#include "nvim/os/landlock.h"
 #include "nvim/os/stdpaths_defs.h"
 #include "nvim/path.h"
 #include "nvim/popupmenu.h"
@@ -197,7 +198,7 @@ static void early_init(mparm_T *paramp)
   cmdline_init();
   eval_init();          // init global variables
   set_vim_var_nr(VV_STARTTIME, (varnumber_T)os_realtime());
-  init_path(argv0 ? argv0 : "nvim");
+  init_path(argv0 ? argv0 : "wgvim");
   init_normal_cmds();   // Init the table of Normal mode commands.
   runtime_init();
   highlight_init();
@@ -259,7 +260,7 @@ int main(int argc, char **argv)
   TO_SLASH(argv0);
 
   if (!appname_is_valid()) {
-    fprintf(stderr, "$NVIM_APPNAME must be a name or relative path.\n");
+    fprintf(stderr, "$WGVIM_APPNAME must be a name or relative path.\n");
     exit(1);
   }
 
@@ -295,6 +296,11 @@ int main(int argc, char **argv)
   command_line_scan(&params);
 
   set_argf_var();
+
+  // wgvim: confine this process and everything it starts, before any config or plugin runs.
+  landlock_init(params.sandbox_mode, params.sandbox_rw, params.n_sandbox_rw,
+                params.sandbox_ro, params.n_sandbox_ro);
+  TIME_MSG("sandbox");
 
   nlua_init(argv, argc, params.lua_arg0);
   TIME_MSG("init lua interpreter");
@@ -350,7 +356,7 @@ int main(int argc, char **argv)
     uint64_t rv = ui_client_start_server(get_vim_var_str(VV_PROGPATH),
                                          (size_t)params.argc, params.argv);
     if (!rv) {
-      fprintf(stderr, "Failed to start Nvim server!\n");
+      fprintf(stderr, "Failed to start wgvim server!\n");
       os_exit(1);
     }
     ui_client_channel_id = rv;
@@ -361,7 +367,7 @@ int main(int argc, char **argv)
     ui_client_run();  // NORETURN
   }
   assert(!ui_client_channel_id && !use_builtin_ui);
-  // Nvim server...
+  // wgvim server...
 
   if (!server_init(params.listen_addr)) {
 #ifdef MSWIN
@@ -422,11 +428,11 @@ int main(int argc, char **argv)
   // Set the break level after the terminal is initialized.
   debug_break_level = params.use_debug_break_level;
 
-  // Wait for UIs to set up Nvim or show early messages and prompts (--cmd, swapfile dialog, …).
+  // Wait for UIs to set up wgvim or show early messages and prompts (--cmd, swapfile dialog, …).
   bool use_remote_ui = (embedded_mode && !headless_mode);
   if (use_remote_ui) {
     if (!stdio_rpc) {
-      fprintf(stderr, "Nvim server (pid: %" PRId64 ") waiting for UI, listening on: \"%s\"\n",
+      fprintf(stderr, "wgvim server (pid: %" PRId64 ") waiting for UI, listening on: \"%s\"\n",
               os_get_pid(), get_vim_var_str(VV_SEND_SERVER));
     }
     TIME_MSG("waiting for UI");
@@ -749,7 +755,7 @@ void os_exit(int r)
     ml_close_all(true);  // remove all memfiles
   }
 
-  ILOG("Nvim exit: %d", r);
+  ILOG("wgvim exit: %d", r);
 
 #ifdef EXITFREE
   free_all_mem();
@@ -941,7 +947,7 @@ void preserve_exit(const char *errmsg)
   FOR_ALL_BUFFERS(buf) {
     if (buf->b_ml.ml_mfp != NULL && buf->b_ml.ml_mfp->mf_fname != NULL) {
       if (errmsg != NULL) {
-        fprintf(stderr, "Nvim: preserving files...\n");
+        fprintf(stderr, "wgvim: preserving files...\n");
       }
       ml_sync_all(false, false, true);  // preserve all swap files
       break;
@@ -951,7 +957,7 @@ void preserve_exit(const char *errmsg)
   ml_close_all(false);              // close all memfiles, without deleting
 
   if (errmsg != NULL) {
-    fprintf(stderr, "Nvim: Finished.\n");
+    fprintf(stderr, "wgvim: Finished.\n");
   }
 
   getout(1);
@@ -1023,9 +1029,9 @@ static void remote_request(mparm_T *params, int remote_args, char *server_addr, 
 #endif
       fprintf(stderr, "Remote ui failed to start: %s\n", connect_error);
       os_exit(1);
-    } else if (strequal(server_addr, os_getenv_noalloc("NVIM"))) {
+    } else if (strequal(server_addr, os_getenv_noalloc("WGVIM"))) {
       fprintf(stderr, "%s", "Cannot attach UI of :terminal child to its parent. ");
-      fprintf(stderr, "%s\n", "(Unset $NVIM to skip this check)");
+      fprintf(stderr, "%s\n", "(Unset $WGVIM to skip this check)");
       os_exit(1);
     }
     ui_client_channel_id = chan;
@@ -1197,6 +1203,11 @@ static void command_line_scan(mparm_T *parmp)
         } else if (STRNICMP(argv[0] + argv_idx, "listen", 6) == 0) {
           want_argument = true;
           argv_idx += 6;
+        } else if (STRICMP(argv[0] + argv_idx, "sandbox") == 0
+                   || STRICMP(argv[0] + argv_idx, "sandbox-allow") == 0
+                   || STRICMP(argv[0] + argv_idx, "sandbox-allow-ro") == 0) {
+          want_argument = true;
+          argv_idx += (int)strlen(argv[0] + argv_idx);
         } else if (STRNICMP(argv[0] + argv_idx, "literal", 7) == 0) {
           // Do nothing: file args are always literal. #7679
         } else if (STRNICMP(argv[0] + argv_idx, "remote", 6) == 0) {
@@ -1437,6 +1448,16 @@ static void command_line_scan(mparm_T *parmp)
             // "--listen {address}"
             TO_SLASH(argv[0]);
             parmp->listen_addr = argv[0];
+          } else if (strequal(argv[-1], "--sandbox")) {
+            parmp->sandbox_mode = argv[0];
+          } else if (strequal(argv[-1], "--sandbox-allow")
+                     || strequal(argv[-1], "--sandbox-allow-ro")) {
+            bool ro = strequal(argv[-1], "--sandbox-allow-ro");
+            int *count = ro ? &parmp->n_sandbox_ro : &parmp->n_sandbox_rw;
+            if (*count >= MAX_ARG_CMDS) {
+              mainerr(_("Too many --sandbox-allow arguments"), NULL, NULL);
+            }
+            (ro ? parmp->sandbox_ro : parmp->sandbox_rw)[(*count)++] = argv[0];
           } else if (strequal(argv[-1], "--server")) {
             // "--server {address}"
             TO_SLASH(argv[0]);
@@ -2071,7 +2092,7 @@ static void exe_commands(mparm_T *parmp)
 ///
 /// Does one of the following things, stops after whichever succeeds:
 ///
-/// 1. Source system vimrc file from $XDG_CONFIG_DIRS/$NVIM_APPNAME/sysinit.vim
+/// 1. Source system vimrc file from $XDG_CONFIG_DIRS/$WGVIM_APPNAME/sysinit.vim
 /// 2. Source system vimrc file from $VIM
 static void do_system_initialization(void)
 {
@@ -2121,19 +2142,16 @@ static void do_system_initialization(void)
 /// Does one of the following things, stops after whichever succeeds:
 ///
 /// 1. Execution of VIMINIT environment variable.
-/// 2. Sourcing user config file ($XDG_CONFIG_HOME/$NVIM_APPNAME/init.lua or init.vim).
-/// 3. Sourcing other config files ($XDG_CONFIG_DIRS[1]/$NVIM_APPNAME/init.lua or init.vim, …).
+/// 2. Sourcing user config file ($XDG_CONFIG_HOME/$WGVIM_APPNAME/init.lua or init.vim).
+/// 3. Sourcing other config files ($XDG_CONFIG_DIRS[1]/$WGVIM_APPNAME/init.lua or init.vim, …).
 /// 4. Execution of EXINIT environment variable.
 ///
-/// @return True if it is needed to attempt to source exrc file according to
-///         'exrc' option definition.
-static bool do_user_initialization(void)
-  FUNC_ATTR_WARN_UNUSED_RESULT
+/// wgvim: project-local 'exrc' files (.nvim.lua, .nvimrc, .exrc) are never sourced;
+/// 'exrc' is immutable (see options.lua and SECURITY-AUDIT.md).
+static void do_user_initialization(void)
 {
-  bool do_exrc = p_exrc;
   if (execute_env("VIMINIT") == OK) {
-    do_exrc = p_exrc;
-    return do_exrc;
+    return;
   }
 
   char *init_lua_path = stdpaths_user_conf_subpath("init.lua");
@@ -2148,19 +2166,14 @@ static bool do_user_initialization(void)
 
     xfree(user_vimrc);
     xfree(init_lua_path);
-    do_exrc = p_exrc;
-    return do_exrc;
+    return;
   }
   xfree(init_lua_path);
 
   // init.vim
   if (do_source(user_vimrc, true, DOSO_VIMRC, NULL) != FAIL) {
-    do_exrc = p_exrc;
-    if (do_exrc) {
-      do_exrc = !path_equal(VIMRC_FILE, user_vimrc, kPathCmpExpand);
-    }
     xfree(user_vimrc);
-    return do_exrc;
+    return;
   }
   xfree(user_vimrc);
 
@@ -2205,46 +2218,21 @@ static bool do_user_initialization(void)
         xfree(init_vim);
         xfree(init_lua);
         xfree(config_dirs);
-        do_exrc = p_exrc;
-        return do_exrc;
+        return;
       }
       xfree(init_lua);
 
       if (do_source(init_vim, true, DOSO_VIMRC, NULL) != FAIL) {
-        do_exrc = p_exrc;
-        if (do_exrc) {
-          do_exrc = !path_equal(VIMRC_FILE, init_vim, kPathCmpExpand);
-        }
         xfree(init_vim);
         xfree(config_dirs);
-        return do_exrc;
+        return;
       }
       xfree(init_vim);
     } while (iter != NULL);
     xfree(config_dirs);
   }
 
-  if (execute_env("EXINIT") == OK) {
-    do_exrc = p_exrc;
-    return do_exrc;
-  }
-  return do_exrc;
-}
-
-// Read initialization commands from ".nvim.lua", ".nvimrc", or ".exrc" in
-// current directory and all parent directories.  This is only done if the 'exrc'
-// option is set. Only do this if VIMRC_FILE is not the same as vimrc file
-// sourced in do_user_initialization.
-static void do_exrc_initialization(void)
-{
-  lua_State *const L = get_global_lstate();
-  assert(L);
-
-  lua_getglobal(L, "require");
-  lua_pushstring(L, "vim._core.exrc");
-  if (nlua_pcall(L, 1, 0)) {
-    fprintf(stderr, "%s\n", lua_tostring(L, -1));
-  }
+  (void)execute_env("EXINIT");
 }
 
 /// Source startup scripts
@@ -2263,9 +2251,7 @@ static void source_startup_scripts(const mparm_T *const parmp)
   } else if (!silent_mode) {
     do_system_initialization();
 
-    if (do_user_initialization()) {
-      do_exrc_initialization();
-    }
+    do_user_initialization();
   }
   TIME_MSG("sourcing vimrc file(s)");
 }
@@ -2347,7 +2333,7 @@ static void usage(void)
   signal_stop();              // kill us with CTRL-C here, if you like
 
   printf(_("Usage:\n"));
-  printf(_("  nvim [options] [file ...]\n"));
+  printf(_("  wgvim [options] [file ...]\n"));
   printf(_("\nOptions:\n"));
   printf(_("  --cmd <cmd>           Execute <cmd> before any config\n"));
   printf(_("  +<cmd>, -c <cmd>      Execute <cmd> after config and first file\n"));
@@ -2375,7 +2361,10 @@ static void usage(void)
   printf(_("  --headless            Don't start a user interface\n"));
   printf(_("  --listen <address>    Serve RPC API from this address\n"));
   printf(_("  --remote[-subcommand] Execute commands remotely on a server\n"));
-  printf(_("  --server <address>    Connect to this Nvim server\n"));
+  printf(_("  --sandbox <mode>      Sandbox: on (default), off, or require\n"));
+  printf(_("  --sandbox-allow <path>     Also allow reading and writing <path>\n"));
+  printf(_("  --sandbox-allow-ro <path>  Also allow reading <path>\n"));
+  printf(_("  --server <address>    Connect to this wgvim server\n"));
   printf(_("  --startuptime <file>  Write startup timing messages to <file>\n"));
   printf(_("\nSee \":help startup-options\" for all options.\n"));
 }

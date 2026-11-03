@@ -2369,7 +2369,7 @@ bool path_is_absolute(const char *fname)
 
 /// Builds a full path from an invocation name `argv0`, based on heuristics.
 ///
-/// @param[in]  argv0     Name by which Nvim was invoked.
+/// @param[in]  argv0     Name by which wgvim was invoked.
 /// @param[out] buf       Guessed full path to `argv0`.
 /// @param[in]  bufsize   Size of `buf`.
 ///

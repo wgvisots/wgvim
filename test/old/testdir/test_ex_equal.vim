@@ -15,7 +15,7 @@ func Test_ex_equal()
 endfunc
 
 func Test_ex_equal_arg()
-  throw 'skipped: Nvim evaluates lua with := [arg]'
+  throw 'skipped: wgvim evaluates lua with := [arg]'
 
   new
   call setline(1, ["foo\tbar", "bar\tfoo"])

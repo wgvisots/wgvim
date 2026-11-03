@@ -286,8 +286,8 @@ end
 --- @return table<string,string>
 local function base_env()
   local env = vim.fn.environ() --- @type table<string,string>
-  env['NVIM'] = vim.v.servername
-  env['NVIM_LISTEN_ADDRESS'] = nil
+  env['WGVIM'] = vim.v.servername
+  env['WGVIM_LISTEN_ADDRESS'] = nil
   return env
 end
 

@@ -28,7 +28,7 @@ arguments=(
   '--headless[dont start a user interface]'
   '--listen[serve RPC API from this address]:address'
   '--remote[\[-subcommand\] Execute commands remotely on a server]'
-  '--server[connect to this Nvim server]:address'
+  '--server[connect to this wgvim server]:address'
   '--startuptime[write startup timing messages to <file>]:file:_files'
   '*:filename:_files'
 )

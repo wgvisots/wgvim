@@ -1,4 +1,4 @@
-*vimeval.txt*	Nvim
+*vimeval.txt*	wgvim
 
 
 		  VIM REFERENCE MANUAL	  by Bram Moolenaar
@@ -3856,11 +3856,11 @@ Expressions entered by the user in |i_CTRL-R_=|, |c_CTRL-\_e|, |quote=| are
 highlighted by the built-in expressions parser.  It uses highlight groups
 described in the table below, which may be overridden by colorschemes.
 							*hl-NvimInvalid*
-Besides the "Nvim"-prefixed highlight groups described below, there are
+Besides the "wgvim"-prefixed highlight groups described below, there are
 "NvimInvalid"-prefixed highlight groups which have the same meaning but
 indicate that the token contains an error or that an error occurred just
 before it.  They have mostly the same hierarchy, except that (by default) in
-place of any non-Nvim-prefixed group NvimInvalid linking to `Error` is used
+place of any non-wgvim-prefixed group NvimInvalid linking to `Error` is used
 and some other intermediate groups are present.
 
 Group                              Default link            Colored expression ~

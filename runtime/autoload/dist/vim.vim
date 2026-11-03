@@ -1,6 +1,6 @@
 " Vim runtime support library,
 " runs the Vim9 script version or legacy script version
-" on demand (mostly for Neovim compatibility)
+" on demand (mostly for wgvim compatibility)
 "
 " Maintainer:	The Vim Project <https://github.com/vim/vim>
 " Last Change:	2026 Jan 11

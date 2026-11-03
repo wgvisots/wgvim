@@ -1,4 +1,4 @@
-" Neovim color file
+" wgvim color file
 " Maintainer:	The Neovim Project <https://github.com/neovim/neovim>
 " Last Change:	2023 Dec 01
 

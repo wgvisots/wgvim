@@ -159,7 +159,7 @@ endfunc
 
 func Test_matchadd_error()
   call clearmatches()
-  " Nvim: not an error anymore:
+  " wgvim: not an error anymore:
   " call assert_fails("call matchadd('GroupDoesNotExist', 'X')", 'E28:')
   call matchadd('GroupDoesNotExist', 'X')
   call assert_equal([{'group': 'GroupDoesNotExist', 'pattern': 'X', 'priority': 10, 'id': 1206}], getmatches())
@@ -319,7 +319,7 @@ endfunc
 " collection.  A "posN" value that is not a List made it bail out early
 " without releasing the list at all.
 func Test_setmatches_pos_refcount()
-  throw 'Skipped: Nvim does not have test_refcount()'
+  throw 'Skipped: wgvim does not have test_refcount()'
   let p1 = [1, 1, 1]
   let p2 = [2, 1, 1]
   call assert_equal(1, test_refcount(p1))

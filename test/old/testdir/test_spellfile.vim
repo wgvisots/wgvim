@@ -416,7 +416,7 @@ endfunc
 " An over-length soundfold() argument must not overflow the MAXWLEN result
 " buffer in the single-byte branch of spell_soundfold_sal().
 func Test_spellfile_soundfold_sal_overflow()
-  throw 'Skipped: Nvim does not support enc=latin1'
+  throw 'Skipped: wgvim does not support enc=latin1'
   let save_enc = &encoding
   set encoding=latin1
   " A SAL map that appends without collapsing, so the result is not shorter
@@ -825,7 +825,7 @@ func Test_aff_file_format_error()
   let output = execute('mkspell! Xtest.spl Xtest')
   call assert_match('Illegal flag in Xtest.aff line 2: L', output)
 
-  " Nvim: non-utf8 encoding not supported
+  " wgvim: non-utf8 encoding not supported
   " " missing character in UPP entry. The character table is used only in a
   " " non-utf8 encoding
   " call writefile(['FOL abc', 'LOW abc', 'UPP A'], 'Xtest.aff')
@@ -1175,7 +1175,7 @@ endfunc
 " When 'spellfile' is not set, adding a new good word will automatically set
 " the 'spellfile'
 func Test_init_spellfile()
-  throw 'Skipped: Nvim defaults spellfile to stdpath("data")/spell/'
+  throw 'Skipped: wgvim defaults spellfile to stdpath("data")/spell/'
   let save_rtp = &rtp
   let save_encoding = &encoding
   call mkdir('Xrtp/spell', 'pR')
@@ -1312,7 +1312,7 @@ endfunc
 " A word longer than MAXWLEN must not overflow the soundfold result buffer in
 " the single-byte SOFO branch of spell_soundfold_sofo().
 func Test_soundfold_overflow()
-  throw 'Skipped: Nvim does not support setting encoding=latin1'
+  throw 'Skipped: wgvim does not support setting encoding=latin1'
   let _enc=&enc
   set enc=latin1
   call writefile(['SOFOFROM ab', 'SOFOTO xy'], 'Xtest.aff', 'D')

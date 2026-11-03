@@ -1,4 +1,4 @@
-*dev_vimpatch.txt*          Nvim
+*dev_vimpatch.txt*          wgvim
 
                             NVIM REFERENCE MANUAL
 
@@ -21,7 +21,7 @@ to get started immediately.
 ==============================================================================
 QUICKSTART                                           *dev-vimpatch-quickstart*
 
-1. Pull the Nvim source: >bash
+1. Pull the wgvim source: >bash
      git clone https://github.com/neovim/neovim.git
 2. Run `./scripts/vim-patch.sh -l` to see the list of missing Vim patches.
 3. Choose a patch from the list (usually the oldest one), e.g. `8.0.0123`.
@@ -34,7 +34,7 @@ NOTES
 
 - It's strongly recommended to work on the oldest missing patch, because
   later patches might depend on the changes.
-- Use `git log --grep` or `git log -G` to search the Nvim/Vim source history
+- Use `git log --grep` or `git log -G` to search the wgvim/Vim source history
   (even deleted code). E.g. to find `reset_option_was_set`: >bash
 
     git log -p -G reset_option_was_set
@@ -67,7 +67,7 @@ https://github.com/neovim/neovim/pull/1744#issuecomment-68202876
 ==============================================================================
 NA (NOT APPLICABLE) PATCHES                                  *dev-vimpatch-na*
 
-Most Vim patches are not applicable to Nvim. If you find NA patches, visit an
+Most Vim patches are not applicable to wgvim. If you find NA patches, visit an
 the latest "version.c: update" pull request
 https://github.com/neovim/neovim/pulls?q=is%3Apr+author%3Aapp%2Fgithub-actions+version.c+is%3Aopen
 and mention the NA patches in a comment (please edit/update one comment,
@@ -88,7 +88,7 @@ Example: https://github.com/neovim/neovim/commit/00f60c2ce78fc1280e93d5a36bc7b22
 ------------------------------------------------------------------------------
 HOW TO DECIDE IF A VIM-PATCH IS WANTED
 
-Legacy Vim is becoming much less relevant to Nvim: we expect to decline the
+Legacy Vim is becoming much less relevant to wgvim: we expect to decline the
 majority of their patches. Thus this is an "allow-list" instead of
 a "deny-list". Generally, only modules explicitly noted in the "OWNED BY VIM"
 list below, are in-scope; everything else should be marked "N/A".
@@ -99,9 +99,9 @@ OWNED BY VIM
 - regex
 - runtime files
 
-Everything else is owned by Nvim. Most of Vim's "bug fixes" for e.g.
+Everything else is owned by wgvim. Most of Vim's "bug fixes" for e.g.
 buffer/window behavior, or the events/autocmds subysytem, or "getchar" (input
-engine), just aren't relevant to Nvim anymore, because we've significantly
+engine), just aren't relevant to wgvim anymore, because we've significantly
 enhanced and redesigned those subsystems to make them simpler.
 
 UNWANTED VIM-PATCHES
@@ -111,7 +111,7 @@ UNWANTED VIM-PATCHES
 - "modelinestrict" https://github.com/neovim/neovim/issues/38985
 - "tabpanel"
 - "terminal"
-- Vim9script features, and anything related to `:scriptversion`. (Nvim
+- Vim9script features, and anything related to `:scriptversion`. (wgvim
   supports Vimscript version 1 only.)
 - Fixes for build warnings.
 - GUI-related changes.
@@ -122,7 +122,7 @@ VERSION.C                                             *dev-vimpatch-version.c*
 
 The list of Vim patches in `src/nvim/version.c` is automatically updated
 https://github.com/neovim/neovim/pull/7780 based on the presence of
-`vim-patch:xxx` tokens in the Nvim git log.
+`vim-patch:xxx` tokens in the wgvim git log.
 
 - Don't update `src/nvim/version.c` yourself.
     - `scripts/vim-patch.sh -p` intentionally omits `version.c` to avoid merge
@@ -196,7 +196,7 @@ Make sure to note the difference between `utf_` and `utfc_` when replacing
 replaced with an ordinary function call `utfc_ptr2len(...)`.
 >
   -----------------------------------------------------------------------
-  Data type    Format (Vim source)     Portable format (Nvim source)
+  Data type    Format (Vim source)     Portable format (wgvim source)
   ------------ ----------------------- ----------------------------------
   long long    "%lld"                  "%" PRId64
   size_t       "%ld"                   "%zu"
@@ -272,7 +272,7 @@ used in new documentation:
 ==============================================================================
 FILETYPE DETECTION                                     *dev-vimpatch-filetype*
 
-Nvim's filetype detection behavior matches Vim, but is implemented as part of
+wgvim's filetype detection behavior matches Vim, but is implemented as part of
 |vim.filetype| (see `$VIMRUNTIME/lua/vim/filetype.lua`). The logic is encoded in
 three tables, listed in order of precedence (the first match is returned):
 1. `filename` for literal full path or basename lookup;

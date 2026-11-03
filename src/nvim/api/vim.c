@@ -73,6 +73,7 @@
 #include "nvim/option_defs.h"
 #include "nvim/option_vars.h"
 #include "nvim/optionstr.h"
+#include "nvim/os/landlock.h"
 #include "nvim/os/input.h"
 #include "nvim/os/os_defs.h"
 #include "nvim/os/proc.h"
@@ -268,7 +269,7 @@ void nvim_set_hl_ns_fast(Integer ns_id, Error *err)
   hl_check_ns();
 }
 
-/// Sends input-keys to Nvim, subject to various quirks controlled by `mode` flags. This is
+/// Sends input-keys to wgvim, subject to various quirks controlled by `mode` flags. This is
 /// a blocking call, unlike |nvim_input()|.
 ///
 /// On execution error: does not fail, but updates v:errmsg.
@@ -399,7 +400,7 @@ Integer nvim_input(uint64_t channel_id, String keys)
 ///                 The same specifiers are used as for a key press, except
 ///                 that the "-" separator is optional, so "C-A-", "c-a"
 ///                 and "CA" can all be used to specify Ctrl+Alt+click.
-/// @param grid Grid number (used by |ui-multigrid| client), or 0 to let Nvim decide positioning of
+/// @param grid Grid number (used by |ui-multigrid| client), or 0 to let wgvim decide positioning of
 ///             windows. For more information, see [dev-ui-multigrid]
 /// @param row Mouse row-position (zero-based, like redraw events)
 /// @param col Mouse column-position (zero-based, like redraw events)
@@ -1121,7 +1122,7 @@ Buffer nvim_create_buf(Boolean listed, Boolean scratch, Error *err)
 ///    intended size (defined by the window width/height).
 ///
 /// Example: this `TermHl` command can be used to display and highlight raw ANSI termcodes, so you
-/// can use Nvim as a "scrollback pager" (for terminals like kitty): [ansi-colorize]()
+/// can use wgvim as a "scrollback pager" (for terminals like kitty): [ansi-colorize]()
 /// [terminal-scrollback-pager]()
 ///
 /// ```lua
@@ -1248,7 +1249,7 @@ static void term_close(void *data)
 
 /// Sends raw data to channel `chan`. |channel-bytes|
 /// - For a job, it writes it to the stdin of the process.
-/// - For the stdio channel |channel-stdio|, it writes to Nvim's stdout.
+/// - For the stdio channel |channel-stdio|, it writes to wgvim's stdout.
 /// - For an internal terminal instance (|nvim_open_term()|) it writes directly to terminal output.
 ///
 /// This function writes raw data, not RPC messages. Use |vim.rpcrequest()| and |vim.rpcnotify()| if
@@ -1567,7 +1568,7 @@ Object nvim_load_context(Dict dict, Error *err)
 }
 
 /// Gets the current mode. |mode()|
-/// "blocking" is true if Nvim is waiting for input.
+/// "blocking" is true if wgvim is waiting for input.
 ///
 /// @returns Dict { "mode": String, "blocking": Boolean }
 DictAs(get_mode) nvim_get_mode(Arena *arena)
@@ -1690,22 +1691,22 @@ ArrayOf(Object, 2) nvim_get_api_info(uint64_t channel_id, Arena *arena)
 ///     - "prerelease" string describing a prerelease, like "dev" or "beta1"
 /// @param type Must be one of the following values. Client libraries should
 ///     default to "remote" unless overridden by the user.
-///     - "embedder" application using Nvim as a component (for example,
+///     - "embedder" application using wgvim as a component (for example,
 ///                  IDE/editor implementing a vim mode).
 ///     - "host" plugin host, typically started by nvim
-///     - "msgpack-rpc" remote client connected to Nvim via fully MessagePack-RPC
+///     - "msgpack-rpc" remote client connected to wgvim via fully MessagePack-RPC
 ///                     compliant protocol.
 ///     - "plugin" single plugin, started by nvim
-///     - "remote" remote client connected "Nvim flavored" MessagePack-RPC (responses
+///     - "remote" remote client connected "wgvim flavored" MessagePack-RPC (responses
 ///                must be in reverse order of requests). |msgpack-rpc|
 ///     - "ui" gui frontend
 /// @param methods Builtin methods in the client. For a host, this does not
 ///     include plugin methods which will be discovered later.
 ///     The key should be the method name, the values are dicts with
 ///     these (optional) keys (more keys may be added in future
-///     versions of Nvim, thus unknown keys are ignored. Clients
+///     versions of wgvim, thus unknown keys are ignored. Clients
 ///     must only use keys defined in this or later versions of
-///     Nvim):
+///     wgvim):
 ///     - "async"  if true, send as a notification. If false or unspecified,
 ///                use a blocking request
 ///     - "nargs" Number of arguments. Could be a single integer or an array
@@ -1756,7 +1757,7 @@ void nvim_set_client_info(uint64_t channel_id, String name, Dict version, String
 ///
 /// @param chan Channel id, or 0 for current (RPC) channel.
 /// @param config Properties:
-///     - detach: (boolean, default: true) Closing the channel does not self-exit Nvim. Nvim
+///     - detach: (boolean, default: true) Closing the channel does not self-exit wgvim. wgvim
 ///       self-exits when the last `detach=false` |RPC| channel closes. See also |:detach!|.
 /// @param[out] err Error details, if any
 void nvim_chan_set(uint64_t channel_id, Integer chan, Dict(chan_set) *config, Error *err)
@@ -1808,7 +1809,7 @@ void nvim__cmdwin_set(String type, Buffer buf, Error *err)
 ///    - "buffer"   (optional) Deprecated alias for `buf`.
 ///    - "client"   (optional) Info about the peer (client on the other end of the channel), as set
 ///                 by |nvim_set_client_info()|.
-///    - "detach"   (optional) Closing the |RPC| channel does not exit Nvim. |nvim_chan_set()|
+///    - "detach"   (optional) Closing the |RPC| channel does not exit wgvim. |nvim_chan_set()|
 ///    - "exitcode" (optional) Exit code of the |terminal| process.
 ///    - "id"       Channel id.
 ///    - "internal" (optional) In-process channel (stream=socket).
@@ -1820,8 +1821,8 @@ void nvim__cmdwin_set(String type, Buffer buf, Error *err)
 ///                 "/dev/pts/1". If unknown, the key will still be present if a pty is used (e.g.
 ///                 for conpty on Windows).
 ///    - "stream"   Stream underlying the channel.
-///         - "stdio"      stdin and stdout of this Nvim instance
-///         - "stderr"     stderr of this Nvim instance
+///         - "stdio"      stdin and stdout of this wgvim instance
+///         - "stderr"     stderr of this wgvim instance
 ///         - "socket"     TCP/IP socket or named pipe
 ///         - "job"        Job with communication over its stdio.
 Dict nvim_get_chan_info(uint64_t channel_id, Integer chan, Arena *arena, Error *err)
@@ -1902,6 +1903,15 @@ Float nvim__id_float(Float flt)
   return flt;
 }
 
+/// Gets the state of the wgvim sandbox (|wgvim-sandbox|): "status" ("off", "active",
+/// "unavailable", "failed"), "abi", "reason", "network", "scoped", "rules" and "notes".
+///
+/// @return Map describing the sandbox.
+Dict nvim__sandbox_info(Arena *arena)
+{
+  return landlock_info(arena);
+}
+
 /// Gets internal stats.
 ///
 /// @return Map of various internal stats.
@@ -1919,7 +1929,7 @@ Dict nvim__stats(Arena *arena)
 
 /// Gets a list of dictionaries representing attached UIs.
 ///
-/// Example: The Nvim builtin |TUI| sets its channel info as described in |startup-tui|. In
+/// Example: The wgvim builtin |TUI| sets its channel info as described in |startup-tui|. In
 /// particular, it sets `client.name` to "nvim-tui". So you can check if the TUI is running by
 /// inspecting the client name of each UI:
 ///
@@ -2446,7 +2456,7 @@ static void redraw_status(win_T *wp, Dict(redraw) *opts, bool *flush)
   }
 }
 
-/// Instruct Nvim to redraw various components.
+/// Instruct wgvim to redraw various components.
 ///
 /// @see |:redraw|
 ///
