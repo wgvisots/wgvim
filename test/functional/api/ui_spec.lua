@@ -28,6 +28,7 @@ describe('nvim_ui_attach()', function()
   end)
 
   it('does not crash on self-attach', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     local rv = exec_lua(function()
       local chan = vim.fn.sockconnect('pipe', vim.v.servername, { rpc = true })
       return { pcall(vim.fn.rpcrequest, chan, 'nvim_ui_attach', 80, 24, { ext_linegrid = true }) }

@@ -8320,6 +8320,9 @@ function vim.fn.searchpos(pattern, flags, stopline, timeout, skip) end
 ---   peer  : If |TRUE|, servers not started by |serverstart()|
 ---           will also be returned. (default: |FALSE|)
 ---           Not supported on Windows yet.
+---           wgvim: other instances are not found (that needs
+---           connecting to their sockets, see |wgvim-restricted|),
+---           so only this instance's servers are returned.
 ---
 ---   info  : If |TRUE|, return a list of Dicts with detailed info
 ---           instead of addresses. Implies `peer=true`. Each Dict
@@ -8357,7 +8360,7 @@ function vim.fn.serverlist(opts) end
 --- <  - If {address} is omitted the name is "nvim". >vim
 ---   echo serverstart()
 --- < >
----   => /tmp/nvim.bram/oknANW/nvim.15430.5
+---   => /tmp/wgvim.bram/oknANW/wgvim.15430.5
 --- <
 ---
 --- Example bash command to list all wgvim servers: >bash
@@ -9572,6 +9575,9 @@ function vim.fn.sinh(expr) end
 --- @return any
 function vim.fn.slice(expr, start, end_) end
 
+--- wgvim: not available; always fails with E5435. Connecting to
+--- other processes' sockets is disabled (|wgvim-restricted|).
+---
 --- Connect a socket to an address. If {mode} is "pipe" then
 --- {address} should be the path of a local domain socket (on
 --- unix) or named pipe (on Windows). If {mode} is "tcp" then

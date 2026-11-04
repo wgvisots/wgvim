@@ -56,6 +56,7 @@ describe('startup', function()
   end)
 
   it('prevents remote UI infinite loop', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     clear()
     local screen = Screen.new(84, 3)
     fn.jobstart(

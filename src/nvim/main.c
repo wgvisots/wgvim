@@ -256,6 +256,9 @@ int nvim_main(int argc, char **argv)
 int main(int argc, char **argv)
 #endif
 {
+  // wgvim: before the event loop exists (see landlock_early()).
+  landlock_early(argc, argv);
+
   argv0 = argv[0];
   TO_SLASH(argv0);
 
@@ -298,8 +301,11 @@ int main(int argc, char **argv)
   set_argf_var();
 
   // wgvim: confine this process and everything it starts, before any config or plugin runs.
+  // The TUI client connects to its server (on :restart and :connect); nothing else may connect.
+  bool will_be_tui = (stdin_isatty || stdout_isatty || stderr_isatty) && !headless_mode
+                     && !embedded_mode && !silent_mode;
   landlock_init(params.sandbox_mode, params.sandbox_rw, params.n_sandbox_rw,
-                params.sandbox_ro, params.n_sandbox_ro);
+                params.sandbox_ro, params.n_sandbox_ro, will_be_tui);
   TIME_MSG("sandbox");
 
   nlua_init(argv, argc, params.lua_arg0);
@@ -1210,11 +1216,11 @@ static void command_line_scan(mparm_T *parmp)
           argv_idx += (int)strlen(argv[0] + argv_idx);
         } else if (STRNICMP(argv[0] + argv_idx, "literal", 7) == 0) {
           // Do nothing: file args are always literal. #7679
-        } else if (STRNICMP(argv[0] + argv_idx, "remote", 6) == 0) {
-          parmp->remote = parmp->argc - argc;
-        } else if (STRNICMP(argv[0] + argv_idx, "server", 6) == 0) {
-          want_argument = true;
-          argv_idx += 6;
+        } else if (STRNICMP(argv[0] + argv_idx, "remote", 6) == 0
+                   || STRNICMP(argv[0] + argv_idx, "server", 6) == 0) {
+          // wgvim: connecting to another wgvim is not available (|wgvim-restricted|).
+          mainerr(_("Not available in wgvim (connecting to another wgvim is disabled)"), argv[0],
+                  NULL);
         } else if (STRNICMP(argv[0] + argv_idx, "noplugin", 8) == 0) {
           p_lpl = false;
         } else if (STRNICMP(argv[0] + argv_idx, "cmd", 3) == 0) {

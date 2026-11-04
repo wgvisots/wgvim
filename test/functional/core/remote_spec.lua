@@ -16,6 +16,17 @@ local set_session = n.set_session
 local tmpname = t.tmpname
 local write_file = t.write_file
 
+
+-- wgvim: --remote and --server are not available (|wgvim-restricted|).
+describe('Remote', function()
+  it('is not available in wgvim', function()
+    t.skip(true, 'wgvim: --remote and --server are not available')
+  end)
+end)
+do
+  return
+end
+
 describe('Remote', function()
   local fname, other_fname
   local contents = 'The call is coming from outside the process'

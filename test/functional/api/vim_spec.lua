@@ -44,6 +44,7 @@ describe('API', function()
   before_each(clear)
 
   it('validates requests', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     -- RPC
     matches('Invalid method: bogus$', pcall_err(request, 'bogus'))
     matches('Invalid method: … の り 。…$', pcall_err(request, '… の り 。…'))

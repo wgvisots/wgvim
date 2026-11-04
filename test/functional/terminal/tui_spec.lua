@@ -185,6 +185,7 @@ describe('TUI :detach', function()
   end
 
   it('does not stop server', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     setup_detach_child()
 
     tt.feed_data('iHello, World')
@@ -249,6 +250,7 @@ describe('TUI :detach', function()
   end)
 
   it('detach! keeps UI attached, sets detach=true', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     -- Wide enough that the confirmation message doesn't trigger a |hit-enter| prompt.
     setup_detach_child({ cols = 80 })
     -- Capture the client (foreground TUI) job so we can kill it below.
@@ -1027,6 +1029,7 @@ describe('TUI :connect', function()
   ]]
 
   it('leaves the current server running', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     local server1 = new_pipename()
     local screen1 = tt.setup_child_nvim({ '--listen', server1, '--clean' })
     screen1:expect({ any = vim.pesc('[No Name]') })
@@ -3394,6 +3397,7 @@ describe('TUI', function()
   end)
 
   it('TermResponse from unblock_autocmds() sets "data"', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     if not child_exec_lua('return pcall(require, "ffi")') then
       pending('N/A: missing LuaJIT FFI')
     end
@@ -4885,6 +4889,7 @@ describe('TUI bg color', function()
   end
 
   it('is detected on remote-ui attach to a headless server #30320', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     command('highlight clear Normal')
     command('set background=light') -- outer wgvim acts as a light terminal
     local server, session =
@@ -4897,6 +4902,7 @@ describe('TUI bg color', function()
   end)
 
   it('enables termguicolors on remote-ui attach to a headless server #30320', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     command('set background=light')
     local server, session =
       start_headless({ '--cmd', 'colorscheme vim', '--cmd', 'set noswapfile' })
@@ -4913,6 +4919,7 @@ describe('TUI bg color', function()
   end)
 
   it('does not override an explicit user background on remote-ui attach', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     command('highlight clear Normal')
     command('set background=light') -- light terminal
     local server, session = start_headless({
@@ -4946,6 +4953,7 @@ describe('TUI bg color', function()
   end)
 
   it('reacts to a runtime theme change over remote-ui', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     command('highlight clear Normal')
     command('set background=light') -- start light
     local server, session =
@@ -5023,6 +5031,7 @@ describe('TUI client', function()
   end
 
   it('connects to remote instance (with its own TUI)', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     local _, screen_server, screen_client = start_tui_and_remote_client()
 
     feed_data(':echo "GUI Running: " .. has("gui_running")\013')
@@ -5042,6 +5051,7 @@ describe('TUI client', function()
   end)
 
   it(':restart! works when connecting to remote instance (with its own TUI)', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     local _, screen_server, screen_client = start_tui_and_remote_client()
 
     -- Both clients should attach to the new server.
@@ -5116,6 +5126,7 @@ describe('TUI client', function()
   end
 
   it('connects to remote instance (--headless)', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     local server, server_pipe, screen_client = start_headless_server_and_client(false)
 
     -- No heap-use-after-free when receiving UI events after deadly signal #22184
@@ -5153,6 +5164,7 @@ describe('TUI client', function()
   end)
 
   it(':restart! works when connecting to remote instance (--headless)', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     local _, server_pipe, screen_client = start_headless_server_and_client(false)
 
     -- The client should attach to the new server and the original server should exit.
@@ -5184,6 +5196,7 @@ describe('TUI client', function()
   ]]
 
   it('does not crash or hang with a very long title', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     local server, _, screen_client = start_headless_server_and_client(true)
     local server_exec_lua = tt.make_lua_executor(server)
     if not server_exec_lua('return pcall(require, "ffi")') then
@@ -5214,6 +5227,7 @@ describe('TUI client', function()
   end)
 
   it('logs chdir failure properly', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     t.skip(is_os('win'), 'N/A for Windows')
     local server, _, screen_client = start_headless_server_and_client(true)
     local server_exec_lua = tt.make_lua_executor(server)
@@ -5231,6 +5245,7 @@ describe('TUI client', function()
   end)
 
   it('nvim_ui_send works with remote client #36317', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     local server, _, _ = start_headless_server_and_client(false)
     server:request('nvim_ui_send', '\027]2;TEST_TITLE\027\\')
     retry(nil, nil, function()
@@ -5239,6 +5254,7 @@ describe('TUI client', function()
   end)
 
   it('throws error when no server exists', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     clear()
     local screen = tt.setup_child_nvim({
       '--remote-ui',
@@ -5268,15 +5284,18 @@ describe('TUI client', function()
 
   describe('exits when server quits', function()
     it('with :quit', function()
+      t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
       test_remote_tui_quit()
     end)
 
     it('with :cquit', { retries = 2 }, function()
+      t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
       test_remote_tui_quit(42)
     end)
   end)
 
   it('suspend/resume works with multiple clients', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     t.skip(is_os('win'), 'N/A for Windows')
     local server_super, screen_server, screen_client = start_tui_and_remote_client()
 

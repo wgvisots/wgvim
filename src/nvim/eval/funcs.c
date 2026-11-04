@@ -6605,6 +6605,11 @@ static void f_shiftwidth(typval_T *argvars, typval_T *rettv, EvalFuncData fptr)
 /// "sockconnect()" function
 static void f_sockconnect(typval_T *argvars, typval_T *rettv, EvalFuncData fptr)
 {
+  // wgvim: connecting to other processes' sockets is not available (|wgvim-restricted|).
+  if (true) {
+    emsg(_("E5435: sockconnect() is not available in wgvim"));
+    return;
+  }
   if (argvars[0].v_type != VAR_STRING || argvars[1].v_type != VAR_STRING) {
     emsg(_(e_invarg));
     return;
