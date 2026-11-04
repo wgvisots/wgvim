@@ -130,11 +130,19 @@ Things that work differently ~
 - Setuid programs cannot gain privileges ("no new privileges"), so ":!sudo"
   and ":w !sudo tee %" do not work.
 - `:!kill` cannot stop or signal your other processes (Landlock ABI 6+).
-- The clipboard (|clipboard|): wl-copy, xclip, xsel and tmux need to connect
-  to their server, which the sandbox refuses. wgvim uses OSC 52 instead
-  (|clipboard-osc52|): the terminal holds the clipboard, also over SSH. Your
-  terminal must support OSC 52; pasting from the system clipboard needs a
-  terminal that allows OSC 52 reads (many ask first, some refuse).
+- The clipboard (|clipboard|): wl-copy, xclip and xsel need to connect to the
+  display server, which the sandbox refuses. On a local desktop ($WAYLAND_DISPLAY
+  or $DISPLAY set, not over SSH) wgvim starts a clipboard helper just before
+  the sandbox is applied. The helper is not confined by Landlock and may
+  connect, and does one thing: it runs the fixed copy or paste command of the
+  tool it found (wl-copy/wl-paste, else xclip, else xsel) for "+" or "*" with
+  the text it is given. The editor can only ask it to set or read the
+  clipboard. Over SSH, copying uses OSC 52 (|clipboard-osc52|), and pasting
+  "+" returns what was last copied in wgvim: many terminals cannot answer
+  OSC 52 reads, and waiting for them stalls every paste. Paste from the
+  system clipboard with the terminal's own paste instead (mintty: Shift+Insert;
+  copying needs "AllowSetSelection=yes" in ~/.minttyrc). tmux's clipboard is
+  not available. |:checkhealth| wgvim shows which applies.
 - Child programs get $TMPDIR set to the temp directory above, because "/tmp"
   itself is not writable (compilers and clangd write temporary files there).
 - Your config directory is read-only, so editing "init.lua" in wgvim needs

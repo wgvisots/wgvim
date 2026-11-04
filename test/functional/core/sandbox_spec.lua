@@ -32,7 +32,13 @@ local function run(script, opts)
     -- Coverage builds write .gcda files into build/src when the process exits.
     vim.list_extend(cmd, { '--sandbox-allow', t.paths.test_build_dir .. '/src' })
   end
-  vim.list_extend(cmd, { '-c', 'luafile _test.lua', '-c', 'qa!' })
+  vim.list_extend(cmd, { '-c', 'luafile _test.lua' })
+  if opts.then_script then
+    -- A separate command: e.g. clipboard updates are batched until a command finishes.
+    write(cwd .. '/_test2.lua', opts.then_script)
+    vim.list_extend(cmd, { '-c', 'luafile _test2.lua' })
+  end
+  vim.list_extend(cmd, { '-c', 'qa!' })
   local r = vim
     .system(cmd, {
       cwd = cwd,
@@ -45,6 +51,9 @@ local function run(script, opts)
         XDG_CACHE_HOME = home .. '/.cache',
         TMPDIR = root .. '/tmp',
         VIMRUNTIME = t.paths.test_source_path .. '/runtime',
+        PATH = opts.path_prefix and (opts.path_prefix .. ':' .. os.getenv('PATH')) or nil,
+        WAYLAND_DISPLAY = opts.wayland,
+        SSH_TTY = opts.ssh_tty,
       },
       text = true,
     })
@@ -253,6 +262,68 @@ describe('sandbox', function()
     local _, err, code = run('', { args = { '--remote', 'x' } })
     neq(0, code)
     matches('Not available in wgvim', err)
+  end)
+
+  it('clipboard: uses the helper for wl-copy/wl-paste on a local desktop', function()
+    local i = skip_unless_active()
+    t.skip(not i.seccomp, 'no system call filter on this platform')
+    -- Stand-ins for wl-copy and wl-paste that keep the clipboard in a file outside the sandbox:
+    -- only the helper, which runs outside, can reach it.
+    local store = root .. '/clipboard'
+    write(root .. '/bin/wl-copy', '#!/bin/sh\ncat > ' .. store .. '\n')
+    write(root .. '/bin/wl-paste', '#!/bin/sh\ncat ' .. store .. '\n')
+    vim.uv.fs_chmod(root .. '/bin/wl-copy', 493)
+    vim.uv.fs_chmod(root .. '/bin/wl-paste', 493)
+    write(store, 'from the desktop')
+    local out = run(
+      [[
+      vim.o.clipboard = 'unnamedplus'
+      _G.before = vim.fn.getreg('+', 1, true)
+      vim.fn.setline(1, { 'yanked', 'in wgvim' })
+      vim.cmd('normal! yj')
+    ]],
+      {
+        path_prefix = root .. '/bin',
+        wayland = 'wayland-test',
+        then_script = [[
+          io.stdout:write(vim.json.encode({
+            vim.api.nvim__sandbox_info().clipboard,
+            vim.fn['provider#clipboard#Executable'](),
+            _G.before,
+            vim.fn.getreg('+', 1, true),
+          }))
+        ]],
+      }
+    )
+    local r = vim.json.decode(out)
+    eq('wl-clipboard', r[1])
+    eq('wl-clipboard (sandbox helper)', r[2])
+    eq({ 'from the desktop' }, r[3])
+    eq({ 'yanked', 'in wgvim', '' }, r[4])
+    matches('^yanked\nin wgvim', t.read_file(store))
+  end)
+
+  it('clipboard: over SSH, copies with OSC 52 and pastes what was copied', function()
+    skip_unless_active()
+    local out = run(
+      [[
+      vim.o.clipboard = 'unnamedplus'
+      vim.fn.setline(1, { 'over ssh' })
+      vim.cmd('normal! yy')
+    ]],
+      {
+        ssh_tty = '/dev/pts/99',
+        wayland = 'wayland-test',
+        then_script = [[
+          io.stdout:write(vim.json.encode({
+            vim.api.nvim__sandbox_info().clipboard,
+            vim.fn['provider#clipboard#Executable'](),
+            vim.fn.getreg('+', 1, true),
+          }))
+        ]],
+      }
+    )
+    eq({ '', 'OSC 52 (copy only)', { 'over ssh' } }, vim.json.decode(out))
   end)
 
   it('in the home directory, allows only its non-hidden entries', function()

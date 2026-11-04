@@ -242,14 +242,26 @@ function! provider#clipboard#Executable() abort
   elseif has('mac')
     return s:set_pbcopy()
   elseif s:sandbox_blocks_connect()
-    " wgvim: under the sandbox, programs cannot connect to the X11, Wayland or tmux server
-    " (|wgvim-sandbox|), so wl-copy, xclip, xsel and tmux cannot work. Use OSC 52 instead: the
-    " terminal itself holds the clipboard, even over SSH.
-    if get(get(g:, 'termfeatures', {}), 'osc52')
-      return s:set_osc52()
+    " wgvim: under the sandbox, programs cannot connect to the X11 or Wayland server
+    " (|wgvim-sandbox|), so wl-copy, xclip and xsel are run by the sandbox's clipboard helper,
+    " started before the sandbox. Over SSH, OSC 52 is used to copy through the terminal.
+    let tool = luaeval('vim.api.nvim__sandbox_info().clipboard')
+    if !empty(tool)
+      let s:copy['+'] = v:lua.require'wgvim.clipboard'.helper_copy('+')
+      let s:copy['*'] = v:lua.require'wgvim.clipboard'.helper_copy('*')
+      let s:paste['+'] = v:lua.require'wgvim.clipboard'.helper_paste('+')
+      let s:paste['*'] = v:lua.require'wgvim.clipboard'.helper_paste('*')
+      return tool .. ' (sandbox helper)'
+    elseif !empty($SSH_TTY) || !empty($SSH_CONNECTION)
+          \ || get(get(g:, 'termfeatures', {}), 'osc52')
+      let s:copy['+'] = v:lua.require'wgvim.clipboard'.osc52_copy('+')
+      let s:copy['*'] = v:lua.require'wgvim.clipboard'.osc52_copy('*')
+      let s:paste['+'] = v:lua.require'wgvim.clipboard'.osc52_paste('+')
+      let s:paste['*'] = v:lua.require'wgvim.clipboard'.osc52_paste('*')
+      return 'OSC 52 (copy only)'
     endif
-    let s:err = 'clipboard: the wgvim sandbox blocks clipboard tools, and the terminal does not '
-          \ .. 'support OSC 52. :help wgvim-sandbox'
+    let s:err = 'clipboard: no clipboard tool for the sandbox helper, and no OSC 52 terminal. '
+          \ .. ':help wgvim-sandbox'
     return ''
   elseif !empty($WAYLAND_DISPLAY) && executable('wl-copy') && executable('wl-paste')
     return s:set_wayland()

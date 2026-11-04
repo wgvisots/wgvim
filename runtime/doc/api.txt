@@ -1901,6 +1901,20 @@ nvim__redraw({opts})                                          *nvim__redraw()*
     See also: ~
       • |:redraw|
 
+nvim__sandbox_clipboard({op}, {reg}, {data})       *nvim__sandbox_clipboard()*
+    WARNING: This feature is experimental/unstable.
+
+    Copies to, or pastes from, register "+" or "*" through the wgvim sandbox's
+    clipboard helper (|wgvim-sandbox|). Used by the clipboard provider.
+
+    Parameters: ~
+      • {op}    (`string`) "copy" or "paste"
+      • {reg}   (`string`) "+" or "*"
+      • {data}  (`string`) text to copy (ignored for "paste")
+
+    Return: ~
+        (`string`) the pasted text, or "" after a copy
+
 nvim__sandbox_info()                                    *nvim__sandbox_info()*
     WARNING: This feature is experimental/unstable.
 

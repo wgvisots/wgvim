@@ -42,7 +42,11 @@
 # include <linux/seccomp.h>
 # include <stddef.h>
 # include <sys/prctl.h>
+# include <poll.h>
+# include <spawn.h>
+# include <signal.h>
 # include <sys/socket.h>
+# include <sys/wait.h>
 # include <sys/stat.h>
 # include <sys/syscall.h>
 # include <unistd.h>
@@ -125,12 +129,14 @@ static struct {
   bool seccomp;        // the system call filter is installed
   bool connect;        // connect() is allowed (the TUI process, to wgvim's own sockets only)
   char *temp_root;     // wgvim's temp root, where its own sockets live
+  int clip_fd;         // socket to the clipboard helper, or -1
+  const char *clip_tool;  // "wl-clipboard", "xclip", "xsel", or NULL
   LLRule rules[MAX_RULES];
   int nrules;
   char *notes[MAX_NOTES];
   int nnotes;
   char *home;          // realpath of $HOME, for hints
-} ll = { .status = kLandlockOff };
+} ll = { .status = kLandlockOff, .clip_fd = -1 };
 
 #include "os/landlock.c.generated.h"
 
@@ -491,6 +497,267 @@ static int count_threads(void)
 }
 #endif
 
+
+#ifdef __linux__
+// The clipboard helper.
+//
+// Clipboard tools (wl-copy, xclip, xsel) must connect to the display server, which the sandbox
+// refuses. Before the sandbox is applied, the editor process forks this helper. It keeps the
+// right to connect and does one thing: for a request "copy" or "paste" of register + or *, it
+// runs the fixed command for the tool it chose at startup, with the bytes it was given, and
+// returns the result. It reads nothing else from the editor, so a compromised editor can only
+// read and write the clipboard, which the clipboard feature allows anyway.
+//
+// Request: op ('c' or 'p'), reg ('+' or '*'), uint32 length, data. Reply: uint32 length, data;
+// length 0xFFFFFFFF means failure.
+
+extern char **environ;
+
+# define CLIP_MAX (64u * 1024 * 1024)
+# define CLIP_FAIL 0xFFFFFFFFu
+
+static bool full_io(int fd, void *buf, size_t len, bool rd)
+{
+  char *p = buf;
+  while (len > 0) {
+    ssize_t n = rd ? read(fd, p, len) : write(fd, p, len);
+    if (n < 0 && errno == EINTR) {
+      continue;
+    }
+    if (n <= 0) {
+      return false;
+    }
+    p += n;
+    len -= (size_t)n;
+  }
+  return true;
+}
+
+static const char **clip_argv(const char *tool, bool paste, bool primary)
+{
+  static const char *wl_c[] = { "wl-copy", "--type", "text/plain", NULL };
+  static const char *wl_cp[] = { "wl-copy", "--primary", "--type", "text/plain", NULL };
+  static const char *wl_p[] = { "wl-paste", "--no-newline", NULL };
+  static const char *wl_pp[] = { "wl-paste", "--no-newline", "--primary", NULL };
+  static const char *xc_c[] = { "xclip", "-i", "-selection", "clipboard", NULL };
+  static const char *xc_cp[] = { "xclip", "-i", "-selection", "primary", NULL };
+  static const char *xc_p[] = { "xclip", "-o", "-selection", "clipboard", NULL };
+  static const char *xc_pp[] = { "xclip", "-o", "-selection", "primary", NULL };
+  static const char *xs_c[] = { "xsel", "-i", "-b", NULL };
+  static const char *xs_cp[] = { "xsel", "-i", "-p", NULL };
+  static const char *xs_p[] = { "xsel", "-o", "-b", NULL };
+  static const char *xs_pp[] = { "xsel", "-o", "-p", NULL };
+  if (strcmp(tool, "wl-clipboard") == 0) {
+    return paste ? (primary ? wl_pp : wl_p) : (primary ? wl_cp : wl_c);
+  } else if (strcmp(tool, "xclip") == 0) {
+    return paste ? (primary ? xc_pp : xc_p) : (primary ? xc_cp : xc_c);
+  }
+  return paste ? (primary ? xs_pp : xs_p) : (primary ? xs_cp : xs_c);
+}
+
+/// Runs argv with `in` on its stdin; collects stdout into *out (malloc'd) for paste.
+static bool clip_run(const char **argv, const char *in, size_t in_len, char **out,
+                     size_t *out_len)
+{
+  int ip[2], op[2];
+  if (pipe2(ip, O_CLOEXEC) != 0) {
+    return false;
+  }
+  if (pipe2(op, O_CLOEXEC) != 0) {
+    close(ip[0]);
+    close(ip[1]);
+    return false;
+  }
+  // posix_spawn, not fork(): fork handlers registered in the editor (pthread_atfork) would run
+  // in the child and reuse file descriptor numbers that belong to these pipes.
+  posix_spawn_file_actions_t fa;
+  posix_spawn_file_actions_init(&fa);
+  posix_spawn_file_actions_adddup2(&fa, ip[0], 0);
+  posix_spawn_file_actions_adddup2(&fa, op[1], 1);
+  posix_spawn_file_actions_addopen(&fa, 2, "/dev/null", O_WRONLY, 0);
+  posix_spawn_file_actions_addclose(&fa, ip[1]);
+  posix_spawn_file_actions_addclose(&fa, op[0]);
+  pid_t pid;
+  int rc = posix_spawnp(&pid, argv[0], &fa, NULL, (char **)argv, environ);
+  posix_spawn_file_actions_destroy(&fa);
+  if (rc != 0) {
+    close(ip[0]); close(ip[1]); close(op[0]); close(op[1]);
+    return false;
+  }
+  close(ip[0]);
+  close(op[1]);
+  bool ok = in_len == 0 || full_io(ip[1], (void *)in, in_len, false);
+  close(ip[1]);
+  size_t cap = 0, len = 0;
+  char *buf = NULL;
+  if (out != NULL) {
+    struct pollfd pfd = { .fd = op[0], .events = POLLIN };
+    while (ok && poll(&pfd, 1, 5000) > 0) {
+      if (len == cap) {
+        cap = cap ? cap * 2 : 4096;
+        if (cap > CLIP_MAX) {
+          ok = false;
+          break;
+        }
+        char *nb = realloc(buf, cap);  // NOLINT: the helper does not use xmalloc
+        if (nb == NULL) {
+          ok = false;
+          break;
+        }
+        buf = nb;
+      }
+      ssize_t n = read(op[0], buf + len, cap - len);
+      if (n < 0 && errno == EINTR) {
+        continue;
+      }
+      if (n <= 0) {
+        break;
+      }
+      len += (size_t)n;
+    }
+  }
+  close(op[0]);
+  int status = 0;
+  // wl-copy, xclip -i and xsel -i fork to keep serving the selection; the first process exits.
+  for (int i = 0; i < 100 && waitpid(pid, &status, WNOHANG) == 0; i++) {
+    usleep(50000);
+  }
+  if (out != NULL) {
+    *out = buf;
+    *out_len = len;
+  } else {
+    free(buf);  // NOLINT
+  }
+  return ok && WIFEXITED(status) && WEXITSTATUS(status) == 0;
+}
+
+static void clip_helper_main(int fd, const char *tool)
+  FUNC_ATTR_NORETURN
+{
+  for (;;) {
+    unsigned char hdr[6];
+    if (!full_io(fd, hdr, sizeof(hdr), true)) {
+      _exit(0);  // the editor exited
+    }
+    uint32_t len;
+    memcpy(&len, hdr + 2, 4);
+    bool paste = hdr[0] == 'p';
+    bool primary = hdr[1] == '*';
+    if ((hdr[0] != 'c' && hdr[0] != 'p') || len > CLIP_MAX) {
+      _exit(1);
+    }
+    char *data = malloc(len + 1);  // NOLINT
+    if (data == NULL || !full_io(fd, data, len, true)) {
+      _exit(1);
+    }
+    char *out = NULL;
+    size_t out_len = 0;
+    bool ok = clip_run(clip_argv(tool, paste, primary), paste ? NULL : data, paste ? 0 : len,
+                       paste ? &out : NULL, &out_len);
+    free(data);  // NOLINT
+    uint32_t rlen = ok ? (uint32_t)out_len : CLIP_FAIL;
+    if (!full_io(fd, &rlen, 4, false) || (ok && out_len && !full_io(fd, out, out_len, false))) {
+      _exit(1);
+    }
+    free(out);  // NOLINT
+  }
+}
+
+/// Starts the clipboard helper, if there is a local display and a clipboard tool.
+static void start_clipboard_helper(void)
+{
+  if (getenv("SSH_TTY") != NULL || getenv("SSH_CONNECTION") != NULL) {
+    return;  // remote: these tools would not reach the user's desktop; OSC 52 is used instead
+  }
+  const char *wl = getenv("WAYLAND_DISPLAY");
+  const char *x = getenv("DISPLAY");
+  const char *tool = NULL;
+  if (wl != NULL && *wl != NUL && os_can_exe("wl-copy", NULL, true)
+      && os_can_exe("wl-paste", NULL, true)) {
+    tool = "wl-clipboard";
+  } else if (x != NULL && *x != NUL && os_can_exe("xclip", NULL, true)) {
+    tool = "xclip";
+  } else if (x != NULL && *x != NUL && os_can_exe("xsel", NULL, true)) {
+    tool = "xsel";
+  }
+  if (tool == NULL) {
+    return;
+  }
+  int sv[2];
+  if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sv) != 0) {
+    return;
+  }
+  pid_t pid = fork();
+  if (pid < 0) {
+    close(sv[0]);
+    close(sv[1]);
+    return;
+  }
+  if (pid == 0) {
+    prctl(PR_SET_PDEATHSIG, SIGTERM);
+    // Drop the editor's signal handlers: libuv's would write into its signal pipe's file
+    // descriptor number, which here belongs to a clipboard tool's pipe.
+    for (int sig = 1; sig < NSIG; sig++) {
+      signal(sig, SIG_DFL);
+    }
+    signal(SIGPIPE, SIG_IGN);
+    sigset_t none;
+    sigemptyset(&none);
+    sigprocmask(SIG_SETMASK, &none, NULL);
+    int null = open("/dev/null", O_RDWR);
+    for (int i = 0; i <= 2; i++) {
+      dup2(null, i);
+    }
+    dup2(sv[1], 3);
+    // Close everything else the editor had open (event loop, terminal, ...).
+    for (int i = 4; i < 1024; i++) {
+      close(i);
+    }
+    // The helper may connect (that is its purpose), but still gets the rest of the filter.
+    (void)install_seccomp(true);
+    clip_helper_main(3, tool);
+  }
+  close(sv[1]);
+  ll.clip_fd = sv[0];
+  ll.clip_tool = tool;
+}
+#endif
+
+/// Copies `data` to (or, with `paste`, reads) register "+" or "*" through the clipboard helper.
+///
+/// @return the pasted text, or "" after a copy; sets `err` on failure.
+String landlock_clipboard(bool paste, bool primary, String data, Arena *arena, Error *err)
+{
+#ifdef __linux__
+  if (ll.clip_fd < 0) {
+    api_set_error(err, kErrorTypeException, "no clipboard helper (see :help wgvim-sandbox)");
+    return (String)STRING_INIT;
+  }
+  unsigned char hdr[6] = { paste ? 'p' : 'c', primary ? '*' : '+' };
+  uint32_t len = paste ? 0 : (uint32_t)MIN(data.size, CLIP_MAX);
+  memcpy(hdr + 2, &len, 4);
+  uint32_t rlen = CLIP_FAIL;
+  bool ok = full_io(ll.clip_fd, hdr, sizeof(hdr), false)
+            && (len == 0 || full_io(ll.clip_fd, data.data, len, false))
+            && full_io(ll.clip_fd, &rlen, 4, true);
+  if (!ok || rlen == CLIP_FAIL || rlen > CLIP_MAX) {
+    api_set_error(err, kErrorTypeException, "clipboard: %s failed", ll.clip_tool);
+    return (String)STRING_INIT;
+  }
+  String out = { .data = arena_alloc(arena, rlen + 1, false), .size = rlen };
+  if (rlen > 0 && !full_io(ll.clip_fd, out.data, rlen, true)) {
+    api_set_error(err, kErrorTypeException, "clipboard: %s failed", ll.clip_tool);
+    return (String)STRING_INIT;
+  }
+  out.data[rlen] = NUL;
+  return out;
+#else
+  (void)paste; (void)primary; (void)data; (void)arena;
+  api_set_error(err, kErrorTypeException, "no clipboard helper");
+  return (String)STRING_INIT;
+#endif
+}
+
 /// Whether the TUI may connect to `addr` (for :restart and :connect): only to wgvim's own
 /// sockets, in the temp root, when the sandbox is active.
 bool landlock_connect_ok(const char *addr)
@@ -713,6 +980,10 @@ void landlock_init(const char *mode, char **allow_rw, int n_rw, char **allow_ro,
     xfree(temp_root);
     goto done;
   }
+  // The editor process (not the TUI) gets a clipboard helper, forked before the restrictions.
+  if (!tui) {
+    start_clipboard_helper();
+  }
   // From here on, setuid programs (sudo, su) cannot gain privileges; Landlock requires this.
   if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) != 0
       || syscall(SYS_landlock_restrict_self, rfd, 0) != 0) {
@@ -752,7 +1023,7 @@ done:
 Dict landlock_info(Arena *arena)
 {
   static const char *const names[] = { "off", "active", "unavailable", "failed" };
-  Dict rv = arena_dict(arena, 10);
+  Dict rv = arena_dict(arena, 11);
   PUT_C(rv, "status", CSTR_AS_OBJ(names[ll.status]));
   PUT_C(rv, "abi", INTEGER_OBJ(ll.abi));
   PUT_C(rv, "reason", CSTR_AS_OBJ(ll.reason ? ll.reason : ""));
@@ -760,6 +1031,7 @@ Dict landlock_info(Arena *arena)
   PUT_C(rv, "scoped", BOOLEAN_OBJ(ll.scoped));
   PUT_C(rv, "seccomp", BOOLEAN_OBJ(ll.seccomp));
   PUT_C(rv, "connect", BOOLEAN_OBJ(ll.connect));
+  PUT_C(rv, "clipboard", CSTR_AS_OBJ(ll.clip_tool ? ll.clip_tool : ""));
   Array rules = arena_array(arena, (size_t)ll.nrules);
   for (int i = 0; i < ll.nrules; i++) {
     Dict r = arena_dict(arena, 4);

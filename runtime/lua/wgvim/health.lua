@@ -42,6 +42,11 @@ function M.check()
         .. 'and System V IPC are not blocked',
     })
   end
+  if i.clipboard ~= '' then
+    health.ok('Clipboard helper: ' .. i.clipboard .. ' (runs outside the sandbox, copy/paste only)')
+  elseif i.seccomp and not i.connect then
+    health.info('No clipboard helper: copying uses OSC 52 when available (see :help wgvim-sandbox)')
+  end
   if i.scoped then
     health.ok('Signals and abstract Unix sockets outside the sandbox are blocked')
   else
