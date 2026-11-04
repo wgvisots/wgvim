@@ -35,6 +35,7 @@ describe('channels', function()
   end)
 
   it('can connect to socket', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     local server = n.new_session(true)
     set_session(server)
     local address = fn.serverlist()[1]
@@ -64,6 +65,7 @@ describe('channels', function()
   end)
 
   it('emits ChanClose when RPC socket reaches EOF', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     local client = get_session()
     local server = n.new_session(true)
     finally(function()
@@ -104,6 +106,7 @@ describe('channels', function()
   end)
 
   it('dont crash due to garbage in rpc #23781', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     local client = get_session()
     local server = n.new_session(true)
     set_session(server)
@@ -498,6 +501,7 @@ describe('channels', function()
   end)
 
   it('ChanInfo works with vim.wait() from another autocommand #32706', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     exec_lua([[
       vim.api.nvim_create_autocmd('ChanInfo', {
         callback = function(ev)
@@ -523,6 +527,7 @@ describe('channels', function()
 
   describe('sockconnect() reports error when connection fails', function()
     it('in "pipe" mode', function()
+      t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
       eq(
         'Vim:connection failed: connection refused',
         pcall_err(fn.sockconnect, 'pipe', n.new_pipename())
@@ -530,6 +535,7 @@ describe('channels', function()
     end)
 
     it('with another connection accepted while polling #37807', function()
+      t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
       local server = api.nvim_get_vvar('servername')
       local invalid_pipe = n.new_pipename()
       exec_lua(function()
@@ -552,6 +558,7 @@ describe('channels', function()
   end)
 
   it('no stack-buffer-overflow with wgvim exit during connection #39387', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     local nvim0 = n.get_session()
     -- Need a valid pipe so that connecting to it doesn't fail immediately.
     local server = fn.serverstart()
@@ -576,10 +583,12 @@ end)
 describe('loopback', function()
   before_each(function()
     clear()
-    command("let chan = sockconnect('pipe', v:servername, {'rpc': v:true})")
+    -- wgvim: sockconnect() is not available, so the tests below are skipped.
+    -- command("let chan = sockconnect('pipe', v:servername, {'rpc': v:true})")
   end)
 
   it('does not crash when sending raw data', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     eq(
       "Vim(call):Can't send raw data to rpc channel",
       pcall_err(command, "call chansend(chan, 'test')")
@@ -588,6 +597,7 @@ describe('loopback', function()
   end)
 
   it('are released when closed', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     local chans = eval('len(nvim_list_chans())')
     command('call chanclose(chan)')
     n.poke_eventloop() -- Process rpc_close_event().

@@ -28,11 +28,6 @@ function M.serverlist(opts, addrs)
     return addrs
   end
 
-  local seen = {} ---@type table<string, true>
-  for _, a in ipairs(addrs) do
-    seen[a] = true
-  end
-
   local peers ---@type string[]|vim.ServerInfo[]
   if want_info then
     local self_pid = vim.fn.getpid()
@@ -49,48 +44,9 @@ function M.serverlist(opts, addrs)
     peers = addrs
   end
 
-  -- Discover peer servers in stdpath("run").
-  -- TODO: track TCP servers, somehow.
-  -- TODO: support Windows named pipes.
-  local root = vim.fs.normalize(vim.fn.stdpath('run') .. '/..')
-  local socket_paths = vim.fs.find(function(name, _)
-    return name:match('wgvim.*') -- server_address_new() names sockets <appname>.<pid>.<n>
-  end, { path = root, type = 'socket', limit = math.huge })
-
-  for _, socket in ipairs(socket_paths) do
-    if not seen[socket] then
-      local ok, chan = pcall(vim.fn.sockconnect, 'pipe', socket, { rpc = true })
-      if ok and chan and chan > 0 then
-        --- @cast chan integer
-        -- Check that the server is responding
-        -- TODO: do we need a timeout or error handling here?
-        local ok_rpc, peer_info = pcall(
-          vim.fn.rpcrequest,
-          chan,
-          'nvim_exec_lua',
-          [[return { pid = vim.fn.getpid(), active = vim.v.useractive, }]],
-          {}
-        )
-
-        if ok_rpc and type(peer_info) == 'table' then
-          ---@cast peer_info vim.ServerInfo
-          seen[socket] = true
-          if want_info then
-            table.insert(peers, {
-              addr = socket,
-              pid = peer_info.pid,
-              own = false,
-              active = peer_info.active,
-            })
-          else
-            table.insert(peers, socket)
-          end
-        end
-        pcall(vim.fn.chanclose, chan)
-      end
-    end
-  end
-
+  -- wgvim: peer servers are not discovered. Finding them meant connecting to other processes'
+  -- sockets, which is not available (sockconnect() is disabled, and the sandbox refuses
+  -- connect()), so only this instance's own servers are listed.
   return peers
 end
 

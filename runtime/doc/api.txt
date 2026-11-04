@@ -1901,6 +1901,16 @@ nvim__redraw({opts})                                          *nvim__redraw()*
     See also: ~
       • |:redraw|
 
+nvim__sandbox_info()                                    *nvim__sandbox_info()*
+    WARNING: This feature is experimental/unstable.
+
+    Gets the state of the wgvim sandbox (|wgvim-sandbox|): "status" ("off",
+    "active", "unavailable", "failed"), "abi", "reason", "network", "scoped",
+    "seccomp", "connect", "rules" and "notes".
+
+    Return: ~
+        (`table<string,any>`) Map describing the sandbox.
+
 nvim__set_restart_on_crash({progpath}, {argv})  *nvim__set_restart_on_crash()*
     WARNING: This feature is experimental/unstable.
 

@@ -118,6 +118,7 @@ describe('server', function()
   end)
 
   it('serverlist() returns the list of servers', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     -- Set XDG_RUNTIME_DIR to a temp dir in this session to properly test serverlist({peer = true}). See #35492
     local tmp_dir = assert(vim.uv.fs_mkdtemp(vim.fs.dirname(t.tmpname(false)) .. '/XXXXXX'))
     local current_server = clear({ env = { XDG_RUNTIME_DIR = tmp_dir } })
@@ -275,6 +276,7 @@ describe('server', function()
   end)
 
   it('normalizes sep in named pipe paths #39382', function()
+    t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
     t.skip(not is_os('win'), 'N/A: Named pipe is Windows feature')
 
     local name, named_pipe = 'Xtest-server', [[\\.\pipe\Xtest-server]]

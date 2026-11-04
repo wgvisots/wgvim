@@ -17,6 +17,11 @@ itself takes command-line arguments that cause it to become a client to another
 wgvim running as a server. These arguments match those provided by Vim's
 clientserver option.
 
+wgvim: these arguments are not available. wgvim does not connect to other
+processes' sockets (|wgvim-restricted|), so "--remote…" and "--server" are
+refused at startup. Other programs can still control a wgvim started with
+|--listen|.
+
 The following command line arguments are available:
 
    --remote [+{cmd}] {file} ...					*--remote*

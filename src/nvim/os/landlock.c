@@ -37,7 +37,12 @@
 #ifdef __linux__
 # include <dirent.h>
 # include <fcntl.h>
+# include <linux/audit.h>
+# include <linux/filter.h>
+# include <linux/seccomp.h>
+# include <stddef.h>
 # include <sys/prctl.h>
+# include <sys/socket.h>
 # include <sys/stat.h>
 # include <sys/syscall.h>
 # include <unistd.h>
@@ -68,6 +73,7 @@
 #define LL_NET_CONNECT_TCP (1ULL << 1)  // ABI 4
 
 #define LL_SCOPE_ABSTRACT_UNIX_SOCKET (1ULL << 0)  // ABI 6
+#define LL_SCOPE_SIGNAL (1ULL << 1)                // ABI 6
 
 #ifndef SYS_landlock_create_ruleset
 # define SYS_landlock_create_ruleset 444
@@ -115,7 +121,10 @@ static struct {
   int abi;
   const char *reason;  // why not active (static string), or NULL
   bool network;        // TCP bind/connect blocked
-  bool scoped;         // abstract Unix sockets outside the sandbox blocked
+  bool scoped;         // abstract Unix sockets and signals outside the sandbox blocked
+  bool seccomp;        // the system call filter is installed
+  bool connect;        // connect() is allowed (the TUI process, to wgvim's own sockets only)
+  char *temp_root;     // wgvim's temp root, where its own sockets live
   LLRule rules[MAX_RULES];
   int nrules;
   char *notes[MAX_NOTES];
@@ -345,12 +354,171 @@ static char *mkdir_get(char *path)
 
 #endif  // __linux__
 
+#ifdef __linux__
+
+# if defined(__x86_64__)
+#  define SC_ARCH AUDIT_ARCH_X86_64
+# elif defined(__aarch64__)
+#  define SC_ARCH AUDIT_ARCH_AARCH64
+# endif
+
+# define SC_ALLOW BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW)
+# define SC_ERRNO(e) BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ERRNO | ((e) & SECCOMP_RET_DATA))
+# define SC_LOAD(field) BPF_STMT(BPF_LD | BPF_W | BPF_ABS, offsetof(struct seccomp_data, field))
+// If the syscall number is `nr`, return errno `e`; else fall through.
+# define SC_DENY(nr, e) BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, (nr), 0, 1), SC_ERRNO(e)
+
+static bool install_filter(struct sock_filter *f, size_t n)
+{
+  struct sock_fprog prog = { .len = (unsigned short)n, .filter = f };
+  return prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) == 0
+         && prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &prog) == 0;
+}
+
+/// Mode from "--sandbox {mode}" in argv, else $WGVIM_SANDBOX, else "on".
+static const char *early_mode(int argc, char **argv)
+{
+  for (int i = 1; i + 1 < argc; i++) {
+    if (strcmp(argv[i], "--sandbox") == 0) {
+      return argv[i + 1];
+    } else if (strcmp(argv[i], "--") == 0 || strcmp(argv[i], "-l") == 0) {
+      break;
+    }
+  }
+  const char *env = getenv("WGVIM_SANDBOX");
+  return env != NULL && *env != NUL ? env : "on";
+}
+
+#endif  // __linux__
+
+/// Called first thing in main(), before the event loop exists: when the sandbox will be on,
+/// refuses io_uring from here on, so that libuv uses epoll and no io_uring ring exists that
+/// could be used to open sockets without going through the system call filter.
+void landlock_early(int argc, char **argv)
+{
+#if defined(__linux__) && defined(SC_ARCH) && defined(__NR_io_uring_setup)
+  if (strcmp(early_mode(argc, argv), "off") == 0) {
+    return;
+  }
+  struct sock_filter f[] = {
+    SC_LOAD(arch),
+    BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, SC_ARCH, 1, 0),
+    SC_ALLOW,  // a foreign ABI is handled by the full filter later
+    SC_LOAD(nr),
+    SC_DENY(__NR_io_uring_setup, ENOSYS),
+    SC_ALLOW,
+  };
+  (void)install_filter(f, ARRAY_SIZE(f));
+#else
+  (void)argc; (void)argv;
+#endif
+}
+
+#ifdef __linux__
+/// The system call filter (seccomp), inherited like the Landlock rules:
+/// - sockets: only Unix (no UDP, ICMP, raw, packet, netlink, ...);
+/// - connect() refused unless `allow_connect` (Landlock does not control connecting to existing
+///   Unix sockets such as the D-Bus bus, ssh-agent or gpg-agent); sendto() with an address too;
+/// - System V IPC refused; io_uring refused (it can open sockets past this filter);
+/// - other ABIs (x32, i386) refused.
+static bool install_seccomp(bool allow_connect)
+{
+# ifndef SC_ARCH
+  (void)allow_connect;
+  return false;
+# else
+  struct sock_filter f[] = {
+    SC_LOAD(arch),
+    BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, SC_ARCH, 1, 0),
+    SC_ERRNO(ENOSYS),
+    SC_LOAD(nr),
+#  ifdef __x86_64__
+    BPF_JUMP(BPF_JMP | BPF_JGE | BPF_K, 0x40000000, 0, 1),  // x32 ABI
+    SC_ERRNO(ENOSYS),
+#  endif
+    // socket(domain, ...): only AF_UNIX.
+    BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_socket, 0, 4),
+    SC_LOAD(args[0]),
+    BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, AF_UNIX, 0, 1),
+    SC_ALLOW,
+    SC_ERRNO(EAFNOSUPPORT),
+    // connect(): refused, or allowed for the TUI process (checked against the temp root in C).
+    BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_connect, 0, 1),
+    BPF_STMT(BPF_RET | BPF_K,
+             allow_connect ? SECCOMP_RET_ALLOW : (SECCOMP_RET_ERRNO | (EACCES & SECCOMP_RET_DATA))),
+    // sendto(fd, buf, len, flags, dest_addr, addrlen): refused when dest_addr is given.
+    BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_sendto, 0, 6),
+    SC_LOAD(args[4]),
+    BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, 0, 0, 3),
+    BPF_STMT(BPF_LD | BPF_W | BPF_ABS, offsetof(struct seccomp_data, args[4]) + 4),
+    BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, 0, 0, 1),
+    SC_ALLOW,
+    SC_ERRNO(EACCES),
+    SC_LOAD(nr),  // reload after the sendto branch
+    SC_DENY(__NR_io_uring_setup, ENOSYS),
+    SC_DENY(__NR_io_uring_enter, ENOSYS),
+    SC_DENY(__NR_io_uring_register, ENOSYS),
+    SC_DENY(__NR_shmget, EPERM),
+    SC_DENY(__NR_shmat, EPERM),
+    SC_DENY(__NR_shmctl, EPERM),
+    SC_DENY(__NR_shmdt, EPERM),
+    SC_DENY(__NR_semget, EPERM),
+    SC_DENY(__NR_semop, EPERM),
+    SC_DENY(__NR_semtimedop, EPERM),
+    SC_DENY(__NR_semctl, EPERM),
+    SC_DENY(__NR_msgget, EPERM),
+    SC_DENY(__NR_msgsnd, EPERM),
+    SC_DENY(__NR_msgrcv, EPERM),
+    SC_DENY(__NR_msgctl, EPERM),
+    SC_ALLOW,
+  };
+  return install_filter(f, ARRAY_SIZE(f));
+# endif
+}
+
+static int count_threads(void)
+{
+  DIR *d = opendir("/proc/self/task");
+  int n = 0;
+  struct dirent *e;
+  while (d != NULL && (e = readdir(d)) != NULL) {
+    n += e->d_name[0] != '.';
+  }
+  if (d != NULL) {
+    closedir(d);
+  }
+  return n;
+}
+#endif
+
+/// Whether the TUI may connect to `addr` (for :restart and :connect): only to wgvim's own
+/// sockets, in the temp root, when the sandbox is active.
+bool landlock_connect_ok(const char *addr)
+{
+  if (!landlock_active()) {
+    return true;
+  }
+#ifdef __linux__
+  char *real = real_path(addr);
+  char *root = real_path(ll.temp_root);  // no trailing separator
+  bool ok = real != NULL && root != NULL && path_within(real, root);
+  xfree(real);
+  xfree(root);
+  return ok;
+#else
+  (void)addr;
+  return true;
+#endif
+}
+
 /// Applies the sandbox. Exits with an error if `mode` is "require" and it cannot be applied.
 ///
 /// @param mode      "on", "off", "require", or NULL for $WGVIM_SANDBOX (default "on")
 /// @param allow_rw  extra read-write paths (--sandbox-allow)
 /// @param allow_ro  extra read-only paths (--sandbox-allow-ro)
-void landlock_init(const char *mode, char **allow_rw, int n_rw, char **allow_ro, int n_ro)
+/// @param tui       this process will be the TUI client, which connects to its server
+void landlock_init(const char *mode, char **allow_rw, int n_rw, char **allow_ro, int n_ro,
+                   bool tui)
 {
   if (mode == NULL) {
     mode = os_getenv_noalloc("WGVIM_SANDBOX");
@@ -400,7 +568,7 @@ void landlock_init(const char *mode, char **allow_rw, int n_rw, char **allow_ro,
     ll.network = true;
   }
   if (abi >= 6) {
-    attr.scoped = LL_SCOPE_ABSTRACT_UNIX_SOCKET;
+    attr.scoped = LL_SCOPE_ABSTRACT_UNIX_SOCKET | LL_SCOPE_SIGNAL;
     attr_size = sizeof(attr);
     ll.scoped = true;
   }
@@ -535,6 +703,16 @@ void landlock_init(const char *mode, char **allow_rw, int n_rw, char **allow_ro,
     add_rule(rfd, handled, allow_ro[i], "rx", true);
   }
 
+  // Landlock and seccomp apply to the calling thread (and what it starts later): there must
+  // be no other thread yet.
+  if (count_threads() != 1) {
+    ll.status = kLandlockFailed;
+    ll.reason = "other threads were already running";
+    ll.network = ll.scoped = false;
+    close(rfd);
+    xfree(temp_root);
+    goto done;
+  }
   // From here on, setuid programs (sudo, su) cannot gain privileges; Landlock requires this.
   if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) != 0
       || syscall(SYS_landlock_restrict_self, rfd, 0) != 0) {
@@ -547,9 +725,14 @@ void landlock_init(const char *mode, char **allow_rw, int n_rw, char **allow_ro,
   }
   close(rfd);
   ll.status = kLandlockActive;
+  ll.connect = tui;
+  ll.seccomp = install_seccomp(tui);
+  if (!ll.seccomp) {
+    WLOG("sandbox: the system call filter could not be installed: %s", strerror(errno));
+  }
   if (temp_root != NULL) {
     os_setenv("TMPDIR", temp_root, 1);  // child programs: compilers, clangd preambles, ...
-    xfree(temp_root);
+    ll.temp_root = temp_root;
   }
   ILOG("sandbox active: Landlock ABI %d, %d rules", abi, ll.nrules);
 #endif
@@ -569,12 +752,14 @@ done:
 Dict landlock_info(Arena *arena)
 {
   static const char *const names[] = { "off", "active", "unavailable", "failed" };
-  Dict rv = arena_dict(arena, 8);
+  Dict rv = arena_dict(arena, 10);
   PUT_C(rv, "status", CSTR_AS_OBJ(names[ll.status]));
   PUT_C(rv, "abi", INTEGER_OBJ(ll.abi));
   PUT_C(rv, "reason", CSTR_AS_OBJ(ll.reason ? ll.reason : ""));
   PUT_C(rv, "network", BOOLEAN_OBJ(ll.network));
   PUT_C(rv, "scoped", BOOLEAN_OBJ(ll.scoped));
+  PUT_C(rv, "seccomp", BOOLEAN_OBJ(ll.seccomp));
+  PUT_C(rv, "connect", BOOLEAN_OBJ(ll.connect));
   Array rules = arena_array(arena, (size_t)ll.nrules);
   for (int i = 0; i < ll.nrules; i++) {
     Dict r = arena_dict(arena, 4);

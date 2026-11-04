@@ -50,6 +50,11 @@ Restricted features                                     *wgvim-restricted*
   the parsers bundled at build time, after checking their SHA256.
 - `lsp/*.lua` configs are read only from |stdpath()| "config" and $VIMRUNTIME.
 - Programs running in |:terminal| cannot set the system clipboard (OSC 52).
+- |sockconnect()| always fails (E5435), and the |--remote| and |--server|
+  arguments (including |--remote-ui|) are refused: wgvim does not connect to
+  other processes' sockets. `serverlist({peer = v:true})` lists only this
+  instance's servers. |:restart| and |:connect| still work: the terminal UI
+  may connect to wgvim's own sockets in its temp directory.
 - The Python 3, Ruby, Perl and Node.js providers and remote plugins are
   removed (|provider-python|, |remote-plugin|). The clipboard provider stays.
 
@@ -94,9 +99,21 @@ browser profiles, and so on. When the sandbox refuses a file, the error says
 so, e.g. "E212: Can't open file for writing: permission denied (outside the
 wgvim sandbox, see :help wgvim-sandbox)".
 
-When the kernel supports it, the sandbox also blocks TCP connections and
-listening (Landlock ABI 4, Linux 6.7) and connections to abstract Unix
-sockets outside the sandbox (ABI 6, Linux 6.12).
+Besides the Landlock file rules, a system call filter (seccomp) is installed
+at the same time and inherited the same way. It allows only Unix sockets (no
+TCP, UDP, ICMP, raw, packet or netlink sockets), refuses connect() and
+sendto() with an address, so that existing sockets such as the D-Bus bus
+("/run/user/<uid>/bus", through which "systemd --user" would run commands
+outside the sandbox), ssh-agent and gpg-agent cannot be reached, and refuses
+System V IPC (shared memory, semaphores, message queues) and io_uring. The
+terminal UI process alone may connect, and only to wgvim's own sockets in its
+temp directory (for |:restart| and |:connect|).
+
+When the kernel supports it, Landlock also blocks TCP (ABI 4, Linux 6.7), and
+connections to abstract Unix sockets and signals to processes outside the
+sandbox (ABI 6, Linux 6.12): wgvim and the programs it starts can signal each
+other, but not your other processes. Landlock always keeps sandboxed
+processes from tracing (ptrace) processes outside the sandbox.
 
                                                 *wgvim-sandbox-home*
 Starting wgvim in your home directory gives access only to its entries that
@@ -112,6 +129,7 @@ Things that work differently ~
   on the command line. Use |--sandbox-allow| for another directory.
 - Setuid programs cannot gain privileges ("no new privileges"), so ":!sudo"
   and ":w !sudo tee %" do not work.
+- `:!kill` cannot stop or signal your other processes (Landlock ABI 6+).
 - Child programs get $TMPDIR set to the temp directory above, because "/tmp"
   itself is not writable (compilers and clangd write temporary files there).
 - Your config directory is read-only, so editing "init.lua" in wgvim needs
@@ -129,7 +147,13 @@ Limits ~
   is given. Older Landlock versions do not control truncating files (ABI 3),
   and with ABI 1 renaming files across directories is refused outright.
 - Other terminals of the same user under "/dev/pts" can be written to.
-- UDP, signals and System V IPC are not restricted.
+- On kernels before Linux 6.12 (Landlock ABI 6), processes outside the sandbox
+  can be signalled.
+- Programs that need to reach a Unix socket outside the sandbox fail: for
+  example a name lookup that misses SSSD's cache (an LDAP user's name may
+  show as a number in "ls -l"), or logging to syslog. Python's
+  multiprocessing needs "/dev/shm", which is not allowed.
+- The system call filter is built for x86-64 and AArch64 only.
 - The policy is fixed at startup. A directory created later, or a file named
   in |:cd|, |:e| or a plugin, gets no extra access.
 

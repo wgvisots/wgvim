@@ -30,8 +30,24 @@ function M.check()
       ('TCP is not blocked by the sandbox: this kernel has Landlock ABI %d (needs 4)'):format(i.abi)
     )
   end
+  if i.seccomp then
+    health.ok(
+      'System call filter: only Unix sockets, no connect() to existing sockets'
+        .. (i.connect and ' (except wgvim\'s own, for :restart)' or '')
+        .. ', no System V IPC, no io_uring'
+    )
+  else
+    health.warn('No system call filter (only built for x86-64 and AArch64)', {
+      'UDP and other protocols, connecting to existing Unix sockets (D-Bus, ssh-agent) '
+        .. 'and System V IPC are not blocked',
+    })
+  end
   if i.scoped then
-    health.ok('Abstract Unix sockets outside the sandbox are blocked')
+    health.ok('Signals and abstract Unix sockets outside the sandbox are blocked')
+  else
+    health.info(
+      ('Processes outside the sandbox can be signalled: Landlock ABI %d (needs 6)'):format(i.abi)
+    )
   end
   for _, note in ipairs(i.notes) do
     health.warn(note)

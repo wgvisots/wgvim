@@ -1904,7 +1904,8 @@ Float nvim__id_float(Float flt)
 }
 
 /// Gets the state of the wgvim sandbox (|wgvim-sandbox|): "status" ("off", "active",
-/// "unavailable", "failed"), "abi", "reason", "network", "scoped", "rules" and "notes".
+/// "unavailable", "failed"), "abi", "reason", "network", "scoped", "seccomp", "connect",
+/// "rules" and "notes".
 ///
 /// @return Map describing the sandbox.
 Dict nvim__sandbox_info(Arena *arena)

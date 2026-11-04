@@ -266,6 +266,7 @@ describe('server -> client', function()
     end
 
     it('rpc and text stderr can be combined', function()
+      t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
       local status, rv = pcall(fn.rpcrequest, jobid, 'poll')
       if not status then
         error(string.format('missing nvim Lua module? (%s)', rv))
@@ -326,6 +327,7 @@ describe('server -> client', function()
     end
 
     it('via named pipe', function()
+      t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
       local server = n.new_session(false)
       set_session(server)
       local address = fn.serverlist()[1]
@@ -335,6 +337,7 @@ describe('server -> client', function()
     end)
 
     it('via named pipe containing backslashes #39382', function()
+      t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
       t.skip(not t.is_os('win'), 'N/A for non-Windows')
       local address = [[\\.\pipe\Xtest]]
       local server = new_session(false, {
@@ -364,12 +367,14 @@ describe('server -> client', function()
     end
 
     it('does not crash on receiving UI events', function()
+      t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
       local id = start_server_and_client()
       fn.rpcrequest(id, 'nvim_ui_attach', 80, 24, {})
       assert_alive()
     end)
 
     it('does not leak memory with channel closed before response', function()
+      t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
       local id = start_server_and_client()
       eq(
         ('ch %d was closed by the peer'):format(id),
@@ -381,6 +386,7 @@ describe('server -> client', function()
     end)
 
     it('response works with channel closed just after response #24214', function()
+      t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
       local id = start_server_and_client()
       eq(
         'RESPONSE',
@@ -406,6 +412,7 @@ describe('server -> client', function()
     end)
 
     it('via stdio, with many small flushes does not crash #23781', function()
+      t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
       source([[
       let chan = jobstart([v:progpath, '--embed', '--headless', '-n', '-u', 'NONE', '-i', 'NONE'], { 'rpc':v:false })
       call chansend(chan, 0Z94)
@@ -426,6 +433,7 @@ describe('server -> client', function()
 
   describe('connecting to its own pipe address', function()
     it('does not deadlock', function()
+      t.skip(true, 'wgvim: sockconnect(), --remote and --server are not available')
       local address = fn.serverlist()[1]
       local first = string.sub(address, 1, 1)
       ok(first == '/' or first == '\\')

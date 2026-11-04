@@ -164,16 +164,91 @@ describe('sandbox', function()
     eq('ok\n', out)
   end)
 
-  it('blocks TCP connections when the kernel supports it', function()
+  it('blocks TCP connections', function()
     local i = skip_unless_active()
-    t.skip(not i.network, 'Landlock ABI ' .. i.abi .. ' has no network rules')
+    t.skip(not i.network and not i.seccomp, 'neither Landlock ABI 4 nor a system call filter')
     t.skip(vim.fn.executable('bash') == 0, 'needs bash')
-    -- No server listens on port 9: without the sandbox this is "Connection refused".
+    -- No server listens on port 9: without the sandbox this is "Connection refused". The system
+    -- call filter refuses the socket itself; Landlock (ABI 4+) would refuse the connect().
     local out = run([[
       local r = vim.system({ 'bash', '-c', 'echo > /dev/tcp/127.0.0.1/9' }):wait()
       io.stdout:write(r.stderr)
     ]])
-    matches('Permission denied', out)
+    eq(nil, out:find('Connection refused', 1, true))
+    matches('Address family not supported', out)
+  end)
+
+  it('allows only Unix sockets: no UDP or other protocols', function()
+    local i = skip_unless_active()
+    t.skip(not i.seccomp, 'no system call filter on this platform')
+    t.skip(vim.fn.executable('bash') == 0, 'needs bash')
+    local out = run([[
+      local r = vim.system({ 'bash', '-c', 'echo x > /dev/udp/127.0.0.1/9' }):wait()
+      io.stdout:write(r.stderr)
+    ]])
+    matches('Address family not supported', out)
+  end)
+
+  it('refuses to connect to Unix sockets (D-Bus, ssh-agent, ...)', function()
+    local i = skip_unless_active()
+    t.skip(not i.seccomp, 'no system call filter on this platform')
+    -- A listening socket outside the sandbox, like ~/.ssh/agent or /run/user/<uid>/bus.
+    local sock = root .. '/agent.sock'
+    local server = assert(vim.uv.new_pipe(false))
+    assert(server:bind(sock))
+    server:listen(1, function() end)
+    local out = run([[
+      local p = assert(vim.uv.new_pipe(false))
+      local result
+      p:connect(']] .. sock .. [[', function(err) result = err or 'connected' end)
+      vim.wait(5000, function() return result ~= nil end)
+      local ok, err = pcall(vim.fn.sockconnect, 'pipe', ']] .. sock .. [[')
+      io.stdout:write(vim.json.encode({ result, err }))
+    ]])
+    server:close()
+    local r = vim.json.decode(out)
+    eq('EACCES', r[1])
+    matches('E5435: sockconnect%(%) is not available', r[2])
+  end)
+
+  it('refuses System V IPC and io_uring', function()
+    local i = skip_unless_active()
+    t.skip(not i.seccomp, 'no system call filter on this platform')
+    t.skip(vim.fn.executable('ipcmk') == 0, 'needs ipcmk')
+    local out = run([[
+      local r = vim.system({ 'ipcmk', '-M', '4096' }):wait()
+      local rings = 0
+      for _, fd in ipairs(vim.fn.readdir('/proc/self/fd')) do
+        local target = vim.uv.fs_readlink('/proc/self/fd/' .. fd) or ''
+        rings = rings + (target:find('io_uring', 1, true) and 1 or 0)
+      end
+      io.stdout:write(vim.json.encode({ r.code, rings }))
+    ]])
+    local r = vim.json.decode(out)
+    neq(0, r[1])
+    eq(0, r[2]) -- libuv uses epoll: no io_uring ring was opened before the filter
+  end)
+
+  it('cannot signal processes outside the sandbox', function()
+    local i = skip_unless_active()
+    t.skip(not i.scoped, 'Landlock ABI ' .. i.abi .. ' has no signal scoping (needs 6)')
+    local outside_pid = vim.uv.os_getpid() -- the test runner, outside the sandbox
+    local out = run([[
+      local ok_out, err_out = vim.uv.kill(]] .. outside_pid .. [[, 0)
+      local child = vim.system({ 'sleep', '30' })
+      local ok_in = vim.uv.kill(child.pid, 'sigterm')
+      child:wait()
+      io.stdout:write(vim.json.encode({ ok_out or err_out, ok_in }))
+    ]])
+    local r = vim.json.decode(out)
+    matches('EPERM', r[1])
+    eq(0, r[2]) -- its own children can still be signalled
+  end)
+
+  it('--remote and --server are not available', function()
+    local _, err, code = run('', { args = { '--remote', 'x' } })
+    neq(0, code)
+    matches('Not available in wgvim', err)
   end)
 
   it('in the home directory, allows only its non-hidden entries', function()

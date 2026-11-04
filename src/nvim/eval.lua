@@ -10075,6 +10075,9 @@ M.funcs = {
         peer  : If |TRUE|, servers not started by |serverstart()|
                 will also be returned. (default: |FALSE|)
                 Not supported on Windows yet.
+                wgvim: other instances are not found (that needs
+                connecting to their sockets, see |wgvim-restricted|),
+                so only this instance's servers are returned.
 
         info  : If |TRUE|, return a list of Dicts with detailed info
                 instead of addresses. Implies `peer=true`. Each Dict
@@ -11537,6 +11540,9 @@ M.funcs = {
   sockconnect = {
     args = { 2, 3 },
     desc = [=[
+      wgvim: not available; always fails with E5435. Connecting to
+      other processes' sockets is disabled (|wgvim-restricted|).
+
       Connect a socket to an address. If {mode} is "pipe" then
       {address} should be the path of a local domain socket (on
       unix) or named pipe (on Windows). If {mode} is "tcp" then
