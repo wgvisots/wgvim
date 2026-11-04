@@ -73,7 +73,10 @@ gettext, and Ninja or Make. The build does not use the network.
 scripts/verify-deps.sh          # check deps/ against the pinned SHA256 hashes
 make CMAKE_BUILD_TYPE=Release   # builds the dependencies, then build/bin/wgvim
 ./build/bin/wgvim                # runs from the build tree (uses runtime/ here)
-sudo make install               # installs to /usr/local (see INSTALL.md)
+# Copying build/bin/wgvim elsewhere does not work: install it (below) so that its
+# runtime files are installed with it. Do not set $VIMRUNTIME to a relative path.
+sudo make install               # installs to /usr/local (see INSTALL.md), or:
+make CMAKE_INSTALL_PREFIX=$HOME/.local install   # ~/.local/bin/wgvim, no root
 ```
 
 For a hard guarantee that nothing touches the network during the build, build

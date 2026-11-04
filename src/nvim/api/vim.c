@@ -1913,6 +1913,20 @@ Dict nvim__sandbox_info(Arena *arena)
   return landlock_info(arena);
 }
 
+/// Copies to, or pastes from, register "+" or "*" through the wgvim sandbox's clipboard
+/// helper (|wgvim-sandbox|). Used by the clipboard provider.
+///
+/// @param op "copy" or "paste"
+/// @param reg "+" or "*"
+/// @param data text to copy (ignored for "paste")
+/// @param[out] err Error details, if any
+/// @return the pasted text, or "" after a copy
+String nvim__sandbox_clipboard(String op, String reg, String data, Arena *arena, Error *err)
+{
+  return landlock_clipboard(strequal(op.data, "paste"), strequal(reg.data, "*"), data, arena,
+                            err);
+}
+
 /// Gets internal stats.
 ///
 /// @return Map of various internal stats.

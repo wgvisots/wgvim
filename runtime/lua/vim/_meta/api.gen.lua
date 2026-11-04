@@ -185,6 +185,17 @@ function vim.api.nvim__runtime_inspect() end
 
 --- WARNING: This feature is experimental/unstable.
 ---
+--- Copies to, or pastes from, register "+" or "*" through the wgvim sandbox's clipboard
+--- helper (`wgvim-sandbox`). Used by the clipboard provider.
+---
+--- @param op string "copy" or "paste"
+--- @param reg string "+" or "*"
+--- @param data string text to copy (ignored for "paste")
+--- @return string # the pasted text, or "" after a copy
+function vim.api.nvim__sandbox_clipboard(op, reg, data) end
+
+--- WARNING: This feature is experimental/unstable.
+---
 --- Gets the state of the wgvim sandbox (`wgvim-sandbox`): "status" ("off", "active",
 --- "unavailable", "failed"), "abi", "reason", "network", "scoped", "seccomp", "connect",
 --- "rules" and "notes".
