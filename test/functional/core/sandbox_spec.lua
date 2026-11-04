@@ -28,6 +28,10 @@ local function run(script, opts)
     cmd[#cmd + 1] = '--clean'
   end
   vim.list_extend(cmd, opts.args or {})
+  if t.paths.is_gcov then
+    -- Coverage builds write .gcda files into build/src when the process exits.
+    vim.list_extend(cmd, { '--sandbox-allow', t.paths.test_build_dir .. '/src' })
+  end
   vim.list_extend(cmd, { '-c', 'luafile _test.lua', '-c', 'qa!' })
   local r = vim
     .system(cmd, {
