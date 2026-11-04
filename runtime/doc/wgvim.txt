@@ -130,6 +130,11 @@ Things that work differently ~
 - Setuid programs cannot gain privileges ("no new privileges"), so ":!sudo"
   and ":w !sudo tee %" do not work.
 - `:!kill` cannot stop or signal your other processes (Landlock ABI 6+).
+- The clipboard (|clipboard|): wl-copy, xclip, xsel and tmux need to connect
+  to their server, which the sandbox refuses. wgvim uses OSC 52 instead
+  (|clipboard-osc52|): the terminal holds the clipboard, also over SSH. Your
+  terminal must support OSC 52; pasting from the system clipboard needs a
+  terminal that allows OSC 52 reads (many ask first, some refuse).
 - Child programs get $TMPDIR set to the temp directory above, because "/tmp"
   itself is not writable (compilers and clangd write temporary files there).
 - Your config directory is read-only, so editing "init.lua" in wgvim needs

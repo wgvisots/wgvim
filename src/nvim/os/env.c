@@ -988,6 +988,21 @@ char *vim_getenv(const char *name)
     assert(vim_path != exe_name);
   }
 
+  // wgvim: run from the build tree (build/bin/wgvim, not installed), use the source tree's
+  // runtime, like "VIMRUNTIME=runtime ./build/bin/wgvim". Only that exact binary does this.
+  if (vim_path == NULL && vimruntime && *build_tree_exe != NUL) {
+    char exe[MAXPATHL];
+    size_t exe_len = sizeof(exe);
+    char *real_exe = os_exepath(exe, &exe_len) == 0 ? os_realpath(exe, NULL, MAXPATHL) : NULL;
+    char *real_build = os_realpath(build_tree_exe, NULL, MAXPATHL);
+    if (real_exe != NULL && real_build != NULL && path_equal(real_exe, real_build, kPathCmpLiteral)
+        && os_isdir(build_tree_runtime)) {
+      vim_path = xstrdup(build_tree_runtime);
+    }
+    xfree(real_exe);
+    xfree(real_build);
+  }
+
   // When there is a pathdef.c file we can use default_vim_dir and
   // default_vimruntime_dir
   if (vim_path == NULL) {

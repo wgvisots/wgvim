@@ -72,7 +72,7 @@ gettext, and Ninja or Make. The build does not use the network.
 ```sh
 scripts/verify-deps.sh          # check deps/ against the pinned SHA256 hashes
 make CMAKE_BUILD_TYPE=Release   # builds the dependencies, then build/bin/wgvim
-VIMRUNTIME=runtime ./build/bin/wgvim
+./build/bin/wgvim                # runs from the build tree (uses runtime/ here)
 sudo make install               # installs to /usr/local (see INSTALL.md)
 ```
 

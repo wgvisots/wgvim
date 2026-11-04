@@ -16,6 +16,8 @@ EXTERN bool nvim_testing INIT( = false);
 extern char *default_vim_dir;
 extern char *default_vimruntime_dir;
 extern char *default_lib_dir;
+extern char *build_tree_exe;
+extern char *build_tree_runtime;
 
 // IWYU pragma: begin_exports
 #include "os/env.h.generated.h"
