@@ -1,0 +1,20 @@
+## <summary>wgvim, an offline, hardened build of Neovim.</summary>
+
+########################################
+## <summary>
+##	Execute wgvim in the wgvim domain.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed to transition.
+##	</summary>
+## </param>
+#
+interface(`wgvim_domtrans',`
+	gen_require(`
+		type wgvim_t, wgvim_exec_t;
+	')
+
+	corecmd_search_bin($1)
+	domtrans_pattern($1, wgvim_exec_t, wgvim_t)
+')

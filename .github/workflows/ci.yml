@@ -139,6 +139,22 @@ jobs:
           name: rhel9-results
           path: rhel9-results
 
+  # Compiles the SELinux policy module (contrib/selinux) against the RHEL 9 policy. Loading it
+  # needs an SELinux-enabled host: see scripts/wgvim-selinux.sh.
+  selinux:
+    name: SELinux policy (RHEL 9)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    container: almalinux:9
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install the policy development files
+        run: dnf -y install selinux-policy-devel make
+
+      - name: Build wgvim.pp
+        run: scripts/wgvim-selinux.sh build
+
   # libFuzzer + ASan/UBSan on the terminal emulator and the terminal input parser
   # (test/fuzz/README.md). Replays every corpus input, then fuzzes each harness for a while.
   fuzz:

@@ -90,3 +90,5 @@ leak-*
 oom-*
 fuzz-*.log
 /rhel9-results/
+/contrib/selinux/wgvim.pp
+/contrib/selinux/tmp/

@@ -1,0 +1,185 @@
+policy_module(wgvim, 1.0.0)
+
+########################################
+#
+# wgvim: an SELinux domain for the installed editor, as a second layer below its own
+# Landlock + seccomp sandbox (:help wgvim-sandbox). The sandbox is applied by wgvim itself;
+# this policy is applied by the kernel to the wgvim_t domain, so it holds even if wgvim's code
+# is subverted before or despite the sandbox.
+#
+# The editor and everything it starts (:!, :terminal, jobs, LSP servers such as clangd,
+# compilers) run in wgvim_t: there is no transition out of it.
+#
+# Allowed: the user's ordinary files in $HOME and /tmp (read-write), system files
+# (read-only), running programs from /usr and the user's files, its own terminals.
+# Not allowed: any network socket; connecting to other domains' Unix sockets (the D-Bus
+# session bus, ssh-agent, gpg-agent, podman/docker); ~/.ssh, ~/.gnupg and other secret-labeled
+# files; signalling other domains; setuid/capabilities.
+#
+# Install with scripts/wgvim-selinux.sh, which starts in permissive mode.
+#
+
+gen_require(`
+	type unconfined_t;
+	role unconfined_r;
+')
+
+type wgvim_t;
+type wgvim_exec_t;
+application_domain(wgvim_t, wgvim_exec_t)
+
+# Terminals created by :terminal.
+type wgvim_devpts_t;
+term_pty(wgvim_devpts_t)
+
+# Users in unconfined_t (the RHEL default) enter wgvim_t when they run wgvim.
+role unconfined_r types wgvim_t;
+domtrans_pattern(unconfined_t, wgvim_exec_t, wgvim_t)
+
+optional_policy(`
+	gen_require(`
+		type staff_t;
+		role staff_r;
+	')
+	role staff_r types wgvim_t;
+	domtrans_pattern(staff_t, wgvim_exec_t, wgvim_t)
+')
+
+optional_policy(`
+	gen_require(`
+		type user_t;
+		role user_r;
+	')
+	role user_r types wgvim_t;
+	domtrans_pattern(user_t, wgvim_exec_t, wgvim_t)
+')
+
+########################################
+#
+# The process itself
+#
+
+# The terminal UI starts the editor server by running wgvim again (no transition: same domain).
+can_exec(wgvim_t, wgvim_exec_t)
+
+# execmem: LuaJIT compiles Lua to machine code at run time.
+allow wgvim_t self:process { fork sigchld sigkill sigstop signull signal getsched setsched getpgid setpgid getattr setrlimit execmem };
+allow wgvim_t self:fifo_file manage_fifo_file_perms;
+# Unix sockets: its own RPC server, pipes to jobs and LSP servers, and connections between
+# wgvim processes (the terminal UI and its server, :restart). No connectto to other domains.
+allow wgvim_t self:unix_stream_socket { create_stream_socket_perms connectto };
+allow wgvim_t self:unix_dgram_socket create_socket_perms;
+# /proc/self
+allow wgvim_t self:dir list_dir_perms;
+allow wgvim_t self:file rw_file_perms;
+allow wgvim_t self:lnk_file read_lnk_file_perms;
+
+kernel_read_system_state(wgvim_t)
+kernel_read_kernel_sysctls(wgvim_t)
+
+domain_use_interactive_fds(wgvim_t)
+
+dev_read_sysfs(wgvim_t)
+dev_read_urand(wgvim_t)
+dev_read_rand(wgvim_t)
+
+fs_getattr_xattr_fs(wgvim_t)
+
+########################################
+#
+# Programs and system files (read-only, execute)
+#
+
+corecmd_exec_bin(wgvim_t)
+corecmd_exec_shell(wgvim_t)
+
+files_read_etc_files(wgvim_t)
+files_read_etc_runtime_files(wgvim_t)
+files_read_usr_files(wgvim_t)
+files_exec_usr_files(wgvim_t)
+files_search_var_lib(wgvim_t)
+
+libs_use_ld_so(wgvim_t)
+libs_use_shared_libs(wgvim_t)
+libs_exec_ld_so(wgvim_t)
+
+miscfiles_read_localization(wgvim_t)
+
+# User names from SSSD's cache (no connection to sssd itself).
+optional_policy(`
+	sssd_read_public_files(wgvim_t)
+')
+
+########################################
+#
+# Terminals
+#
+
+userdom_use_user_terminals(wgvim_t)
+term_use_ptmx(wgvim_t)
+term_create_pty(wgvim_t, wgvim_devpts_t)
+allow wgvim_t wgvim_devpts_t:chr_file { rw_chr_file_perms setattr };
+
+########################################
+#
+# The user's files
+#
+
+# Ordinary files in $HOME (user_home_t) and in /tmp (user_tmp_t: wgvim's temp directory and
+# its sockets). ~/.ssh (ssh_home_t), ~/.gnupg (gpg_secret_t), certificates (home_cert_t) and
+# other specially labeled files are not included.
+userdom_search_user_home_dirs(wgvim_t)
+userdom_list_user_home_dirs(wgvim_t)
+userdom_manage_user_home_content_dirs(wgvim_t)
+userdom_manage_user_home_content_files(wgvim_t)
+userdom_manage_user_home_content_symlinks(wgvim_t)
+userdom_manage_user_home_content_sockets(wgvim_t)
+userdom_manage_user_home_content_pipes(wgvim_t)
+# Running what the user built (./a.out, scripts in a project).
+userdom_exec_user_home_content_files(wgvim_t)
+
+files_search_tmp(wgvim_t)
+userdom_manage_user_tmp_dirs(wgvim_t)
+userdom_manage_user_tmp_files(wgvim_t)
+userdom_manage_user_tmp_sockets(wgvim_t)
+userdom_tmp_filetrans_user_tmp(wgvim_t, { dir file sock_file })
+
+# The XDG directories have their own types in the RHEL 9 policy (~/.config, ~/.cache,
+# ~/.local/share); they hold wgvim's config, state and cache.
+optional_policy(`
+	gen_require(`
+		type config_home_t;
+	')
+	manage_dirs_pattern(wgvim_t, config_home_t, config_home_t)
+	manage_files_pattern(wgvim_t, config_home_t, config_home_t)
+	manage_lnk_files_pattern(wgvim_t, config_home_t, config_home_t)
+')
+
+optional_policy(`
+	gen_require(`
+		type cache_home_t;
+	')
+	manage_dirs_pattern(wgvim_t, cache_home_t, cache_home_t)
+	manage_files_pattern(wgvim_t, cache_home_t, cache_home_t)
+	manage_lnk_files_pattern(wgvim_t, cache_home_t, cache_home_t)
+')
+
+optional_policy(`
+	gen_require(`
+		type data_home_t;
+	')
+	manage_dirs_pattern(wgvim_t, data_home_t, data_home_t)
+	manage_files_pattern(wgvim_t, data_home_t, data_home_t)
+	manage_lnk_files_pattern(wgvim_t, data_home_t, data_home_t)
+')
+
+########################################
+#
+# Not allowed (by omission; listed here for review)
+#
+# - corenet_*: no TCP, UDP or raw sockets, no name_connect/name_bind.
+# - connectto other domains: dbus (session bus, systemd --user), ssh_agent_t, gpg_agent_t,
+#   container runtimes, sssd, nscd, syslog.
+# - ssh_home_t, gpg_secret_t, home_cert_t, keyrings, browser profiles with their own types.
+# - capabilities (no self:capability rules) and setuid transitions.
+# - signals to other domains (only sigchld to the parent, from domtrans_pattern).

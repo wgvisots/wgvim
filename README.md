@@ -105,6 +105,10 @@ make oldtest                    # the Vim test suite
 
 ## Security
 
+An optional SELinux module (`contrib/selinux/`, installed with
+`scripts/wgvim-selinux.sh`) confines the installed binary at the kernel level
+as a second layer; see `:help wgvim-selinux`.
+
 [SECURITY-AUDIT.md](SECURITY-AUDIT.md) records what was reviewed, what was
 changed and why, the fuzzing results, and the known CVEs in the bundled
 dependencies.
