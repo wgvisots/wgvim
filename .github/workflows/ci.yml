@@ -155,6 +155,22 @@ jobs:
       - name: Build wgvim.pp
         run: scripts/wgvim-selinux.sh build
 
+      # The policy's optional blocks are skipped silently when a type is missing; check that the
+      # types it relies on exist in the RHEL 9 targeted policy.
+      - name: Check the types the policy relies on
+        run: |
+          dnf -y install selinux-policy-targeted setools-console
+          pol=$(ls /etc/selinux/targeted/policy/policy.* | tail -1)
+          for ty in unconfined_t staff_t user_t user_home_t user_tmp_t ssh_home_t gpg_secret_t \
+                    config_home_t cache_home_t data_home_t bin_t lib_t usr_t; do
+            if seinfo "$pol" -t "$ty" >/dev/null 2>&1 && seinfo "$pol" -t "$ty" | grep -q "$ty"; then
+              echo "ok      $ty"
+            else
+              echo "MISSING $ty"; missing=1
+            fi
+          done
+          [ -z "${missing:-}" ]
+
   # libFuzzer + ASan/UBSan on the terminal emulator and the terminal input parser
   # (test/fuzz/README.md). Replays every corpus input, then fuzzes each harness for a while.
   fuzz:
