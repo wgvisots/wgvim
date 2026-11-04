@@ -1,3 +1,6 @@
 char *default_vim_dir = "${CMAKE_INSTALL_FULL_DATAROOTDIR}/wgvim";
 char *default_vimruntime_dir = "";
 char *default_lib_dir = "${CMAKE_INSTALL_FULL_LIBDIR}/wgvim";
+// wgvim: the binary in the build tree (and only that binary) uses the source tree's runtime.
+char *build_tree_exe = "${CMAKE_BINARY_DIR}/bin/wgvim";
+char *build_tree_runtime = "${PROJECT_SOURCE_DIR}/runtime";

@@ -139,6 +139,38 @@ jobs:
           name: rhel9-results
           path: rhel9-results
 
+  # Compiles the SELinux policy module (contrib/selinux) against the RHEL 9 policy. Loading it
+  # needs an SELinux-enabled host: see scripts/wgvim-selinux.sh.
+  selinux:
+    name: SELinux policy (RHEL 9)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    container: almalinux:9
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install the policy development files
+        run: dnf -y install selinux-policy-devel make
+
+      - name: Build wgvim.pp
+        run: scripts/wgvim-selinux.sh build
+
+      # The policy's optional blocks are skipped silently when a type is missing; check that the
+      # types it relies on exist in the RHEL 9 targeted policy.
+      - name: Check the types the policy relies on
+        run: |
+          dnf -y install selinux-policy-targeted setools-console
+          pol=$(ls /etc/selinux/targeted/policy/policy.* | tail -1)
+          for ty in unconfined_t staff_t user_t user_home_t user_tmp_t ssh_home_t gpg_secret_t \
+                    config_home_t cache_home_t data_home_t bin_t lib_t usr_t; do
+            if seinfo "$pol" -t "$ty" >/dev/null 2>&1 && seinfo "$pol" -t "$ty" | grep -q "$ty"; then
+              echo "ok      $ty"
+            else
+              echo "MISSING $ty"; missing=1
+            fi
+          done
+          [ -z "${missing:-}" ]
+
   # libFuzzer + ASan/UBSan on the terminal emulator and the terminal input parser
   # (test/fuzz/README.md). Replays every corpus input, then fuzzes each harness for a while.
   fuzz:

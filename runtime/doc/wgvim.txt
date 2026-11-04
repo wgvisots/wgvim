@@ -130,6 +130,11 @@ Things that work differently ~
 - Setuid programs cannot gain privileges ("no new privileges"), so ":!sudo"
   and ":w !sudo tee %" do not work.
 - `:!kill` cannot stop or signal your other processes (Landlock ABI 6+).
+- The clipboard (|clipboard|): wl-copy, xclip, xsel and tmux need to connect
+  to their server, which the sandbox refuses. wgvim uses OSC 52 instead
+  (|clipboard-osc52|): the terminal holds the clipboard, also over SSH. Your
+  terminal must support OSC 52; pasting from the system clipboard needs a
+  terminal that allows OSC 52 reads (many ask first, some refuse).
 - Child programs get $TMPDIR set to the temp directory above, because "/tmp"
   itself is not writable (compilers and clangd write temporary files there).
 - Your config directory is read-only, so editing "init.lua" in wgvim needs
@@ -176,6 +181,27 @@ The test suite and the build turn it off ($WGVIM_SANDBOX=off).
 --sandbox-allow-ro {path}
 		Also allow reading and running programs below {path}. Can be
 		repeated.
+
+==============================================================================
+SELinux policy                                          *wgvim-selinux*
+
+The sandbox is applied by wgvim itself. An SELinux policy module, in
+"contrib/selinux/", adds a layer that the kernel applies to the installed
+binary whatever wgvim's code does: the editor and everything it starts run in
+the "wgvim_t" domain, which may use the user's ordinary files in $HOME and
+/tmp, read system files and run programs, but has no network sockets, cannot
+connect to other domains' Unix sockets (D-Bus, ssh-agent, gpg-agent), cannot
+read "~/.ssh" or "~/.gnupg", and cannot signal other domains or use
+capabilities. It confines the installed binaries ("/usr/bin/wgvim",
+"/usr/local/bin/wgvim", "/opt/wgvim/bin/wgvim"); a binary in a source tree
+only with "--binary".
+
+Install it as root with "scripts/wgvim-selinux.sh install". It starts in
+permissive mode: denials are logged, nothing is blocked. After using wgvim
+for a while, "scripts/wgvim-selinux.sh denials" shows what would have been
+refused; "scripts/wgvim-selinux.sh enforce" turns it on. "status" and
+"uninstall" do what they say. Needs selinux-policy-devel and
+policycoreutils-python-utils.
 
 ==============================================================================
 Names                                                   *wgvim-names*
