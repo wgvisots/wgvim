@@ -352,7 +352,11 @@ static char *mkdir_get(char *path)
 {
   if (path != NULL) {
     char *failed = NULL;
-    (void)os_mkdir_recurse(path, 0700, &failed, NULL);
+    int r = os_mkdir_recurse(path, 0700, &failed, NULL);
+    if (r != 0) {
+      // Not fatal: the rule for the directory is then skipped (and reported).
+      WLOG("sandbox: cannot create %s: %s", failed ? failed : path, os_strerror(r));
+    }
     xfree(failed);
   }
   return path;
