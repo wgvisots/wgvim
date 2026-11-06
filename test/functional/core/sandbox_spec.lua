@@ -392,6 +392,50 @@ describe('sandbox', function()
     eq('yanked in wgvim', t.read_file(store))
   end)
 
+  it('refuses keyrings, new namespaces and TIOCSTI, but not processes, threads or ioctls', function()
+    local i = skip_unless_active()
+    t.skip(not i.seccomp, 'no system call filter on this platform')
+    t.skip(vim.fn.executable('python3') == 0, 'needs python3')
+    write(proj .. '/probe.py', table.concat({
+      'import ctypes, errno, os, threading, subprocess, json, fcntl, termios',
+      'libc = ctypes.CDLL(None, use_errno=True)',
+      'def call(fn, *a):',
+      '    ctypes.set_errno(0); r = fn(*a)',
+      '    return "ok" if r >= 0 else errno.errorcode.get(ctypes.get_errno(), "?")',
+      'nr = {"x86_64": 250, "aarch64": 219}[os.uname().machine]  # keyctl',
+      'r = {"keyctl": call(libc.syscall, nr, 0, ctypes.c_long(-3), 0)}',
+      'r["unshare_user"] = call(libc.unshare, 0x10000000)',
+      'r["unshare_pid"] = call(libc.unshare, 0x20000000)',
+      'r["unshare_files"] = call(libc.unshare, 0x400)',
+      'r["setns"] = call(libc.setns, 0, 0)',
+      'th = threading.Thread(target=lambda: None); th.start(); th.join(); r["thread"] = "ok"',
+      'r["subprocess"] = subprocess.run(["true"]).returncode',
+      'fd = os.open("/dev/tty", os.O_RDWR)',
+      'try: fcntl.ioctl(fd, termios.TIOCSTI, b" "); r["tiocsti"] = "ok"',
+      'except OSError as e: r["tiocsti"] = errno.errorcode[e.errno]',
+      'fcntl.ioctl(fd, termios.TIOCGWINSZ, b"\\0" * 8); r["winsz"] = "ok"',
+      'open("probe.json", "w").write(json.dumps(r))',
+    }, '\n'))
+    -- In :terminal, so that it has a controlling terminal for the ioctls.
+    run([[
+      vim.fn.jobstart({ 'python3', 'probe.py' }, { term = true })
+      vim.wait(10000, function() return vim.uv.fs_stat('probe.json') ~= nil end)
+      vim.wait(100)
+    ]])
+    local r = vim.json.decode(t.read_file(proj .. '/probe.json'))
+    eq({
+      keyctl = 'EPERM',
+      unshare_user = 'EPERM',
+      unshare_pid = 'EPERM',
+      unshare_files = 'ok', -- unshare() without namespace flags still works
+      setns = 'EPERM',
+      thread = 'ok', -- clone3() gives ENOSYS: the C library falls back to clone()
+      subprocess = 0,
+      tiocsti = 'EPERM',
+      winsz = 'ok', -- other terminal ioctls still work
+    }, r)
+  end)
+
   describe('.git watch', function()
     before_each(function()
       vim.fn.mkdir(proj .. '/.git/hooks', 'p')
