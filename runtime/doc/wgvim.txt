@@ -145,6 +145,11 @@ Things that work differently ~
   not available. |:checkhealth| wgvim shows which applies.
 - Child programs get $TMPDIR set to the temp directory above, because "/tmp"
   itself is not writable (compilers and clangd write temporary files there).
+- Swap, undo and backup files are written to their default directories in
+  |stdpath()| "state". A config that sets 'undodir', 'directory' or
+  'backupdir' elsewhere (e.g. "~/.vim/undodir") gets E828 and similar errors;
+  remove the setting, or use |--sandbox-allow|. |:checkhealth| wgvim warns
+  about it.
 - Your config directory is read-only, so editing "init.lua" in wgvim needs
   wgvim to be started in "~/.config/wgvim", or |--sandbox-allow|.
 - A shell in |:terminal| cannot read most dotfiles and cannot write its

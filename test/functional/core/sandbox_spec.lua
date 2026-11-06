@@ -136,6 +136,31 @@ describe('sandbox', function()
     eq(nil, vim.uv.fs_stat(outside .. '/new.txt'))
   end)
 
+  it("an 'undodir' outside the sandbox: E828 says so, and :checkhealth warns", function()
+    skip_unless_active()
+    vim.fn.mkdir(home .. '/.vim/undodir', 'p')
+    local out = run([[
+      vim.o.undofile = true
+      vim.o.undodir = vim.env.HOME .. '/.vim/undodir'
+      vim.cmd.edit('a.txt')
+      vim.cmd('normal! ix')
+      local ok, err = pcall(vim.cmd.write)
+      local report = {}
+      for _, k in ipairs({ 'start', 'ok', 'info', 'warn', 'error' }) do
+        vim.health[k] = function(msg)
+          report[#report + 1] = k .. ': ' .. msg
+        end
+      end
+      require('wgvim.health').check()
+      io.stdout:write(vim.json.encode({ ok = ok, err = err, health = table.concat(report, '\n') }))
+    ]])
+    local r = vim.json.decode(out)
+    eq(false, r.ok)
+    matches("E828: .*outside the wgvim sandbox: leave 'undodir' at its default", r.err)
+    matches("'undodir' is outside the sandbox", r.health)
+    matches("'directory' is writable", r.health) -- the default, in stdpath('state')
+  end)
+
   it('allows files named on the command line, and only those', function()
     skip_unless_active()
     run(
