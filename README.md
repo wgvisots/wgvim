@@ -53,9 +53,10 @@ Inside the editor, `:help wgvim` has the full list. In short:
 
 **Reading aids**
 - Optional rainbow brackets (by Tree-sitter nesting level, in a colour-blind
-  safe palette), a guide line along the current block, and highlighting of the
-  symbol under the cursor. Off until turned on with `:Reading` or
-  `require('wgvim.reading').setup({ rainbow = true, scope = true, references = true })`;
+  safe palette), a guide line along the current block, highlighting of the
+  symbol under the cursor, and a context line that keeps the heading of the
+  current function or block visible at the top. Off until turned on with
+  `:Reading` or `require('wgvim.reading').setup({ rainbow = true, context = true })`;
   see `:help wgvim-reading`.
 
 **Build and names**

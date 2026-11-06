@@ -179,8 +179,144 @@ describe('reading aids', function()
     ]])
   end)
 
+  describe('context', function()
+    local c_lines = {
+      'int f(void) {',
+      '    if (x) {',
+      '        a();',
+      '        b();',
+      '        c();',
+      '        d();',
+      '        e();',
+      '    }',
+      '}',
+    }
+    before_each(function()
+      exec_lua(function()
+        vim.api.nvim_set_hl(0, 'WgvimContext', { bg = 'LightGrey' })
+        vim.api.nvim_set_hl(0, 'WgvimContextBottom', { underline = true })
+      end)
+    end)
+
+    it('shows the first lines of the blocks scrolled off the top', function()
+      c_buffer(c_lines)
+      exec_lua(function()
+        require('wgvim.reading').setup({ context = true })
+      end)
+      feed('4Gzt7G')
+      screen:add_extra_attr_ids({ [105] = { background = Screen.colors.LightGrey } })
+      screen:expect([[
+        {105:int f(void) {                                     }|
+        {24:    if (x) {                                      }|
+                d();                                      |
+                ^e();                                      |
+            }                                             |
+                                                          |
+      ]])
+      -- Scrolled back to the top: nothing is hidden, no context.
+      feed('gg')
+      screen:expect([[
+        ^int f(void) {                                     |
+            if (x) {                                      |
+                a();                                      |
+                b();                                      |
+                c();                                      |
+                                                          |
+      ]])
+    end)
+
+    it('keeps rainbow colours', function()
+      c_buffer(c_lines)
+      exec_lua(function()
+        require('wgvim.reading').setup({ context = true, rainbow = true })
+      end)
+      feed('4Gzt7G')
+      screen:add_extra_attr_ids({
+        [101] = { foreground = Screen.colors.Blue },
+        [102] = { foreground = Screen.colors.Green },
+        [105] = { background = Screen.colors.LightGray },
+        [106] = { foreground = Screen.colors.Red, background = Screen.colors.LightGray },
+        [107] = {
+          foreground = Screen.colors.Blue1,
+          underline = true,
+          background = Screen.colors.LightGray,
+        },
+      })
+      screen:expect([[
+        {105:int f}{106:(}{105:void}{106:)}{105: }{106:{}{105:                                     }|
+        {24:    if }{107:(}{24:x}{107:)}{24: }{107:{}{24:                                      }|
+                d{102:()};                                      |
+                ^e{102:()};                                      |
+            {101:}}                                             |
+                                                          |
+      ]])
+    end)
+
+    it('hides while the cursor is on a line it would cover', function()
+      c_buffer(c_lines)
+      exec_lua(function()
+        require('wgvim.reading').setup({ context = true })
+      end)
+      feed('5Gzt')
+      screen:expect([[
+                ^c();                                      |
+                d();                                      |
+                e();                                      |
+            }                                             |
+        }                                                 |
+                                                          |
+      ]])
+    end)
+
+    it('works from indentation without a parser, with line numbers', function()
+      exec_lua(function()
+        vim.api.nvim_buf_set_lines(0, 0, -1, true, {
+          'def f():',
+          '    for x in y:',
+          '        a()',
+          '        b()',
+          '        c()',
+          '        d()',
+        })
+        vim.wo.number = true
+        require('wgvim.reading').setup({ context = true })
+      end)
+      feed('3Gzt6G')
+      screen:add_extra_attr_ids({
+        [105] = { background = Screen.colors.LightGrey, foreground = Screen.colors.Brown },
+        [106] = { background = Screen.colors.LightGrey },
+        [107] = {
+          underline = true,
+          background = Screen.colors.LightGrey,
+          foreground = Screen.colors.Brown,
+        },
+      })
+      screen:expect([[
+        {105:  1 }{106:def f():                                      }|
+        {107:  2 }{24:    for x in y:                               }|
+        {8:  5 }        c()                                   |
+        {8:  6 }        ^d()                                   |
+        {1:~                                                 }|
+                                                          |
+      ]])
+    end)
+
+    it('context_jump() goes to the innermost context line', function()
+      c_buffer(c_lines)
+      exec_lua(function()
+        require('wgvim.reading').setup({ context = true })
+      end)
+      feed('4Gzt7G')
+      n.poke_eventloop()
+      exec_lua(function()
+        require('wgvim.reading').context_jump()
+      end)
+      eq({ 2, 4 }, n.api.nvim_win_get_cursor(0))
+    end)
+  end)
+
   it(':Reading reports the state and rejects unknown names', function()
-    matches('rainbow: off, scope: off, references: off', n.exec_capture('Reading'))
+    matches('rainbow: off, scope: off, references: off, context: off', n.exec_capture('Reading'))
     command('Reading scope on')
     matches('scope: on', n.exec_capture('Reading'))
     command('Reading colour on')

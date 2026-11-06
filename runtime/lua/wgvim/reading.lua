@@ -5,7 +5,9 @@
 --   left alone);
 -- - scope: draw a thin vertical line along the block the cursor is in;
 -- - references: highlight other uses of the name under the cursor (LSP documentHighlight when
---   a language server provides it, otherwise the word under the cursor in the window).
+--   a language server provides it, otherwise the word under the cursor in the window);
+-- - context: show the first lines of the blocks (function, loop, ...) that have scrolled off
+--   the top of the window, in a float over the window's first lines.
 --
 -- Everything is off until setup() or :Reading turns it on.
 
@@ -21,13 +23,17 @@ local augroup = api.nvim_create_augroup('wgvim.reading', { clear = true })
 --- @field rainbow? boolean
 --- @field scope? boolean
 --- @field references? boolean
+--- @field context? boolean
 --- @field scope_char? string Character drawn by the scope guide (default "│").
+--- @field context_max? integer Most lines the context shows (default 3).
 
 local state = {
   rainbow = false,
   scope = false,
   references = false,
+  context = false,
   scope_char = '│',
+  context_max = 3,
 }
 
 M.levels = 7
@@ -49,6 +55,9 @@ local function set_default_highlights()
   end
   api.nvim_set_hl(0, 'WgvimScope', { link = 'Comment', default = true })
   api.nvim_set_hl(0, 'WgvimReference', { link = 'LspReferenceText', default = true })
+  api.nvim_set_hl(0, 'WgvimContext', { link = 'NormalFloat', default = true })
+  api.nvim_set_hl(0, 'WgvimContextLineNr', { link = 'LineNr', default = true })
+  api.nvim_set_hl(0, 'WgvimContextBottom', { underline = true, default = true })
 end
 
 ---------------------------------------------------------------------------------------------
@@ -130,10 +139,12 @@ end
 
 local rainbow_bufs = {} ---@type table<integer, boolean>
 
+--- Calls `emit(row, start_col, end_col, group)` for each bracket in rows `top`..`bot`.
 --- @param buf integer
 --- @param top integer
 --- @param bot integer
-local function rainbow_win(buf, top, bot)
+--- @param emit fun(row: integer, scol: integer, ecol: integer, group: string)
+local function rainbow_marks(buf, top, bot, emit)
   local parser = vim.treesitter.get_parser(buf, nil, { error = false })
   if not parser then
     return
@@ -147,15 +158,23 @@ local function rainbow_win(buf, top, bot)
     for _, node in q:iter_captures(tree:root(), buf, top, bot + 1) do
       local srow, scol, erow, ecol = node:range()
       if srow == erow and ecol > scol then
-        local group = 'WgvimRainbow' .. (level_of(node, cache) % M.levels + 1)
-        api.nvim_buf_set_extmark(buf, ns, srow, scol, {
-          end_col = ecol,
-          hl_group = group,
-          ephemeral = true,
-          priority = 125, -- above treesitter (100) and semantic tokens (125 is LSP's max)
-        })
+        emit(srow, scol, ecol, 'WgvimRainbow' .. (level_of(node, cache) % M.levels + 1))
       end
     end
+  end)
+end
+
+-- Above treesitter (100) and semantic tokens (125 is LSP's max).
+local RAINBOW_PRIORITY = 125
+
+local function rainbow_win(buf, top, bot)
+  rainbow_marks(buf, top, bot, function(row, scol, ecol, group)
+    api.nvim_buf_set_extmark(buf, ns, row, scol, {
+      end_col = ecol,
+      hl_group = group,
+      ephemeral = true,
+      priority = RAINBOW_PRIORITY,
+    })
   end)
 end
 
@@ -323,6 +342,302 @@ local function show_references()
 end
 
 ---------------------------------------------------------------------------------------------
+-- Context
+---------------------------------------------------------------------------------------------
+
+local ctx_ns = api.nvim_create_namespace('wgvim.reading.context')
+
+--- @class (private) wgvim.reading.Context
+--- @field buf integer scratch buffer shown in the float
+--- @field win? integer the float, while shown
+--- @field rows integer[] rows of the source buffer it shows
+--- @field key? string what was last rendered
+
+local context_of = {} ---@type table<integer, wgvim.reading.Context> source window -> context
+
+local function line_at(buf, row)
+  return api.nvim_buf_get_lines(buf, row, row + 1, false)[1] or ''
+end
+
+-- A line with nothing but brackets (a "{" on a line of its own) does not say what the block is.
+local function says_nothing(line)
+  return line:match('^[%s%(%)%[%]{}]*$') ~= nil
+end
+
+--- Rows (0-based, outermost first) of the first lines of the syntax nodes around `row` that
+--- start above it.
+--- @return integer[]?
+local function context_rows_ts(buf, row)
+  local parser = vim.treesitter.get_parser(buf, nil, { error = false })
+  if not parser then
+    return nil
+  end
+  local col = #line_at(buf, row):match('^%s*')
+  local node = parser:named_node_for_range({ row, col, row, col }, { ignore_injections = true })
+  local rows, seen = {}, {}
+  while node and node:parent() do -- not the root: that is the whole file
+    local srow = node:start()
+    if srow < row and not seen[srow] then
+      seen[srow] = true
+      if not says_nothing(line_at(buf, srow)) then
+        table.insert(rows, 1, srow)
+      end
+    end
+    node = node:parent()
+  end
+  return rows
+end
+
+--- Like context_rows_ts(), from indentation: each line above `row` indented less than the
+--- block below it. Must run in `buf` (indent()).
+local function context_rows_indent(buf, row)
+  local n = api.nvim_buf_line_count(buf)
+  local l = row + 1
+  local ind = indent_of(buf, l)
+  while ind == nil and l < n do
+    l = l + 1
+    ind = indent_of(buf, l)
+  end
+  local rows = {}
+  for h = row, 1, -1 do
+    if ind == nil or ind == 0 then
+      break
+    end
+    local i = indent_of(buf, h)
+    if i ~= nil and i < ind and not says_nothing(line_at(buf, h - 1)) then
+      table.insert(rows, 1, h - 1)
+      ind = i
+    end
+  end
+  return rows
+end
+
+--- @return integer[]
+local function context_rows(buf, row)
+  if vim.treesitter.highlighter.active[buf] then
+    local rows = context_rows_ts(buf, row)
+    if rows then
+      return rows
+    end
+  end
+  return context_rows_indent(buf, row)
+end
+
+--- At most `max` rows: the outermost one (usually the function) and the innermost others.
+local function trim(rows, max)
+  if #rows <= max then
+    return rows
+  end
+  local r = { rows[1] }
+  for i = #rows - max + 2, #rows do
+    r[#r + 1] = rows[i]
+  end
+  return max >= 1 and r or {}
+end
+
+--- The rows to show in `win`, and whether the cursor is on a line the float would cover.
+--- Must run in `win` (line('w0'), folds).
+--- @return integer[] rows, boolean covers_cursor
+local function compute_context(win, buf)
+  local top = vim.fn.line('w0')
+  local last = api.nvim_buf_line_count(buf)
+  -- The buffer lines on the window's first screen lines (closed folds take one screen line).
+  local shown = { top }
+  local function shown_at(i)
+    while #shown <= i do
+      local l = shown[#shown]
+      local e = vim.fn.foldclosedend(l)
+      shown[#shown + 1] = (e ~= -1 and e or l) + 1
+    end
+    return shown[i + 1]
+  end
+  -- The float covers as many lines as it has, which changes which line it is the context of.
+  local rows = {}
+  local covered = 0
+  for _ = 1, 3 do
+    local lnum = shown_at(covered)
+    if lnum > last then
+      break
+    end
+    rows = trim(context_rows(buf, lnum - 1), state.context_max)
+    if #rows == covered then
+      break
+    end
+    covered = #rows
+  end
+  local cursor = api.nvim_win_get_cursor(win)[1]
+  return rows, #rows > 0 and cursor < shown_at(#rows)
+end
+
+local function hide_context(win)
+  local c = context_of[win]
+  if c and c.win and api.nvim_win_is_valid(c.win) then
+    api.nvim_win_close(c.win, true)
+  end
+  if c then
+    c.win, c.key = nil, nil
+  end
+end
+
+local function drop_context(win)
+  hide_context(win)
+  local c = context_of[win]
+  if c and api.nvim_buf_is_valid(c.buf) then
+    api.nvim_buf_delete(c.buf, { force = true })
+  end
+  context_of[win] = nil
+end
+
+--- Copies treesitter and rainbow highlighting of `rows` in `src` to the lines of `dst`.
+local function copy_highlights(src, rows, dst, lines)
+  local parser = vim.treesitter.highlighter.active[src]
+    and vim.treesitter.get_parser(src, nil, { error = false })
+  if not parser then
+    return
+  end
+  local function mark(i, scol, ecol, group, priority)
+    ecol = math.min(ecol, #lines[i])
+    if ecol > scol then
+      api.nvim_buf_set_extmark(dst, ctx_ns, i - 1, scol, {
+        end_col = ecol,
+        hl_group = group,
+        priority = priority,
+      })
+    end
+  end
+  parser:for_each_tree(function(tree, ltree)
+    local lang = ltree:lang()
+    local q = vim.treesitter.query.get(lang, 'highlights')
+    if not q then
+      return
+    end
+    for i, row in ipairs(rows) do
+      for id, node, md in q:iter_captures(tree:root(), src, row, row + 1) do
+        local name = q.captures[id]
+        if name:sub(1, 1) ~= '_' and name ~= 'spell' and name ~= 'nospell' then
+          local range = vim.treesitter.get_range(node, src, md[id]) -- { sr, sc, sb, er, ec, eb }
+          local sr, sc, er, ec = range[1], range[2], range[4], range[5]
+          if sr <= row and er >= row then
+            local prio = tonumber(md.priority or (md[id] and md[id].priority)) or 100
+            local scol = sr < row and 0 or sc
+            local ecol = er > row and #lines[i] or ec
+            mark(i, scol, ecol, '@' .. name .. '.' .. lang, prio)
+          end
+        end
+      end
+    end
+  end)
+  if state.rainbow and rainbow_bufs[src] ~= false then
+    for i, row in ipairs(rows) do
+      rainbow_marks(src, row, row, function(r, scol, ecol, group)
+        if r == row then
+          mark(i, scol, ecol, group, RAINBOW_PRIORITY)
+        end
+      end)
+    end
+  end
+end
+
+local function update_context(win)
+  if not state.context or not api.nvim_win_is_valid(win) then
+    hide_context(win)
+    return
+  end
+  if api.nvim_win_get_config(win).relative ~= '' then
+    return -- floats (our own among them)
+  end
+  local buf = api.nvim_win_get_buf(win)
+  if vim.bo[buf].buftype ~= '' or vim.wo[win].diff then
+    hide_context(win)
+    return
+  end
+  local r = api.nvim_win_call(win, function()
+    return { compute_context(win, buf) }
+  end)
+  local rows, covers_cursor = r[1], r[2]
+  if #rows == 0 or covers_cursor then
+    hide_context(win)
+    return
+  end
+
+  local info = vim.fn.getwininfo(win)[1]
+  local c = context_of[win]
+  if not c or not api.nvim_buf_is_valid(c.buf) then
+    c = { buf = api.nvim_create_buf(false, true), rows = {} }
+    context_of[win] = c
+  end
+  local number = vim.wo[win].number or vim.wo[win].relativenumber
+  local key = table.concat({
+    buf,
+    api.nvim_buf_get_changedtick(buf),
+    info.width,
+    info.textoff,
+    tostring(number),
+    tostring(state.rainbow),
+    table.concat(rows, ','),
+  }, ':')
+  if c.key ~= key then
+    local lines = {}
+    for i, row in ipairs(rows) do
+      lines[i] = line_at(buf, row):gsub('%s+$', '')
+    end
+    api.nvim_buf_set_lines(c.buf, 0, -1, false, lines)
+    vim.bo[c.buf].tabstop = vim.bo[buf].tabstop
+    api.nvim_buf_clear_namespace(c.buf, ctx_ns, 0, -1)
+    if vim.treesitter.highlighter.active[buf] then
+      vim.bo[c.buf].syntax = ''
+      copy_highlights(buf, rows, c.buf, lines)
+    elseif vim.bo[c.buf].syntax ~= vim.bo[buf].syntax then
+      vim.bo[c.buf].syntax = vim.bo[buf].syntax
+    end
+    for i, row in ipairs(rows) do
+      -- The gutter: line numbers where the window shows them, so the lines are not mistaken
+      -- for the ones they cover.
+      if info.textoff > 0 then
+        local text = number and ('%' .. (info.textoff - 1) .. 'd '):format(row + 1)
+          or (' '):rep(info.textoff)
+        api.nvim_buf_set_extmark(c.buf, ctx_ns, i - 1, 0, {
+          virt_text = { { text, 'WgvimContextLineNr' } },
+          virt_text_pos = 'inline',
+        })
+      end
+    end
+    api.nvim_buf_set_extmark(c.buf, ctx_ns, #rows - 1, 0, { line_hl_group = 'WgvimContextBottom' })
+    c.rows, c.key = rows, key
+  end
+  local config = {
+    relative = 'win',
+    win = win,
+    row = 0,
+    col = 0,
+    width = info.width,
+    height = #rows,
+    focusable = false,
+    style = 'minimal',
+    zindex = 20,
+  }
+  if c.win and api.nvim_win_is_valid(c.win) then
+    api.nvim_win_set_config(c.win, config)
+  else
+    config.noautocmd = true
+    c.win = api.nvim_open_win(c.buf, false, config)
+    vim.wo[c.win].winhighlight = 'NormalFloat:WgvimContext'
+    vim.wo[c.win].wrap = false
+  end
+end
+
+--- Jumps to the innermost line shown by the context of the current window.
+function M.context_jump()
+  local c = context_of[api.nvim_get_current_win()]
+  local rows = c and c.win and c.rows or {}
+  if #rows > 0 then
+    vim.cmd("normal! m'")
+    api.nvim_win_set_cursor(0, { rows[#rows] + 1, 0 })
+    vim.cmd('normal! ^')
+  end
+end
+
+---------------------------------------------------------------------------------------------
 -- Decoration provider (rainbow and scope)
 ---------------------------------------------------------------------------------------------
 
@@ -384,6 +699,45 @@ local function refresh_autocmds()
       end,
     })
   end
+  if state.context then
+    api.nvim_create_autocmd({
+      'CursorMoved',
+      'CursorMovedI',
+      'BufWinEnter',
+      'TextChanged',
+      'TextChangedI',
+      'WinResized',
+    }, {
+      group = augroup,
+      callback = function()
+        guarded(update_context, api.nvim_get_current_win())
+      end,
+    })
+    api.nvim_create_autocmd('WinScrolled', {
+      group = augroup,
+      callback = function()
+        for id in pairs(vim.v.event) do
+          local win = tonumber(id)
+          if win then
+            guarded(update_context, win)
+          end
+        end
+      end,
+    })
+    api.nvim_create_autocmd('WinClosed', {
+      group = augroup,
+      callback = function(a)
+        drop_context(tonumber(a.match))
+      end,
+    })
+    for _, win in ipairs(api.nvim_list_wins()) do
+      guarded(update_context, win)
+    end
+  else
+    for win in pairs(context_of) do
+      drop_context(win)
+    end
+  end
   if state.references then
     api.nvim_create_autocmd('CursorHold', { group = augroup, callback = show_references })
     api.nvim_create_autocmd({ 'CursorMoved', 'InsertEnter', 'BufLeave', 'WinLeave' }, {
@@ -420,13 +774,18 @@ end
 
 --- @return table<string, boolean>
 function M.status()
-  return { rainbow = state.rainbow, scope = state.scope, references = state.references }
+  return {
+    rainbow = state.rainbow,
+    scope = state.scope,
+    references = state.references,
+    context = state.context,
+  }
 end
 
 -- For tests.
 M._scope_at = scope_at
 
-local features = { 'rainbow', 'scope', 'references' }
+local features = { 'rainbow', 'scope', 'references', 'context' }
 
 api.nvim_create_user_command('Reading', function(a)
   local feature, action = a.fargs[1], a.fargs[2] or 'toggle'
@@ -435,10 +794,11 @@ api.nvim_create_user_command('Reading', function(a)
     local function f(b)
       return b and 'on' or 'off'
     end
-    print(('rainbow: %s, scope: %s, references: %s%s'):format(
+    print(('rainbow: %s, scope: %s, references: %s, context: %s%s'):format(
       f(s.rainbow),
       f(s.scope),
       f(s.references),
+      f(s.context),
       M.last_error and ('\nlast error: ' .. M.last_error) or ''
     ))
     return

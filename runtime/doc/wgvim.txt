@@ -220,6 +220,7 @@ until turned on, from the config: >lua
       rainbow = true,     -- colour brackets by nesting level
       scope = true,       -- line along the block around the cursor
       references = true,  -- highlight the symbol under the cursor
+      context = true,     -- show the function/block heading at the top
     })
 <
 or for the session with |:Reading|.
@@ -246,17 +247,33 @@ Reference highlighting                                  *wgvim-references*
 	that supports it (clangd does) only real references to the same symbol
 	are marked; otherwise every whole-word match in the window.
 
+Context                                                 *wgvim-context*
+	When the first line of the function, loop or other block that the top
+	of the window is in has scrolled off screen, it is shown over the
+	window's first lines, with the line number and the colours of the
+	original, and underlined to set it apart. Nested blocks give one line
+	each, up to `context_max` (default 3: the outermost and the innermost
+	ones). Uses the |treesitter| parser when the buffer has one, otherwise
+	indentation; a line with only "{" is skipped for the one before it.
+	Hidden while the cursor is on a line it would cover. To jump to the
+	innermost line shown: >lua
+	    vim.keymap.set('n', '<Leader>k', require('wgvim.reading').context_jump)
+<
 							*:Reading*
 :Reading		Show which aids are on.
 :Reading {aid} [on|off|toggle]
-		Turn "rainbow", "scope" or "references" on or off; without the
-		last argument, toggle it.
+		Turn "rainbow", "scope", "references" or "context" on or off;
+		without the last argument, toggle it.
 
 Highlight groups, set by a colour scheme or with |nvim_set_hl()|:
 	WgvimRainbow1 .. WgvimRainbow7	bracket colours, outermost first
 	WgvimScope			the scope guide (default: links to Comment)
 	WgvimReference			reference highlighting (default: links to
 					LspReferenceText)
+	WgvimContext			the context lines (default: links to
+					NormalFloat)
+	WgvimContextLineNr		their line numbers (default: links to LineNr)
+	WgvimContextBottom		their last line (default: underlined)
 
 Other settings that help reading are part of Vim already, for example
 'cursorline', 'scrolloff', 'linespace' (GUI only) and a "leadmultispace" entry
