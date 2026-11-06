@@ -3,14 +3,20 @@
 local M = {}
 
 -- Whether a file can be created in `dir`: tried for real, because access() does not see Landlock.
+-- Created exclusively (O_EXCL), so that an existing file or symlink of that name in a shared
+-- directory is never opened, let alone truncated.
 local function can_create(dir)
-  local probe = ('%s/.wgvim-health-%d'):format(dir, vim.uv.os_getpid())
-  local f = io.open(probe, 'w')
-  if not f then
+  local probe = ('%s/.wgvim-health-%d-%08x'):format(
+    dir,
+    vim.uv.os_getpid(),
+    math.random(0, 0x7fffffff)
+  )
+  local fd = vim.uv.fs_open(probe, 'wx', 384) -- O_WRONLY|O_CREAT|O_EXCL, mode 0600
+  if not fd then
     return false
   end
-  f:close()
-  os.remove(probe)
+  vim.uv.fs_close(fd)
+  vim.uv.fs_unlink(probe)
   return true
 end
 
