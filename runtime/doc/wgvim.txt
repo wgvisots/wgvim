@@ -136,7 +136,9 @@ Things that work differently ~
   the sandbox is applied. The helper is not confined by Landlock and may
   connect, and does one thing: it runs the fixed copy or paste command of the
   tool it found (wl-copy/wl-paste, else xclip, else xsel) for "+" or "*" with
-  the text it is given. The editor can only ask it to set or read the
+  the text it is given. The tool is looked up once, at startup, and is not
+  used if it is in a directory the sandbox can write to (such as a project
+  directory in $PATH), since a sandboxed program could have put it there. The editor can only ask it to set or read the
   clipboard. Over SSH, copying uses OSC 52 (|clipboard-osc52|), and pasting
   "+" returns what was last copied in wgvim: many terminals cannot answer
   OSC 52 reads, and waiting for them stalls every paste. Paste from the

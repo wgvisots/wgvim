@@ -559,9 +559,14 @@ static const char **clip_argv(const char *tool, bool paste, bool primary)
   return paste ? (primary ? xs_pp : xs_p) : (primary ? xs_cp : xs_c);
 }
 
-/// Runs argv with `in` on its stdin; collects stdout into *out (malloc'd) for paste.
-static bool clip_run(const char **argv, const char *in, size_t in_len, char **out,
-                     size_t *out_len)
+// Absolute paths of the copy and paste programs, resolved once before the sandbox is applied.
+static char *clip_copy_prog = NULL;
+static char *clip_paste_prog = NULL;
+
+/// Runs `prog` with argv (argv[0] is only its name) and `in` on its stdin; collects stdout into
+/// *out (malloc'd) for paste.
+static bool clip_run(const char *prog, const char **argv, const char *in, size_t in_len,
+                     char **out, size_t *out_len)
 {
   int ip[2], op[2];
   if (pipe2(ip, O_CLOEXEC) != 0) {
@@ -582,7 +587,9 @@ static bool clip_run(const char **argv, const char *in, size_t in_len, char **ou
   posix_spawn_file_actions_addclose(&fa, ip[1]);
   posix_spawn_file_actions_addclose(&fa, op[0]);
   pid_t pid;
-  int rc = posix_spawnp(&pid, argv[0], &fa, NULL, (char **)argv, environ);
+  // posix_spawn with the path resolved at startup, not posix_spawnp: a $PATH lookup now could
+  // find a program planted since then in a directory the sandbox can write to.
+  int rc = posix_spawn(&pid, prog, &fa, NULL, (char **)argv, environ);
   posix_spawn_file_actions_destroy(&fa);
   if (rc != 0) {
     close(ip[0]); close(ip[1]); close(op[0]); close(op[1]);
@@ -656,8 +663,8 @@ static void clip_helper_main(int fd, const char *tool)
     }
     char *out = NULL;
     size_t out_len = 0;
-    bool ok = clip_run(clip_argv(tool, paste, primary), paste ? NULL : data, paste ? 0 : len,
-                       paste ? &out : NULL, &out_len);
+    bool ok = clip_run(paste ? clip_paste_prog : clip_copy_prog, clip_argv(tool, paste, primary),
+                       paste ? NULL : data, paste ? 0 : len, paste ? &out : NULL, &out_len);
     free(data);  // NOLINT
     uint32_t rlen = ok ? (uint32_t)out_len : CLIP_FAIL;
     if (!full_io(fd, &rlen, 4, false) || (ok && out_len && !full_io(fd, out, out_len, false))) {
@@ -665,6 +672,55 @@ static void clip_helper_main(int fd, const char *tool)
     }
     free(out);  // NOLINT
   }
+}
+
+/// The absolute path of clipboard program `name`, or NULL. The helper runs it outside the
+/// sandbox, so it must not be in a directory that sandboxed processes can write to (the project,
+/// the temp root, stdpath() "state" and "cache", --sandbox-allow paths, ...): a program planted
+/// there, e.g. in a project directory that is in $PATH, would otherwise run unconfined.
+static char *clip_tool_path(const char *name)
+{
+  char *abs = NULL;
+  if (!os_can_exe(name, &abs, true) || abs == NULL) {
+    xfree(abs);
+    return NULL;
+  }
+  char *real = real_path(abs);
+  xfree(abs);
+  if (real == NULL) {
+    return NULL;
+  }
+  for (int i = 0; i < ll.nrules; i++) {
+    const char *k = ll.rules[i].access;
+    if (strcmp(k, "rw") != 0 && strcmp(k, "rwx") != 0) {
+      continue;
+    }
+    char *r = real_path(ll.rules[i].path);
+    bool inside = r != NULL && path_within(real, r);
+    xfree(r);
+    if (inside) {
+      WLOG("sandbox: not using %s for the clipboard: it is in a writable directory (%s)", real,
+           ll.rules[i].path);
+      xfree(real);
+      return NULL;
+    }
+  }
+  return real;
+}
+
+/// Chooses the clipboard programs: `copy` and `paste` names; both must be usable.
+static bool clip_choose(const char *copy, const char *paste)
+{
+  char *c = clip_tool_path(copy);
+  char *p = c != NULL ? clip_tool_path(paste) : NULL;
+  if (c == NULL || p == NULL) {
+    xfree(c);
+    xfree(p);
+    return false;
+  }
+  clip_copy_prog = c;
+  clip_paste_prog = p;
+  return true;
 }
 
 /// Starts the clipboard helper, if there is a local display and a clipboard tool.
@@ -676,12 +732,11 @@ static void start_clipboard_helper(void)
   const char *wl = getenv("WAYLAND_DISPLAY");
   const char *x = getenv("DISPLAY");
   const char *tool = NULL;
-  if (wl != NULL && *wl != NUL && os_can_exe("wl-copy", NULL, true)
-      && os_can_exe("wl-paste", NULL, true)) {
+  if (wl != NULL && *wl != NUL && clip_choose("wl-copy", "wl-paste")) {
     tool = "wl-clipboard";
-  } else if (x != NULL && *x != NUL && os_can_exe("xclip", NULL, true)) {
+  } else if (x != NULL && *x != NUL && clip_choose("xclip", "xclip")) {
     tool = "xclip";
-  } else if (x != NULL && *x != NUL && os_can_exe("xsel", NULL, true)) {
+  } else if (x != NULL && *x != NUL && clip_choose("xsel", "xsel")) {
     tool = "xsel";
   }
   if (tool == NULL) {
@@ -699,6 +754,10 @@ static void start_clipboard_helper(void)
   }
   if (pid == 0) {
     prctl(PR_SET_PDEATHSIG, SIGTERM);
+    // Not in the project: the clipboard programs then never see it as their working directory.
+    if (chdir("/") != 0) {
+      _exit(1);
+    }
     // Drop the editor's signal handlers: libuv's would write into its signal pipe's file
     // descriptor number, which here belongs to a clipboard tool's pipe.
     for (int sig = 1; sig < NSIG; sig++) {

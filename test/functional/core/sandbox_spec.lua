@@ -339,6 +339,27 @@ describe('sandbox', function()
     matches('^yanked\nin wgvim', t.read_file(store))
   end)
 
+  it('clipboard: never runs a clipboard program from a directory the sandbox can write to', function()
+    local i = skip_unless_active()
+    t.skip(not i.seccomp, 'no system call filter on this platform')
+    -- The helper runs outside the sandbox: a wl-copy in the project (here in $PATH) could have
+    -- been planted by a sandboxed program, and must not be the one it runs.
+    local marker = root .. '/ran-outside'
+    for _, tool in ipairs({ 'wl-copy', 'wl-paste' }) do
+      write(proj .. '/bin/' .. tool, '#!/bin/sh\ntouch ' .. marker .. '\n')
+      vim.uv.fs_chmod(proj .. '/bin/' .. tool, 493)
+    end
+    local out = run(
+      [[
+      pcall(vim.fn.setreg, '+', 'x')
+      io.stdout:write(vim.json.encode({ vim.api.nvim__sandbox_info().clipboard }))
+    ]],
+      { path_prefix = proj .. '/bin', wayland = 'wayland-test' }
+    )
+    eq({ '' }, vim.json.decode(out)) -- no helper: the only wl-copy is in the project
+    eq(nil, vim.uv.fs_stat(marker))
+  end)
+
   it('clipboard: the helper works with the terminal UI too', function()
     local i = skip_unless_active()
     t.skip(not i.seccomp, 'no system call filter on this platform')
