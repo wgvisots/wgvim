@@ -123,6 +123,7 @@
 #include "nvim/os/fs.h"
 #include "nvim/os/fs_defs.h"
 #include "nvim/os/input.h"
+#include "nvim/os/landlock.h"
 #include "nvim/os/os_defs.h"
 #include "nvim/os/time.h"
 #include "nvim/os/time_defs.h"
@@ -1261,7 +1262,12 @@ void u_write_undo(const char *const name, const bool forceit, buf_T *const buf, 
 
   int fd = os_open(file_name, O_CREAT|O_WRONLY|O_EXCL|O_NOFOLLOW, perm);
   if (fd < 0) {
-    semsg(_(e_not_open), file_name);
+    if (landlock_blocked(file_name, fd, true)) {
+      semsg(_("E828: Cannot open undo file for writing: %s (outside the wgvim sandbox: "
+              "leave 'undodir' at its default, see :help wgvim-sandbox)"), file_name);
+    } else {
+      semsg(_(e_not_open), file_name);
+    }
     goto theend;
   }
   os_setperm(file_name, perm);

@@ -2,6 +2,54 @@
 
 local M = {}
 
+-- Whether a file can be created in `dir`: tried for real, because access() does not see Landlock.
+local function can_create(dir)
+  local probe = ('%s/.wgvim-health-%d'):format(dir, vim.uv.os_getpid())
+  local f = io.open(probe, 'w')
+  if not f then
+    return false
+  end
+  f:close()
+  os.remove(probe)
+  return true
+end
+
+--- Warns about directories in options that wgvim writes to which the sandbox does not allow.
+local function check_option_dirs(health)
+  local opts = {
+    { 'undodir', vim.o.undofile, 'undo files (E828)' },
+    { 'directory', vim.o.swapfile, 'swap files' },
+    { 'backupdir', vim.o.backup or vim.o.writebackup, 'backup files' },
+  }
+  for _, o in ipairs(opts) do
+    local name, used, what = o[1], o[2], o[3]
+    if used then
+      -- The first usable entry is used. "." (the file's directory) is left to the file rules.
+      for entry in vim.gsplit(vim.o[name], ',', { plain = true }) do
+        local dir = vim.fn.fnamemodify(vim.fn.expand((entry:gsub('//+$', ''))), ':p'):gsub('/$', '')
+        if entry == '.' or entry:match('^%./') then
+          break
+        elseif vim.fn.isdirectory(dir) == 1 then
+          if can_create(dir) then
+            health.ok(("'%s' is writable: %s"):format(name, dir))
+          else
+            health.warn(
+              ("'%s' is outside the sandbox, %s cannot be written: %s"):format(name, what, dir),
+              {
+                ("Remove the '%s' setting from your config: the default (%s) is in the sandbox"):format(
+                  name,
+                  vim.api.nvim_get_option_info2(name, {}).default
+                ),
+              }
+            )
+          end
+          break
+        end
+      end
+    end
+  end
+end
+
 function M.check()
   local health = vim.health
   local i = vim.api.nvim__sandbox_info()
@@ -57,6 +105,7 @@ function M.check()
   for _, note in ipairs(i.notes) do
     health.warn(note)
   end
+  check_option_dirs(health)
 
   local names = {
     ro = 'read-only',
