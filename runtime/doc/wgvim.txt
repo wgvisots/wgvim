@@ -212,6 +212,74 @@ refused; "scripts/wgvim-selinux.sh enforce" turns it on. "status" and
 policycoreutils-python-utils.
 
 ==============================================================================
+Reading aids                                            *wgvim-reading*
+
+Optional aids that make the structure of code easier to follow. All are off
+until turned on, from the config: >lua
+    require('wgvim.reading').setup({
+      rainbow = true,     -- colour brackets by nesting level
+      scope = true,       -- line along the block around the cursor
+      references = true,  -- highlight the symbol under the cursor
+      context = true,     -- show the function/block heading at the top
+    })
+<
+or for the session with |:Reading|.
+
+Rainbow delimiters                                      *wgvim-rainbow*
+	Brackets ("()", "[]" and "{}") are coloured by how deeply they are
+	nested, so the two brackets of a pair
+	always have the same colour. Uses the buffer's |treesitter| parser, so
+	brackets in strings and comments are left alone; buffers without a
+	parser are not coloured. Seven colours from the Okabe-Ito palette,
+	which stays distinguishable with the common forms of colour blindness.
+	To turn it off for one buffer (in an ftplugin, say): >lua
+	    require('wgvim.reading').rainbow_buf(0, false)
+<
+Scope guide                                             *wgvim-scope*
+	A thin line ("│") down the left edge of the indented block that holds
+	the cursor, from the line that opens it to the line that closes it.
+	Based on indentation, so it works in any file type. The character is
+	set with `scope_char` in setup().
+
+Reference highlighting                                  *wgvim-references*
+	After the cursor rests ('updatetime') on a word, the other places it
+	occurs are highlighted until the cursor moves. With a language server
+	that supports it (clangd does) only real references to the same symbol
+	are marked; otherwise every whole-word match in the window.
+
+Context                                                 *wgvim-context*
+	When the first line of the function, loop or other block that the top
+	of the window is in has scrolled off screen, it is shown over the
+	window's first lines, with the line number and the colours of the
+	original, and underlined to set it apart. Nested blocks give one line
+	each, up to `context_max` (default 3: the outermost and the innermost
+	ones). Uses the |treesitter| parser when the buffer has one, otherwise
+	indentation; a line with only "{" is skipped for the one before it.
+	Hidden while the cursor is on a line it would cover. To jump to the
+	innermost line shown: >lua
+	    vim.keymap.set('n', '<Leader>k', require('wgvim.reading').context_jump)
+<
+							*:Reading*
+:Reading		Show which aids are on.
+:Reading {aid} [on|off|toggle]
+		Turn "rainbow", "scope", "references" or "context" on or off;
+		without the last argument, toggle it.
+
+Highlight groups, set by a colour scheme or with |nvim_set_hl()|:
+	WgvimRainbow1 .. WgvimRainbow7	bracket colours, outermost first
+	WgvimScope			the scope guide (default: links to Comment)
+	WgvimReference			reference highlighting (default: links to
+					LspReferenceText)
+	WgvimContext			the context lines (default: links to
+					NormalFloat)
+	WgvimContextLineNr		their line numbers (default: links to LineNr)
+	WgvimContextBottom		their last line (default: underlined)
+
+Other settings that help reading are part of Vim already, for example
+'cursorline', 'scrolloff', 'linespace' (GUI only) and a "leadmultispace" entry
+in 'listchars' for indent guides.
+
+==============================================================================
 Names                                                   *wgvim-names*
 
 The executable is `wgvim`. Per-user directories and environment variables use
