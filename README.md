@@ -51,6 +51,13 @@ Inside the editor, `:help wgvim` has the full list. In short:
 - The Python, Ruby, Perl and Node.js providers and remote plugins are removed.
   The clipboard provider stays.
 
+**Reading aids**
+- Optional rainbow brackets (by Tree-sitter nesting level, in a colour-blind
+  safe palette), a guide line along the current block, and highlighting of the
+  symbol under the cursor. Off until turned on with `:Reading` or
+  `require('wgvim.reading').setup({ rainbow = true, scope = true, references = true })`;
+  see `:help wgvim-reading`.
+
 **Build and names**
 - Built only from vendored, hash-checked dependencies in [deps/](deps/); the
   build refuses network URLs.
