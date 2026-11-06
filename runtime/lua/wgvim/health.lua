@@ -101,6 +101,14 @@ function M.check()
   elseif i.seccomp and not i.connect then
     health.info('No clipboard helper: copying uses OSC 52 when available (see :help wgvim-sandbox)')
   end
+  if (i.git_watch or '') ~= '' then
+    health.ok(
+      ('Watching %d git files in %s for changes (:help wgvim-sandbox-git)'):format(
+        i.git_watch_files,
+        i.git_watch
+      )
+    )
+  end
   if i.scoped then
     health.ok('Signals and abstract Unix sockets outside the sandbox are blocked')
   else

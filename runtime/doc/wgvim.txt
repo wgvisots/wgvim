@@ -107,7 +107,25 @@ sendto() with an address, so that existing sockets such as the D-Bus bus
 outside the sandbox), ssh-agent and gpg-agent cannot be reached, and refuses
 System V IPC (shared memory, semaphores, message queues) and io_uring. The
 terminal UI process alone may connect, and only to wgvim's own sockets in its
-temp directory (for |:restart| and |:connect|).
+temp directory (for |:restart| and |:connect|); see |wgvim-sandbox-tui|.
+
+                                                *wgvim-sandbox-tui*
+wgvim in a terminal is two processes: the terminal UI (TUI) and the editor.
+The TUI applies the sandbox to itself and then starts the editor, which
+applies it again, a second and stricter layer, before it reads your config.
+Everything the editor runs (|:!|, |:terminal|, LSP servers) is inside both
+layers. The TUI is inside the first only, and it is the more privileged of
+the two: it may connect() to sockets (the filter cannot tell which), and
+wgvim's own code then allows only its sockets, for |:restart| and |:connect|.
+Programs inside the editor's layer cannot trace the TUI, nor (from Linux
+6.12) signal it.
+The TUI reads everything the editor sends it to draw the screen. So a
+compromised editor that also found a flaw in that drawing code could take
+over the TUI, and with it the right to connect(), for example to the D-Bus
+bus and from there outside the sandbox. That takes two flaws, and the second
+must be in a small part of the code; it is accepted for now. Without the TUI
+(|--headless|, or |--embed| behind another UI), only the clipboard helper
+may connect.
 
 When the kernel supports it, Landlock also blocks TCP (ABI 4, Linux 6.7), and
 connections to abstract Unix sockets and signals to processes outside the
@@ -131,20 +149,21 @@ Things that work differently ~
   and ":w !sudo tee %" do not work.
 - `:!kill` cannot stop or signal your other processes (Landlock ABI 6+).
 - The clipboard (|clipboard|): wl-copy, xclip and xsel need to connect to the
-  display server, which the sandbox refuses. On a local desktop ($WAYLAND_DISPLAY
-  or $DISPLAY set, not over SSH) wgvim starts a clipboard helper just before
-  the sandbox is applied. The helper is not confined by Landlock and may
-  connect, and does one thing: it runs the fixed copy or paste command of the
-  tool it found (wl-copy/wl-paste, else xclip, else xsel) for "+" or "*" with
-  the text it is given. The tool is looked up once, at startup, and is not
-  used if it is in a directory the sandbox can write to (such as a project
-  directory in $PATH), since a sandboxed program could have put it there. The editor can only ask it to set or read the
-  clipboard. Over SSH, copying uses OSC 52 (|clipboard-osc52|), and pasting
-  "+" returns what was last copied in wgvim: many terminals cannot answer
-  OSC 52 reads, and waiting for them stalls every paste. Paste from the
-  system clipboard with the terminal's own paste instead (mintty: Shift+Insert;
-  copying needs "AllowSetSelection=yes" in ~/.minttyrc). tmux's clipboard is
-  not available. |:checkhealth| wgvim shows which applies.
+  display server, which the sandbox refuses. On a local desktop
+  ($WAYLAND_DISPLAY or $DISPLAY set, not over SSH) wgvim starts a clipboard
+  helper just before the sandbox is applied. The helper is not confined by
+  Landlock and may connect, and does one thing: it runs the fixed copy or
+  paste command of the tool it found (wl-copy/wl-paste, else xclip, else xsel)
+  for "+" or "*" with the text it is given. The tool is looked up once, at
+  startup, and is not used if it is in a directory the sandbox can write to
+  (such as a project directory in $PATH), since a sandboxed program could have
+  put it there. The editor can only ask it to set or read the clipboard. Over
+  SSH, copying uses OSC 52 (|clipboard-osc52|), and pasting "+" returns what
+  was last copied in wgvim: many terminals cannot answer OSC 52 reads, and
+  waiting for them stalls every paste. Paste from the system clipboard with
+  the terminal's own paste instead (mintty: Shift+Insert; copying needs
+  "AllowSetSelection=yes" in ~/.minttyrc). tmux's clipboard is not available.
+  |:checkhealth| wgvim shows which applies.
 - Child programs get $TMPDIR set to the temp directory above, because "/tmp"
   itself is not writable (compilers and clangd write temporary files there).
 - Swap, undo and backup files are written to their default directories in
@@ -161,6 +180,43 @@ Things that work differently ~
   an index for a project whose root is above the current directory is not
   saved.
 
+                                                *wgvim-sandbox-git*
+The project's ".git" directory stays writable, like the rest of the project.
+Git runs commands named in ".git/config" (core.pager, core.fsmonitor,
+aliases, filters, credential helpers) and the scripts in the hooks directory,
+and it runs them outside the sandbox, the next time you use git there: a
+plain "git status", which many shell prompts run on their own, is enough. So
+a sandboxed program that wrote there would get out of the sandbox later.
+Landlock cannot make one subdirectory read-only inside a writable tree, so
+wgvim cannot prevent the write. It detects it instead:
+
+- At startup, before the sandbox is applied, wgvim starts a small watcher
+  process outside it. It records ".git/config", ".git/config.worktree", the
+  hooks, a "core.hooksPath" directory (such as ".husky" or ".githooks"),
+  files named by "include.path", and the same for submodules and linked
+  worktrees. It only reads them (never following symlinks); it runs nothing.
+- When wgvim exits, the watcher compares, and prints to the terminal each
+  file that was added, removed or changed, with the lines added to a config
+  file. Names and lines are printed with control characters replaced.
+- Sandboxed programs cannot trace or (from Linux 6.12) signal the watcher.
+  On older kernels they could kill it; wgvim then says at exit that the
+  check did not run.
+
+If you see the warning and did not make the change yourself (git remote add,
+git branch -u and installing hooks all change these files), check the listed
+files before you run git in that project again, e.g. with
+"git config --list --show-origin" and "ls -la .git/hooks". The warning does
+not stop the change, and it only comes at exit: git run in another terminal
+while wgvim is open is not protected. |:checkhealth| wgvim shows what is
+watched. Only the repository in the working directory is watched (not other
+repositories below it), and only when wgvim is not running with |--embed|
+behind another UI.
+
+Some files in the project itself also run outside the sandbox, at your
+request rather than git's: build scripts, and hook frameworks (husky,
+pre-commit, lint-staged) that run project scripts from a hook. Review changes
+to those as you would any change to the code.
+
 Limits ~
 - Landlock needs Linux 5.13 or later; on RHEL 9 it is available from 9.6.
   On a kernel without it, wgvim starts unconfined unless "--sandbox require"
@@ -174,6 +230,9 @@ Limits ~
   show as a number in "ls -l"), or logging to syslog. Python's
   multiprocessing needs "/dev/shm", which is not allowed.
 - The system call filter is built for x86-64 and AArch64 only.
+- ".git" is writable; changes to it are reported at exit, not prevented
+  (|wgvim-sandbox-git|).
+- The terminal UI process may connect() to sockets (|wgvim-sandbox-tui|).
 - The policy is fixed at startup. A directory created later, or a file named
   in |:cd|, |:e| or a plugin, gets no extra access.
 

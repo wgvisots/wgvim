@@ -761,6 +761,9 @@ void os_exit(int r)
     ml_close_all(true);  // remove all memfiles
   }
 
+  // wgvim: after the TUI has restored the terminal, so the .git watch report stays visible.
+  landlock_git_check();
+
   ILOG("wgvim exit: %d", r);
 
 #ifdef EXITFREE
