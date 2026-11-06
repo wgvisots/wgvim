@@ -47,26 +47,27 @@ local function run(script, opts)
     local quoted = vim.tbl_map(vim.fn.shellescape, cmd)
     cmd = { 'script', '-qec', table.concat(quoted, ' '), '/dev/null' }
   end
-  local r = vim
-    .system(cmd, {
-      cwd = cwd,
-      env = {
-        WGVIM_SANDBOX = opts.sandbox or 'on',
-        HOME = home,
-        XDG_CONFIG_HOME = home .. '/.config',
-        XDG_DATA_HOME = home .. '/.local/share',
-        XDG_STATE_HOME = home .. '/.local/state',
-        XDG_CACHE_HOME = home .. '/.cache',
-        TMPDIR = root .. '/tmp',
-        VIMRUNTIME = t.paths.test_source_path .. '/runtime',
-        PATH = opts.path_prefix and (opts.path_prefix .. ':' .. os.getenv('PATH')) or nil,
-        WAYLAND_DISPLAY = opts.wayland,
-        SSH_TTY = opts.ssh_tty,
-        TERM = opts.tui and 'xterm' or nil,
-      },
-      text = true,
-    })
-    :wait(60000)
+  local job = vim.system(cmd, {
+    cwd = cwd,
+    -- Kept open for script(1): some versions stop the session when their input ends.
+    stdin = opts.tui or nil,
+    env = {
+      WGVIM_SANDBOX = opts.sandbox or 'on',
+      HOME = home,
+      XDG_CONFIG_HOME = home .. '/.config',
+      XDG_DATA_HOME = home .. '/.local/share',
+      XDG_STATE_HOME = home .. '/.local/state',
+      XDG_CACHE_HOME = home .. '/.cache',
+      TMPDIR = root .. '/tmp',
+      VIMRUNTIME = t.paths.test_source_path .. '/runtime',
+      PATH = opts.path_prefix and (opts.path_prefix .. ':' .. os.getenv('PATH')) or nil,
+      WAYLAND_DISPLAY = opts.wayland,
+      SSH_TTY = opts.ssh_tty,
+      TERM = opts.tui and 'xterm' or nil,
+    },
+    text = true,
+  })
+  local r = job:wait(60000)
   return r.stdout, r.stderr, r.code
 end
 
@@ -324,7 +325,7 @@ describe('sandbox', function()
     vim.uv.fs_chmod(root .. '/bin/wl-copy', 493)
     vim.uv.fs_chmod(root .. '/bin/wl-paste', 493)
     write(store, 'from the desktop')
-    run(
+    local out, err, code = run(
       [[
       local before = vim.fn.getreg('+')
       local ok, err = pcall(vim.fn.setreg, '+', 'yanked in wgvim')
@@ -333,7 +334,11 @@ describe('sandbox', function()
     ]],
       { path_prefix = root .. '/bin', wayland = 'wayland-test', tui = true }
     )
-    local r = vim.json.decode(t.read_file(proj .. '/result.json'))
+    local result = t.read_file(proj .. '/result.json')
+    if result == nil then
+      error(('no result; exit %s, stderr: %s, stdout: %s'):format(code, err, out:sub(-2000)))
+    end
+    local r = vim.json.decode(result)
     eq('from the desktop', r[1])
     eq(true, r[2], r[3])
     eq('[]\n', r[4]) -- not passed on to the editor's own children
