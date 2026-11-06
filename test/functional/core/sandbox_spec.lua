@@ -64,6 +64,7 @@ local function run(script, opts)
       WAYLAND_DISPLAY = opts.wayland,
       SSH_TTY = opts.ssh_tty,
       TERM = opts.tui and 'xterm' or nil,
+      SHELL = opts.tui and '/bin/sh' or nil, -- script(1) runs the command with $SHELL
     },
     text = true,
   })
