@@ -23,7 +23,10 @@ local function run(script, opts)
   opts = opts or {}
   local cwd = opts.cwd or proj
   write(cwd .. '/_test.lua', script)
-  local cmd = { n.nvim_prog, '--headless' }
+  local cmd = { n.nvim_prog }
+  if not opts.tui then
+    cmd[#cmd + 1] = '--headless'
+  end
   if opts.clean ~= false then
     cmd[#cmd + 1] = '--clean'
   end
@@ -39,6 +42,11 @@ local function run(script, opts)
     vim.list_extend(cmd, { '-c', 'luafile _test2.lua' })
   end
   vim.list_extend(cmd, { '-c', 'qa!' })
+  if opts.tui then
+    -- The terminal UI, in a pseudo-terminal: a TUI process that starts the editor process.
+    local quoted = vim.tbl_map(vim.fn.shellescape, cmd)
+    cmd = { 'script', '-qec', table.concat(quoted, ' '), '/dev/null' }
+  end
   local r = vim
     .system(cmd, {
       cwd = cwd,
@@ -54,6 +62,7 @@ local function run(script, opts)
         PATH = opts.path_prefix and (opts.path_prefix .. ':' .. os.getenv('PATH')) or nil,
         WAYLAND_DISPLAY = opts.wayland,
         SSH_TTY = opts.ssh_tty,
+        TERM = opts.tui and 'xterm' or nil,
       },
       text = true,
     })
@@ -301,6 +310,34 @@ describe('sandbox', function()
     eq({ 'from the desktop' }, r[3])
     eq({ 'yanked', 'in wgvim', '' }, r[4])
     matches('^yanked\nin wgvim', t.read_file(store))
+  end)
+
+  it('clipboard: the helper works with the terminal UI too', function()
+    local i = skip_unless_active()
+    t.skip(not i.seccomp, 'no system call filter on this platform')
+    t.skip(vim.fn.executable('script') == 0, 'needs script(1)')
+    -- The TUI process is confined before it starts the editor process, so a helper forked by
+    -- the editor process would be confined too, and could not reach the store.
+    local store = root .. '/clipboard'
+    write(root .. '/bin/wl-copy', '#!/bin/sh\ncat > ' .. store .. '\n')
+    write(root .. '/bin/wl-paste', '#!/bin/sh\ncat ' .. store .. '\n')
+    vim.uv.fs_chmod(root .. '/bin/wl-copy', 493)
+    vim.uv.fs_chmod(root .. '/bin/wl-paste', 493)
+    write(store, 'from the desktop')
+    run(
+      [[
+      local before = vim.fn.getreg('+')
+      local ok, err = pcall(vim.fn.setreg, '+', 'yanked in wgvim')
+      local child = vim.fn.system({ 'sh', '-c', 'echo "[$WGVIM_CLIPBOARD_FD]"' })
+      vim.fn.writefile({ vim.json.encode({ before, ok, tostring(err), child }) }, 'result.json')
+    ]],
+      { path_prefix = root .. '/bin', wayland = 'wayland-test', tui = true }
+    )
+    local r = vim.json.decode(t.read_file(proj .. '/result.json'))
+    eq('from the desktop', r[1])
+    eq(true, r[2], r[3])
+    eq('[]\n', r[4]) -- not passed on to the editor's own children
+    eq('yanked in wgvim', t.read_file(store))
   end)
 
   it('clipboard: over SSH, copies with OSC 52 and pastes what was copied', function()

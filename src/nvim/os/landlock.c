@@ -725,6 +725,61 @@ static void start_clipboard_helper(void)
   ll.clip_fd = sv[0];
   ll.clip_tool = tool;
 }
+
+# define CLIP_ENV "WGVIM_CLIPBOARD_FD"
+
+/// With a terminal UI, the editor process is started by the UI process, which is already
+/// confined by then, and so would be a helper the editor forked. So the UI process forks the
+/// helper and passes its socket to the editor process: inherited, named in $WGVIM_CLIPBOARD_FD.
+static void pass_clipboard_helper(void)
+{
+  if (ll.clip_fd < 0) {
+    return;
+  }
+  int flags = fcntl(ll.clip_fd, F_GETFD);
+  if (flags < 0 || fcntl(ll.clip_fd, F_SETFD, flags & ~FD_CLOEXEC) != 0) {
+    return;
+  }
+  char buf[64];
+  snprintf(buf, sizeof(buf), "%d:%s", ll.clip_fd, ll.clip_tool);
+  os_setenv(CLIP_ENV, buf, 1);
+}
+
+/// In the editor process: takes the helper socket passed by the UI process, if any.
+static bool take_clipboard_helper(void)
+{
+  const char *v = os_getenv_noalloc(CLIP_ENV);
+  if (v == NULL) {
+    return false;
+  }
+  char *val = xstrdup(v);
+  os_unsetenv(CLIP_ENV);  // not for the editor's own children
+  bool ok = false;
+  char *colon = strchr(val, ':');
+  if (colon != NULL) {
+    *colon = NUL;
+    char *end;
+    long fd = strtol(val, &end, 10);
+    static const char *const tools[] = { "wl-clipboard", "xclip", "xsel" };
+    const char *tool = NULL;
+    for (size_t i = 0; i < ARRAY_SIZE(tools); i++) {
+      if (strcmp(colon + 1, tools[i]) == 0) {
+        tool = tools[i];
+      }
+    }
+    struct stat st;
+    // Only an inherited socket: not some other file that happens to have that number.
+    if (*end == NUL && end != val && fd > 2 && fd < INT_MAX && tool != NULL
+        && fstat((int)fd, &st) == 0 && S_ISSOCK(st.st_mode)
+        && fcntl((int)fd, F_SETFD, FD_CLOEXEC) == 0) {
+      ll.clip_fd = (int)fd;
+      ll.clip_tool = tool;
+      ok = true;
+    }
+  }
+  xfree(val);
+  return ok;
+}
 #endif
 
 /// Copies `data` to (or, with `paste`, reads) register "+" or "*" through the clipboard helper.
@@ -984,8 +1039,12 @@ void landlock_init(const char *mode, char **allow_rw, int n_rw, char **allow_ro,
     xfree(temp_root);
     goto done;
   }
-  // The editor process (not the TUI) gets a clipboard helper, forked before the restrictions.
-  if (!tui) {
+  // The clipboard helper is forked before the restrictions: by the TUI process, which passes it
+  // to the editor process it starts; or by the editor process when there is no TUI.
+  if (tui) {
+    start_clipboard_helper();
+    pass_clipboard_helper();
+  } else if (!take_clipboard_helper()) {
     start_clipboard_helper();
   }
   // From here on, setuid programs (sudo, su) cannot gain privileges; Landlock requires this.
