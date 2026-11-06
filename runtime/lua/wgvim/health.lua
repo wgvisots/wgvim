@@ -3,14 +3,20 @@
 local M = {}
 
 -- Whether a file can be created in `dir`: tried for real, because access() does not see Landlock.
+-- Created exclusively (O_EXCL), so that an existing file or symlink of that name in a shared
+-- directory is never opened, let alone truncated.
 local function can_create(dir)
-  local probe = ('%s/.wgvim-health-%d'):format(dir, vim.uv.os_getpid())
-  local f = io.open(probe, 'w')
-  if not f then
+  local probe = ('%s/.wgvim-health-%d-%08x'):format(
+    dir,
+    vim.uv.os_getpid(),
+    math.random(0, 0x7fffffff)
+  )
+  local fd = vim.uv.fs_open(probe, 'wx', 384) -- O_WRONLY|O_CREAT|O_EXCL, mode 0600
+  if not fd then
     return false
   end
-  f:close()
-  os.remove(probe)
+  vim.uv.fs_close(fd)
+  vim.uv.fs_unlink(probe)
   return true
 end
 
@@ -94,6 +100,14 @@ function M.check()
     health.ok('Clipboard helper: ' .. i.clipboard .. ' (runs outside the sandbox, copy/paste only)')
   elseif i.seccomp and not i.connect then
     health.info('No clipboard helper: copying uses OSC 52 when available (see :help wgvim-sandbox)')
+  end
+  if (i.git_watch or '') ~= '' then
+    health.ok(
+      ('Watching %d git files in %s for changes (:help wgvim-sandbox-git)'):format(
+        i.git_watch_files,
+        i.git_watch
+      )
+    )
   end
   if i.scoped then
     health.ok('Signals and abstract Unix sockets outside the sandbox are blocked')

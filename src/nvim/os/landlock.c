@@ -21,6 +21,7 @@
 #include "nvim/arglist_defs.h"
 #include "nvim/ascii_defs.h"
 #include "nvim/buffer_defs.h"
+#include "nvim/charset.h"
 #include "nvim/fileio.h"
 #include "nvim/globals.h"
 #include "nvim/log.h"
@@ -33,9 +34,11 @@
 #include "nvim/os/stdpaths_defs.h"
 #include "nvim/path.h"
 #include "nvim/runtime.h"
+#include "nvim/sha256.h"
 
 #ifdef __linux__
 # include <dirent.h>
+# include <strings.h>
 # include <fcntl.h>
 # include <linux/audit.h>
 # include <linux/filter.h>
@@ -119,6 +122,20 @@ typedef struct {
   bool ok;
   const char *error;   // reason when not ok
 } LLRule;
+
+// A file of the .git watch (|wgvim-sandbox-git|), and a record of them.
+#define GIT_MAX_FILES 1024
+typedef struct {
+  char *path;                       // absolute
+  uint8_t digest[SHA256_SUM_SIZE];  // file type and mode, and contents or symlink target
+  char *text;                       // a config file's contents, for the report; or NULL
+} GitFile;
+
+typedef struct {
+  GitFile f[GIT_MAX_FILES];
+  int n;
+} GitSnap;
+
 
 static struct {
   LandlockStatus status;
@@ -559,9 +576,14 @@ static const char **clip_argv(const char *tool, bool paste, bool primary)
   return paste ? (primary ? xs_pp : xs_p) : (primary ? xs_cp : xs_c);
 }
 
-/// Runs argv with `in` on its stdin; collects stdout into *out (malloc'd) for paste.
-static bool clip_run(const char **argv, const char *in, size_t in_len, char **out,
-                     size_t *out_len)
+// Absolute paths of the copy and paste programs, resolved once before the sandbox is applied.
+static char *clip_copy_prog = NULL;
+static char *clip_paste_prog = NULL;
+
+/// Runs `prog` with argv (argv[0] is only its name) and `in` on its stdin; collects stdout into
+/// *out (malloc'd) for paste.
+static bool clip_run(const char *prog, const char **argv, const char *in, size_t in_len,
+                     char **out, size_t *out_len)
 {
   int ip[2], op[2];
   if (pipe2(ip, O_CLOEXEC) != 0) {
@@ -582,7 +604,9 @@ static bool clip_run(const char **argv, const char *in, size_t in_len, char **ou
   posix_spawn_file_actions_addclose(&fa, ip[1]);
   posix_spawn_file_actions_addclose(&fa, op[0]);
   pid_t pid;
-  int rc = posix_spawnp(&pid, argv[0], &fa, NULL, (char **)argv, environ);
+  // posix_spawn with the path resolved at startup, not posix_spawnp: a $PATH lookup now could
+  // find a program planted since then in a directory the sandbox can write to.
+  int rc = posix_spawn(&pid, prog, &fa, NULL, (char **)argv, environ);
   posix_spawn_file_actions_destroy(&fa);
   if (rc != 0) {
     close(ip[0]); close(ip[1]); close(op[0]); close(op[1]);
@@ -656,8 +680,8 @@ static void clip_helper_main(int fd, const char *tool)
     }
     char *out = NULL;
     size_t out_len = 0;
-    bool ok = clip_run(clip_argv(tool, paste, primary), paste ? NULL : data, paste ? 0 : len,
-                       paste ? &out : NULL, &out_len);
+    bool ok = clip_run(paste ? clip_paste_prog : clip_copy_prog, clip_argv(tool, paste, primary),
+                       paste ? NULL : data, paste ? 0 : len, paste ? &out : NULL, &out_len);
     free(data);  // NOLINT
     uint32_t rlen = ok ? (uint32_t)out_len : CLIP_FAIL;
     if (!full_io(fd, &rlen, 4, false) || (ok && out_len && !full_io(fd, out, out_len, false))) {
@@ -665,6 +689,66 @@ static void clip_helper_main(int fd, const char *tool)
     }
     free(out);  // NOLINT
   }
+}
+
+/// The path of the read-write rule that `real` (a realpath) is in or under, or NULL: a place
+/// sandboxed processes can write to.
+static const char *writable_rule(const char *real)
+{
+  for (int i = 0; i < ll.nrules; i++) {
+    const char *k = ll.rules[i].access;
+    if (strcmp(k, "rw") != 0 && strcmp(k, "rwx") != 0) {
+      continue;
+    }
+    char *r = real_path(ll.rules[i].path);
+    bool inside = r != NULL && path_within(real, r);
+    xfree(r);
+    if (inside) {
+      return ll.rules[i].path;
+    }
+  }
+  return NULL;
+}
+
+/// The absolute path of clipboard program `name`, or NULL. The helper runs it outside the
+/// sandbox, so it must not be in a directory that sandboxed processes can write to (the project,
+/// the temp root, stdpath() "state" and "cache", --sandbox-allow paths, ...): a program planted
+/// there, e.g. in a project directory that is in $PATH, would otherwise run unconfined.
+static char *clip_tool_path(const char *name)
+{
+  char *abs = NULL;
+  if (!os_can_exe(name, &abs, true) || abs == NULL) {
+    xfree(abs);
+    return NULL;
+  }
+  char *real = real_path(abs);
+  xfree(abs);
+  if (real == NULL) {
+    return NULL;
+  }
+  const char *rule = writable_rule(real);
+  if (rule != NULL) {
+    WLOG("sandbox: not using %s for the clipboard: it is in a writable directory (%s)", real,
+         rule);
+    xfree(real);
+    return NULL;
+  }
+  return real;
+}
+
+/// Chooses the clipboard programs: `copy` and `paste` names; both must be usable.
+static bool clip_choose(const char *copy, const char *paste)
+{
+  char *c = clip_tool_path(copy);
+  char *p = c != NULL ? clip_tool_path(paste) : NULL;
+  if (c == NULL || p == NULL) {
+    xfree(c);
+    xfree(p);
+    return false;
+  }
+  clip_copy_prog = c;
+  clip_paste_prog = p;
+  return true;
 }
 
 /// Starts the clipboard helper, if there is a local display and a clipboard tool.
@@ -676,12 +760,11 @@ static void start_clipboard_helper(void)
   const char *wl = getenv("WAYLAND_DISPLAY");
   const char *x = getenv("DISPLAY");
   const char *tool = NULL;
-  if (wl != NULL && *wl != NUL && os_can_exe("wl-copy", NULL, true)
-      && os_can_exe("wl-paste", NULL, true)) {
+  if (wl != NULL && *wl != NUL && clip_choose("wl-copy", "wl-paste")) {
     tool = "wl-clipboard";
-  } else if (x != NULL && *x != NUL && os_can_exe("xclip", NULL, true)) {
+  } else if (x != NULL && *x != NUL && clip_choose("xclip", "xclip")) {
     tool = "xclip";
-  } else if (x != NULL && *x != NUL && os_can_exe("xsel", NULL, true)) {
+  } else if (x != NULL && *x != NUL && clip_choose("xsel", "xsel")) {
     tool = "xsel";
   }
   if (tool == NULL) {
@@ -699,6 +782,10 @@ static void start_clipboard_helper(void)
   }
   if (pid == 0) {
     prctl(PR_SET_PDEATHSIG, SIGTERM);
+    // Not in the project: the clipboard programs then never see it as their working directory.
+    if (chdir("/") != 0) {
+      _exit(1);
+    }
     // Drop the editor's signal handlers: libuv's would write into its signal pipe's file
     // descriptor number, which here belongs to a clipboard tool's pipe.
     for (int sig = 1; sig < NSIG; sig++) {
@@ -779,6 +866,448 @@ static bool take_clipboard_helper(void)
   }
   xfree(val);
   return ok;
+}
+#endif
+
+#ifdef __linux__
+# define GIT_WATCH_ENV "WGVIM_GIT_WATCH"
+
+// The .git watch (|wgvim-sandbox-git|).
+//
+// The project is writable inside the sandbox, and so is its .git. Git runs commands named in
+// .git/config (core.fsmonitor, core.pager, aliases, filters, ...) and the hooks, outside the
+// sandbox and often without being asked to: a shell prompt that shows the branch runs git status.
+// Landlock cannot make .git read-only inside a writable project, so instead a watcher process
+// records those files at startup and, when wgvim exits, reports any that changed.
+//
+// The watcher is forked before the sandbox is applied, so it is outside every sandbox domain:
+// sandboxed processes cannot ptrace it (Landlock), nor signal it (Landlock ABI 6), and on older
+// kernels, where they could kill it, the process that started it says so at exit. It only reads
+// files (never following symlinks) and writes its report to stderr; it runs nothing.
+
+# define GIT_MAX_TEXT (256 * 1024)   // config files kept for the report
+# define GIT_MAX_HASH (16u << 20)    // bytes hashed per file
+
+static pid_t git_watch_pid = 0;  // the watcher, in the process that started it
+static int git_watch_fd = -1;    // its socket: EOF tells it that wgvim exits
+static char *git_watch_root = NULL;  // the project it watches (also for :checkhealth)
+static int git_watch_nfiles = -1;    // files it recorded
+
+static void git_add(GitSnap *s, const char *path, bool keep_text)
+{
+  struct stat st;
+  if (s->n >= GIT_MAX_FILES || lstat(path, &st) != 0) {
+    return;
+  }
+  for (int i = 0; i < s->n; i++) {
+    if (strcmp(s->f[i].path, path) == 0) {
+      return;
+    }
+  }
+  context_sha256_T ctx;
+  sha256_start(&ctx);
+  uint32_t mode = (uint32_t)st.st_mode;
+  sha256_update(&ctx, (uint8_t *)&mode, sizeof(mode));
+  char *text = NULL;
+  if (S_ISLNK(st.st_mode)) {
+    char t[4096];
+    ssize_t n = readlink(path, t, sizeof(t));
+    sha256_update(&ctx, (uint8_t *)t, n > 0 ? (size_t)n : 0);
+  } else if (S_ISREG(st.st_mode)) {
+    int fd = open(path, O_RDONLY | O_CLOEXEC | O_NOFOLLOW | O_NONBLOCK);
+    if (fd >= 0) {
+      size_t total = 0;
+      size_t cap = keep_text ? GIT_MAX_TEXT : 0;
+      text = keep_text ? xmalloc(cap + 1) : NULL;
+      uint8_t buf[8192];
+      ssize_t n;
+      while (total < GIT_MAX_HASH && (n = read(fd, buf, sizeof(buf))) > 0) {
+        sha256_update(&ctx, buf, (size_t)n);
+        if (text != NULL && total < cap) {
+          size_t k = MIN((size_t)n, cap - total);
+          memcpy(text + total, buf, k);
+        }
+        total += (size_t)n;
+      }
+      close(fd);
+      if (text != NULL) {
+        text[MIN(total, cap)] = NUL;
+      }
+    }
+  }
+  GitFile *f = &s->f[s->n++];
+  sha256_finish(&ctx, f->digest);
+  f->path = xstrdup(path);
+  f->text = text;
+}
+
+/// Adds the entries of directory `dir` (and of its subdirectories, one level: husky keeps its
+/// hook runner in one).
+static void git_add_dir(GitSnap *s, const char *dir, int depth)
+{
+  DIR *d = opendir(dir);
+  struct dirent *e;
+  while (d != NULL && (e = readdir(d)) != NULL) {
+    if (strcmp(e->d_name, ".") == 0 || strcmp(e->d_name, "..") == 0) {
+      continue;
+    }
+    char *p = join_path(dir, e->d_name);
+    struct stat st;
+    git_add(s, p, false);
+    if (depth == 0 && lstat(p, &st) == 0 && S_ISDIR(st.st_mode)) {
+      git_add_dir(s, p, 1);
+    }
+    xfree(p);
+  }
+  if (d != NULL) {
+    closedir(d);
+  }
+}
+
+/// Calls `fn` for each value of `key` (lowercase) in sections named `section` (lowercase, or a
+/// prefix ending in '*') of git config text. Enough of git's syntax for hooksPath and includes.
+static void git_config_values(const char *text, const char *section, const char *key,
+                              void (*fn)(const char *value, void *data), void *data)
+{
+  char sec[64] = "";
+  const char *p = text;
+  while (p != NULL && *p != NUL) {
+    const char *eol = strchr(p, '\n');
+    size_t len = eol ? (size_t)(eol - p) : strlen(p);
+    char line[1024];
+    len = MIN(len, sizeof(line) - 1);
+    memcpy(line, p, len);
+    line[len] = NUL;
+    p = eol ? eol + 1 : NULL;
+    char *l = skipwhite(line);
+    if (*l == '[') {
+      // "[core]", "[includeIf \"gitdir:...\"]": the name up to a space, '.' or ']'
+      size_t k = 0;
+      for (l++; *l != NUL && *l != ']' && *l != ' ' && *l != '\t' && *l != '.'
+           && k < sizeof(sec) - 1; l++) {
+        sec[k++] = (char)TOLOWER_ASC(*l);
+      }
+      sec[k] = NUL;
+      continue;
+    }
+    size_t slen = strlen(section);
+    bool match = section[slen - 1] == '*' ? strncmp(sec, section, slen - 1) == 0
+                                           : strcmp(sec, section) == 0;
+    if (!match) {
+      continue;
+    }
+    char *eq = strchr(l, '=');
+    if (eq == NULL) {
+      continue;
+    }
+    char *kend = eq;
+    while (kend > l && (kend[-1] == ' ' || kend[-1] == '\t')) {
+      kend--;
+    }
+    if ((size_t)(kend - l) != strlen(key) || strncasecmp(l, key, strlen(key)) != 0) {
+      continue;
+    }
+    char *v = skipwhite(eq + 1);
+    char *end;
+    if (*v == '"') {
+      v++;
+      end = strchr(v, '"');
+    } else {
+      end = v + strcspn(v, "#;");
+    }
+    if (end == NULL) {
+      end = v + strlen(v);
+    }
+    while (end > v && (end[-1] == ' ' || end[-1] == '\t' || end[-1] == '\r')) {
+      end--;
+    }
+    *end = NUL;
+    if (*v != NUL) {
+      fn(v, data);
+    }
+  }
+}
+
+typedef struct {
+  GitSnap *s;
+  const char *base;  // relative paths are relative to this
+  bool dir;          // add a directory's entries (hooksPath), or one file (include.path)
+} GitValueCtx;
+
+static void git_value_path(const char *value, void *data)
+{
+  GitValueCtx *c = data;
+  char *p;
+  if (value[0] == '~' && value[1] == '/') {
+    const char *home = os_getenv_noalloc("HOME");
+    p = join_path(home ? home : "/", value + 2);
+  } else {
+    p = value[0] == '/' ? xstrdup(value) : join_path(c->base, value);
+  }
+  if (c->dir) {
+    git_add_dir(c->s, p, 0);
+  } else {
+    git_add(c->s, p, true);
+  }
+  xfree(p);
+}
+
+/// Adds what git takes commands from in git directory `gitdir` (of the worktree `worktree`).
+static void git_collect(GitSnap *s, const char *gitdir, const char *worktree, int depth)
+{
+  int first = s->n;
+  static const char *const configs[] = { "config", "config.worktree" };
+  for (size_t i = 0; i < ARRAY_SIZE(configs); i++) {
+    char *p = join_path(gitdir, configs[i]);
+    git_add(s, p, true);
+    xfree(p);
+  }
+  char *hooks = join_path(gitdir, "hooks");
+  git_add_dir(s, hooks, 0);
+  xfree(hooks);
+  // core.hooksPath (often a directory in the project: .husky, .githooks) and included files.
+  for (int i = first; i < s->n && i < first + 2; i++) {
+    if (s->f[i].text != NULL) {
+      GitValueCtx hc = { s, worktree, true };
+      git_config_values(s->f[i].text, "core", "hookspath", git_value_path, &hc);
+      GitValueCtx ic = { s, gitdir, false };
+      git_config_values(s->f[i].text, "include", "path", git_value_path, &ic);
+      git_config_values(s->f[i].text, "includeif*", "path", git_value_path, &ic);
+    }
+  }
+  if (depth < 4) {
+    // Submodules (and theirs), and the per-worktree config of linked worktrees.
+    static const char *const subs[] = { "modules", "worktrees" };
+    for (size_t i = 0; i < ARRAY_SIZE(subs); i++) {
+      char *dir = join_path(gitdir, subs[i]);
+      DIR *d = opendir(dir);
+      struct dirent *e;
+      while (d != NULL && (e = readdir(d)) != NULL) {
+        if (e->d_name[0] != '.') {
+          char *g = join_path(dir, e->d_name);
+          git_collect(s, g, worktree, depth + 1);
+          xfree(g);
+        }
+      }
+      if (d != NULL) {
+        closedir(d);
+      }
+      xfree(dir);
+    }
+  }
+}
+
+static GitSnap *git_snapshot(const char *root)
+{
+  GitSnap *s = xcalloc(1, sizeof(GitSnap));
+  char *gitdir = join_path(root, ".git");
+  git_collect(s, gitdir, root, 0);
+  xfree(gitdir);
+  return s;
+}
+
+static const GitFile *git_find(const GitSnap *s, const char *path)
+{
+  for (int i = 0; i < s->n; i++) {
+    if (strcmp(s->f[i].path, path) == 0) {
+      return &s->f[i];
+    }
+  }
+  return NULL;
+}
+
+/// Writes `str` to stderr with anything but printable ASCII and tabs replaced by '?': names and
+/// lines from the project must not carry escape sequences to the terminal.
+static void git_put(const char *str, size_t max)
+{
+  char buf[256];
+  size_t k = 0;
+  for (; *str != NUL && k < max && k < sizeof(buf) - 1; str++) {
+    unsigned char c = (unsigned char)(*str);
+    buf[k++] = (c == '\t' || (c >= 0x20 && c < 0x7f)) ? (char)c : '?';
+  }
+  buf[k] = NUL;
+  fputs(buf, stderr);
+}
+
+/// Prints the lines of `now` that are not in `before` (at most 10).
+static void git_put_added_lines(const char *before, const char *now)
+{
+  int shown = 0;
+  const char *p = now;
+  while (p != NULL && *p != NUL && shown < 10) {
+    const char *eol = strchr(p, '\n');
+    size_t len = eol ? (size_t)(eol - p) : strlen(p);
+    char line[512];
+    size_t k = MIN(len, sizeof(line) - 1);
+    memcpy(line, p, k);
+    line[k] = NUL;
+    p = eol ? eol + 1 : NULL;
+    bool old = false;
+    for (const char *q = before ? before : ""; *q != NUL && !old;) {
+      const char *qe = strchr(q, '\n');
+      size_t ql = qe ? (size_t)(qe - q) : strlen(q);
+      old = ql == len && strncmp(q, line, len) == 0;
+      q = qe ? qe + 1 : q + ql;
+    }
+    if (!old && *skipwhite(line) != NUL) {
+      fputs("             + ", stderr);
+      git_put(line, 120);
+      fputs("\n", stderr);
+      shown++;
+    }
+  }
+}
+
+static void git_report(const GitSnap *before, const GitSnap *now, const char *root)
+{
+  bool header = false;
+  for (int pass = 0; pass < 2; pass++) {
+    const GitSnap *a = pass == 0 ? now : before;
+    const GitSnap *b = pass == 0 ? before : now;
+    for (int i = 0; i < a->n; i++) {
+      const GitFile *f = &a->f[i];
+      const GitFile *other = git_find(b, f->path);
+      const char *what = other == NULL ? (pass == 0 ? "added" : "removed")
+                         : (pass == 0 && memcmp(other->digest, f->digest, SHA256_SUM_SIZE) != 0)
+                         ? "changed" : NULL;
+      if (what == NULL) {
+        continue;
+      }
+      if (!header) {
+        fputs("\nwgvim: while wgvim ran, these files changed that git takes commands from, and "
+              "runs outside the sandbox (in ", stderr);
+        git_put(root, 200);
+        fputs("):\n", stderr);
+        header = true;
+      }
+      const char *rel = f->path;
+      if (path_within(f->path, root) && f->path[strlen(root)] == '/') {
+        rel = f->path + strlen(root) + 1;
+      }
+      fprintf(stderr, "  %-9s  ", what);
+      git_put(rel, 200);
+      fputs("\n", stderr);
+      if (pass == 0 && f->text != NULL) {
+        git_put_added_lines(other != NULL ? other->text : NULL, f->text);
+      }
+    }
+  }
+  if (header) {
+    fputs("If you made these changes yourself (git remote add, git branch -u, installing hooks), "
+          "there is nothing to do. Otherwise check them before you run git there again "
+          "(:help wgvim-sandbox-git).\n", stderr);
+  }
+}
+
+/// The watcher: records, waits for wgvim to exit (EOF on `fd`), compares, reports.
+static void git_watch_main(int fd, const char *root)
+  FUNC_ATTR_NORETURN
+{
+  GitSnap *before = git_snapshot(root);
+  int32_t n = before->n;
+  if (write(fd, &n, sizeof(n)) != (ssize_t)sizeof(n)) {
+    _exit(1);
+  }
+  char c;
+  ssize_t r;
+  while ((r = read(fd, &c, 1)) != 0) {
+    if (r < 0 && errno != EINTR) {
+      break;
+    }
+  }
+  GitSnap *now = git_snapshot(root);
+  git_report(before, now, root);
+  fflush(stderr);
+  _exit(0);
+}
+
+/// Starts the watcher for the working directory's repository, if it has one that the sandbox can
+/// write to. Call before the restrictions, in the outermost wgvim process.
+static void git_watch_start(void)
+{
+  char *root = real_path(".");
+  if (root == NULL) {
+    return;
+  }
+  char *dotgit = join_path(root, ".git");
+  struct stat st;
+  bool ok = lstat(dotgit, &st) == 0 && S_ISDIR(st.st_mode) && writable_rule(root) != NULL;
+  xfree(dotgit);
+  int sv[2];
+  if (!ok || socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sv) != 0) {
+    xfree(root);
+    return;
+  }
+  pid_t pid = fork();
+  if (pid < 0) {
+    close(sv[0]);
+    close(sv[1]);
+    xfree(root);
+    return;
+  }
+  if (pid == 0) {
+    for (int sig = 1; sig < NSIG; sig++) {
+      signal(sig, SIG_DFL);
+    }
+    // Survive a stray Ctrl-C, and still write the report after wgvim exits, when the shell
+    // has taken the terminal back (with "stty tostop", SIGTTOU would stop it).
+    signal(SIGINT, SIG_IGN);
+    signal(SIGQUIT, SIG_IGN);
+    signal(SIGPIPE, SIG_IGN);
+    signal(SIGTTOU, SIG_IGN);
+    sigset_t none;
+    sigemptyset(&none);
+    sigprocmask(SIG_SETMASK, &none, NULL);
+    int null = open("/dev/null", O_RDWR);
+    dup2(null, 0);
+    dup2(null, 1);  // stderr (2) stays: the report goes there
+    dup2(sv[1], 3);
+    for (int i = 4; i < 1024; i++) {
+      close(i);
+    }
+    if (chdir("/") != 0) {
+      _exit(1);
+    }
+    git_watch_main(3, root);
+  }
+  close(sv[1]);
+  // The record must exist before anything in the project can run.
+  struct pollfd pfd = { .fd = sv[0], .events = POLLIN };
+  int32_t n = -1;
+  if (poll(&pfd, 1, 5000) != 1 || read(sv[0], &n, sizeof(n)) != (ssize_t)sizeof(n)) {
+    WLOG("sandbox: the .git watch did not start");
+    kill(pid, SIGKILL);
+    waitpid(pid, NULL, 0);
+    close(sv[0]);
+    xfree(root);
+    return;
+  }
+  git_watch_pid = pid;
+  git_watch_fd = sv[0];
+  git_watch_root = root;
+  git_watch_nfiles = n;
+  ILOG("sandbox: watching %d git files in %s", n, root);
+  // For :checkhealth in the editor process the TUI starts (it does not watch itself).
+  char buf[MAXPATHL + 32];
+  snprintf(buf, sizeof(buf), "%d:%s", n, root);
+  os_setenv(GIT_WATCH_ENV, buf, 1);
+}
+
+/// In the editor process started by the TUI: what the TUI's watcher watches, for :checkhealth.
+static void take_git_watch_info(void)
+{
+  const char *v = os_getenv_noalloc(GIT_WATCH_ENV);
+  if (v == NULL) {
+    return;
+  }
+  char *end;
+  long n = strtol(v, &end, 10);
+  if (*end == ':' && end[1] == '/') {
+    git_watch_nfiles = (int)n;
+    git_watch_root = xstrdup(end + 1);
+  }
+  os_unsetenv(GIT_WATCH_ENV);
 }
 #endif
 
@@ -1047,6 +1576,14 @@ void landlock_init(const char *mode, char **allow_rw, int n_rw, char **allow_ro,
   } else if (!take_clipboard_helper()) {
     start_clipboard_helper();
   }
+  // The .git watch belongs to the outermost wgvim process: the TUI process, or the editor
+  // process when no TUI started it. An editor started with --embed by another UI is skipped:
+  // that UI would not show its report.
+  if (tui || !embedded_mode) {
+    git_watch_start();
+  } else {
+    take_git_watch_info();
+  }
   // From here on, setuid programs (sudo, su) cannot gain privileges; Landlock requires this.
   if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) != 0
       || syscall(SYS_landlock_restrict_self, rfd, 0) != 0) {
@@ -1082,11 +1619,39 @@ done:
   }
 }
 
+/// At exit, in the process that started the .git watch: lets the watcher compare and report, and
+/// waits briefly so that its report comes before the shell prompt. Call after the terminal is
+/// restored.
+void landlock_git_check(void)
+{
+#ifdef __linux__
+  if (git_watch_pid <= 0) {
+    return;
+  }
+  pid_t pid = git_watch_pid;
+  git_watch_pid = 0;
+  int st;
+  if (waitpid(pid, &st, WNOHANG) == pid) {
+    // Killed (on kernels without Landlock signal scoping, a sandboxed process could): nothing
+    // was compared, so say so rather than stay silent.
+    fprintf(stderr, "\nwgvim: the .git watch for %s stopped early, so changes to .git/config "
+            "and the git hooks were not checked: check them before you run git there "
+            "(:help wgvim-sandbox-git).\n", git_watch_root);
+    return;
+  }
+  close(git_watch_fd);  // EOF: the watcher compares and reports
+  git_watch_fd = -1;
+  for (int i = 0; i < 150 && waitpid(pid, &st, WNOHANG) == 0; i++) {
+    usleep(20000);
+  }
+#endif
+}
+
 /// Information for :checkhealth and tests (|nvim__sandbox_info()|).
 Dict landlock_info(Arena *arena)
 {
   static const char *const names[] = { "off", "active", "unavailable", "failed" };
-  Dict rv = arena_dict(arena, 11);
+  Dict rv = arena_dict(arena, 13);
   PUT_C(rv, "status", CSTR_AS_OBJ(names[ll.status]));
   PUT_C(rv, "abi", INTEGER_OBJ(ll.abi));
   PUT_C(rv, "reason", CSTR_AS_OBJ(ll.reason ? ll.reason : ""));
@@ -1095,6 +1660,10 @@ Dict landlock_info(Arena *arena)
   PUT_C(rv, "seccomp", BOOLEAN_OBJ(ll.seccomp));
   PUT_C(rv, "connect", BOOLEAN_OBJ(ll.connect));
   PUT_C(rv, "clipboard", CSTR_AS_OBJ(ll.clip_tool ? ll.clip_tool : ""));
+#ifdef __linux__
+  PUT_C(rv, "git_watch", CSTR_AS_OBJ(git_watch_root ? git_watch_root : ""));
+  PUT_C(rv, "git_watch_files", INTEGER_OBJ(git_watch_nfiles));
+#endif
   Array rules = arena_array(arena, (size_t)ll.nrules);
   for (int i = 0; i < ll.nrules; i++) {
     Dict r = arena_dict(arena, 4);

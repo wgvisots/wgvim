@@ -339,6 +339,27 @@ describe('sandbox', function()
     matches('^yanked\nin wgvim', t.read_file(store))
   end)
 
+  it('clipboard: never runs a clipboard program from a directory the sandbox can write to', function()
+    local i = skip_unless_active()
+    t.skip(not i.seccomp, 'no system call filter on this platform')
+    -- The helper runs outside the sandbox: a wl-copy in the project (here in $PATH) could have
+    -- been planted by a sandboxed program, and must not be the one it runs.
+    local marker = root .. '/ran-outside'
+    for _, tool in ipairs({ 'wl-copy', 'wl-paste' }) do
+      write(proj .. '/bin/' .. tool, '#!/bin/sh\ntouch ' .. marker .. '\n')
+      vim.uv.fs_chmod(proj .. '/bin/' .. tool, 493)
+    end
+    local out = run(
+      [[
+      pcall(vim.fn.setreg, '+', 'x')
+      io.stdout:write(vim.json.encode({ vim.api.nvim__sandbox_info().clipboard }))
+    ]],
+      { path_prefix = proj .. '/bin', wayland = 'wayland-test' }
+    )
+    eq({ '' }, vim.json.decode(out)) -- no helper: the only wl-copy is in the project
+    eq(nil, vim.uv.fs_stat(marker))
+  end)
+
   it('clipboard: the helper works with the terminal UI too', function()
     local i = skip_unless_active()
     t.skip(not i.seccomp, 'no system call filter on this platform')
@@ -369,6 +390,73 @@ describe('sandbox', function()
     eq(true, r[2], r[3])
     eq('[]\n', r[4]) -- not passed on to the editor's own children
     eq('yanked in wgvim', t.read_file(store))
+  end)
+
+  describe('.git watch', function()
+    before_each(function()
+      vim.fn.mkdir(proj .. '/.git/hooks', 'p')
+      write(proj .. '/.git/config', '[core]\n\tbare = false\n')
+      write(proj .. '/.git/hooks/pre-commit.sample', '#!/bin/sh\n')
+    end)
+
+    it('reports what changed in .git/config and the hooks during the session', function()
+      skip_unless_active()
+      local _, err = run([[
+        vim.fn.writefile({ '[core]', '\tbare = false', '\tfsmonitor = something' }, '.git/config')
+        vim.fn.writefile({ '#!/bin/sh' }, '.git/hooks/post-checkout')
+        os.remove('.git/hooks/pre-commit.sample')
+      ]])
+      matches('these files changed that git takes commands from', err)
+      matches('changed +%.git/config\n +%+ \tfsmonitor = something\n', err)
+      matches('added +%.git/hooks/post%-checkout\n', err)
+      matches('removed +%.git/hooks/pre%-commit%.sample\n', err)
+      eq(nil, err:find('bare = false', 1, true)) -- only the added lines are shown
+    end)
+
+    it('says nothing when they did not change, and :checkhealth shows the watch', function()
+      skip_unless_active()
+      local out, err = run([[
+        vim.fn.writefile({ 'x' }, 'file.txt')
+        local i = vim.api.nvim__sandbox_info()
+        io.stdout:write(vim.json.encode({ i.git_watch, i.git_watch_files }))
+      ]])
+      eq(nil, err:find('git takes commands from', 1, true))
+      local r = vim.json.decode(out)
+      eq(vim.uv.fs_realpath(proj), r[1])
+      eq(2, r[2]) -- .git/config and the one hook
+    end)
+
+    it('watches a core.hooksPath directory in the project', function()
+      skip_unless_active()
+      write(proj .. '/.git/config', '[core]\n\thooksPath = .githooks\n')
+      vim.fn.mkdir(proj .. '/.githooks', 'p')
+      write(proj .. '/.githooks/pre-commit', '#!/bin/sh\nexit 0\n')
+      local _, err = run([[
+        vim.fn.writefile({ '#!/bin/sh', 'something else' }, '.githooks/pre-commit')
+      ]])
+      matches('changed +%.githooks/pre%-commit\n', err)
+    end)
+
+    it('does not pass escape sequences from file names to the terminal', function()
+      skip_unless_active()
+      local _, err = run([[
+        vim.fn.writefile({ '#!/bin/sh' }, '.git/hooks/x\27]0;title\7y')
+      ]])
+      matches('added +%.git/hooks/x%?%]0;title%?y\n', err)
+      eq(nil, err:find('\27', 1, true))
+    end)
+
+    it('reports once with the terminal UI', function()
+      local i = skip_unless_active()
+      t.skip(not i.seccomp, 'no system call filter on this platform')
+      t.skip(vim.fn.executable('script') == 0, 'needs script(1)')
+      local out = run([[
+        vim.fn.writefile({ '#!/bin/sh' }, '.git/hooks/post-checkout')
+      ]], { tui = true })
+      local _, count = out:gsub('git takes commands from', '')
+      eq(1, count)
+      matches('added +%.git/hooks/post%-checkout', out)
+    end)
   end)
 
   it('clipboard: over SSH, copies with OSC 52 and pastes what was copied', function()
