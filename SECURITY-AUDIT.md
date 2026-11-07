@@ -140,3 +140,32 @@ or libvterm.
 Also checked: CVE-2026-33412 (Vim `glob()` newline command injection, fixed in 9.2.0202) — the
 patch is in the included list. The search covered public advisories only; there is no automated
 SBOM scan.
+
+### Fuzzing of dependencies (2026-11-07)
+
+The CVE check above finds published bugs only. Of the bundled libraries, the ones that parse
+data from files the user opens were fuzzed, or found to be fuzzed already:
+
+- **utf8proc 2.12.0**: fuzzed continuously by OSS-Fuzz (ASan, MSan, UBSan; libFuzzer, AFL,
+  honggfuzz) on its main branch, which is 2.12.0 plus four small commits. Its target calls
+  grapheme breaking, case mapping, `utf8proc_map` and normalization. The two functions wgvim
+  calls that it does not were read instead: `utf8proc_get_property()` bounds-checks any value,
+  and `utf8proc_decompose_char()` respects the buffer size on every write (wgvim passes a
+  one-element buffer and uses the result only when exactly one code point comes back).
+- **Tree-sitter runtime 0.27.1 and the nine bundled parsers** (not on OSS-Fuzz): new harness
+  `test/fuzz/treesitter_fuzzer.c`, built from the `deps/` sources with libFuzzer, ASan and UBSan.
+  Per input it parses as wgvim's buffer reader does (line-sized chunks of at most 256 bytes),
+  visits every node, runs the language's queries from `runtime/queries`, edits and reparses
+  incrementally (changed ranges, queries again), and parses only some ranges as for an injected
+  language. About 430,000 inputs in all (4 KB at most; seeds from wgvim's own C, Lua, Vim, help,
+  query, Markdown files and its git history, and hand-written C++), 12 minutes per language and
+  12 more for the Markdown block scanner: no memory errors, hangs or out-of-memory. Two harmless
+  UBSan reports, so turned off for that code: `memcpy(dst, NULL, 0)` in `query.c`
+  `symbol_table_insert_name()` for an empty string in a query (still in upstream Tree-sitter),
+  and scanners declaring `f()` rather than `f(void)` (`-fsanitize=function`). Every query file in
+  `runtime/queries` compiles against its grammar. CI replays the seeds and fuzzes all nine in
+  turn (5 minutes per push, 30 weekly).
+- **Not fuzzed**: LuaJIT (runs the user's own config and plugins; OSS-Fuzz's `lua` project is
+  PUC Lua, not LuaJIT), libuv and luv (process, file and event plumbing), unibilium (reads the
+  system's terminfo), lua-compat-5.3. None of them is on OSS-Fuzz. They handle trusted data or
+  little parsing; the sandbox bounds what a bug in them could reach.
