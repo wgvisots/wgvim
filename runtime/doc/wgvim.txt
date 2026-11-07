@@ -105,7 +105,17 @@ TCP, UDP, ICMP, raw, packet or netlink sockets), refuses connect() and
 sendto() with an address, so that existing sockets such as the D-Bus bus
 ("/run/user/<uid>/bus", through which "systemd --user" would run commands
 outside the sandbox), ssh-agent and gpg-agent cannot be reached, and refuses
-System V IPC (shared memory, semaphores, message queues) and io_uring. The
+System V IPC (shared memory, semaphores, message queues) and io_uring. It
+also refuses the kernel keyrings (keyctl(), add_key(), request_key(): not
+files, so not covered by Landlock, and they may hold Kerberos tickets or
+keys), creating new namespaces (unshare(), setns() and the namespace flags of
+clone(): a user namespace gives capabilities inside it, and with them much
+more of the kernel to attack), and the TIOCSTI and TIOCLINUX ioctls, which
+push characters into a terminal's input, so that no program can type a
+command into the shell that started wgvim. Processes, threads and all other
+terminal ioctls work as before. clone3() returns ENOSYS, because a filter
+cannot read its flags; the C library and the Go and Rust runtimes then use
+clone(). Container tools (podman, bwrap, unshare) fail inside wgvim. The
 terminal UI process alone may connect, and only to wgvim's own sockets in its
 temp directory (for |:restart| and |:connect|); see |wgvim-sandbox-tui|.
 
@@ -230,6 +240,9 @@ Limits ~
   show as a number in "ls -l"), or logging to syslog. Python's
   multiprocessing needs "/dev/shm", which is not allowed.
 - The system call filter is built for x86-64 and AArch64 only.
+- Programs cannot be run from the temp directory ($TMPDIR), only written
+  there. "go run" builds its program there: set $GOTMPDIR to a directory in
+  the project, or use "go build".
 - ".git" is writable; changes to it are reported at exit, not prevented
   (|wgvim-sandbox-git|).
 - The terminal UI process may connect() to sockets (|wgvim-sandbox-tui|).

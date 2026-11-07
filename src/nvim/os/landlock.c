@@ -44,6 +44,7 @@
 # include <linux/filter.h>
 # include <linux/seccomp.h>
 # include <stddef.h>
+# include <sys/ioctl.h>
 # include <sys/prctl.h>
 # include <poll.h>
 # include <spawn.h>
@@ -394,6 +395,12 @@ static char *mkdir_get(char *path)
 # define SC_LOAD(field) BPF_STMT(BPF_LD | BPF_W | BPF_ABS, offsetof(struct seccomp_data, field))
 // If the syscall number is `nr`, return errno `e`; else fall through.
 # define SC_DENY(nr, e) BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, (nr), 0, 1), SC_ERRNO(e)
+// The clone() and unshare() flags that make new namespaces: NEWNS, NEWCGROUP, NEWUTS, NEWIPC,
+// NEWUSER, NEWPID, NEWNET. CLONE_NEWTIME (0x80) is added for unshare() only: in clone() that bit
+// is part of the exit signal, and clone3(), which takes it, is refused.
+# define SC_CLONE_NEW (0x00020000u | 0x02000000u | 0x04000000u | 0x08000000u | 0x10000000u \
+                       | 0x20000000u | 0x40000000u)
+# define SC_CLONE_NEWTIME 0x00000080u
 
 static bool install_filter(struct sock_filter *f, size_t n)
 {
@@ -482,6 +489,37 @@ static bool install_seccomp(bool allow_connect)
     SC_ALLOW,
     SC_ERRNO(EACCES),
     SC_LOAD(nr),  // reload after the sendto branch
+    // ioctl(fd, request): not TIOCSTI or TIOCLINUX, which push characters into a terminal's
+    // input: into the shell that started wgvim, to run once wgvim exits. The kernel takes the
+    // request as an unsigned int, so only the low 32 bits are compared (bits set above them
+    // must not get it past the check).
+    BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_ioctl, 0, 5),
+    SC_LOAD(args[1]),
+    BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, TIOCSTI, 2, 0),
+    BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, TIOCLINUX, 1, 0),
+    SC_ALLOW,
+    SC_ERRNO(EPERM),
+    // clone(flags, ...) and unshare(flags): no new namespaces. A user namespace grants
+    // capabilities inside it, and with them much more of the kernel to attack (Landlock and this
+    // filter still apply inside it). Processes and threads, which set none of these flags, pass.
+    BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_clone, 0, 4),
+    SC_LOAD(args[0]),
+    BPF_JUMP(BPF_JMP | BPF_JSET | BPF_K, SC_CLONE_NEW, 1, 0),
+    SC_ALLOW,
+    SC_ERRNO(EPERM),
+    BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_unshare, 0, 4),
+    SC_LOAD(args[0]),
+    BPF_JUMP(BPF_JMP | BPF_JSET | BPF_K, SC_CLONE_NEW | SC_CLONE_NEWTIME, 1, 0),
+    SC_ALLOW,
+    SC_ERRNO(EPERM),
+    // clone3() passes its flags in memory, which a filter cannot read. ENOSYS makes the C library
+    // (glibc 2.34+, musl) and the Go and Rust runtimes fall back to clone(), checked above.
+    SC_DENY(__NR_clone3, ENOSYS),
+    SC_DENY(__NR_setns, EPERM),
+    // Kernel keyrings (Kerberos tickets, keys, ...) are not files, so Landlock does not cover them.
+    SC_DENY(__NR_keyctl, EPERM),
+    SC_DENY(__NR_add_key, EPERM),
+    SC_DENY(__NR_request_key, EPERM),
     SC_DENY(__NR_io_uring_setup, ENOSYS),
     SC_DENY(__NR_io_uring_enter, ENOSYS),
     SC_DENY(__NR_io_uring_register, ENOSYS),
