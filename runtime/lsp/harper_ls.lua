@@ -11,18 +11,16 @@ local state = vim.fn.stdpath('state') .. '/harper'
 --- @type vim.lsp.Config
 return {
   -- Always over stdio: without --stdio, harper-ls listens on a TCP port. It runs with its
-  -- address space limited (vim.g.wgvim_harper_memory_mb, default 1024), so that a document
-  -- that makes it allocate without bound gets it stopped rather than slowing the machine.
-  cmd = function(dispatchers, config)
-    local mb = tonumber(vim.g.wgvim_harper_memory_mb) or 1024
-    return vim.lsp.rpc.start({
-      'sh',
-      '-c',
-      'ulimit -v "$1" && exec harper-ls --stdio',
-      'harper-ls',
-      tostring(mb * 1024),
-    }, dispatchers, { cwd = config.root_dir })
-  end,
+  -- address space limited, so that a document that makes it allocate without bound gets it
+  -- stopped rather than slowing the machine: vim.g.wgvim_harper_memory_mb (default 1024),
+  -- read when this file is first loaded, i.e. after the user's init.lua has run.
+  cmd = {
+    'sh',
+    '-c',
+    'ulimit -v "$1" && exec harper-ls --stdio',
+    'harper-ls',
+    tostring((tonumber(vim.g.wgvim_harper_memory_mb) or 1024) * 1024),
+  },
   filetypes = {
     'markdown',
     'text',

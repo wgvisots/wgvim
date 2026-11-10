@@ -171,8 +171,16 @@ function M.check_harper(health)
   end
   local enabled = vim.lsp.is_enabled and vim.lsp.is_enabled('harper_ls')
   if enabled then
-    local mb = tonumber(vim.g.wgvim_harper_memory_mb) or 1024
-    health.ok(('Enabled, memory limited to %d MB'):format(mb))
+    -- The limit in the command it is started with (see runtime/lsp/harper_ls.lua).
+    local cmd = (vim.lsp.config.harper_ls or {}).cmd
+    local kb = type(cmd) == 'table' and tonumber(cmd[#cmd])
+    if kb then
+      health.ok(('Enabled, memory limited to %d MB'):format(math.floor(kb / 1024)))
+    else
+      health.warn('Enabled, without the memory limit of the shipped configuration', {
+        'Keep the cmd of runtime/lsp/harper_ls.lua, or limit memory in your own',
+      })
+    end
   else
     health.info("Not enabled: add vim.lsp.enable('harper_ls') to your config")
   end

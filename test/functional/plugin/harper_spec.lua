@@ -23,27 +23,17 @@ describe('Harper', function()
 
   it('the shipped config runs harper-ls over stdio, memory-limited, files in the state dir', function()
     local r = n.exec_lua(function()
+      vim.g.wgvim_harper_memory_mb = 512 -- before the config is first loaded, as from init.lua
       local c = vim.lsp.config.harper_ls
-      local started
-      -- What the cmd function would run, without running it.
-      local orig = vim.lsp.rpc.start
-      vim.lsp.rpc.start = function(cmd, _, extra)
-        started = { cmd = cmd, cwd = extra.cwd }
-        return {}
-      end
-      vim.g.wgvim_harper_memory_mb = 512
-      c.cmd({}, { root_dir = '/proj' })
-      vim.lsp.rpc.start = orig
       return {
-        started = started,
+        cmd = c.cmd,
         settings = c.settings['harper-ls'],
         state = vim.fn.stdpath('state'),
         md = vim.tbl_contains(c.filetypes, 'markdown'),
         c = vim.tbl_contains(c.filetypes, 'c'),
       }
     end)
-    eq({ 'sh', '-c', 'ulimit -v "$1" && exec harper-ls --stdio', 'harper-ls', '524288' }, r.started.cmd)
-    eq('/proj', r.started.cwd)
+    eq({ 'sh', '-c', 'ulimit -v "$1" && exec harper-ls --stdio', 'harper-ls', '524288' }, r.cmd)
     for _, k in ipairs({ 'userDictPath', 'fileDictPath', 'ignoredLintsPath', 'statsPath' }) do
       ok(vim.startswith(r.settings[k], r.state .. '/harper/'), k .. ' in the state dir', r.settings[k])
     end

@@ -105,7 +105,8 @@ describe(':lsp', function()
     local completions = exec_lua(function()
       return vim.fn.getcompletion('lsp enable ', 'cmdline')
     end)
-    eq({ 'dummy' }, completions)
+    -- wgvim: harper_ls is the config wgvim ships in runtime/lsp/ (:help wgvim-harper).
+    eq({ 'dummy', 'harper_ls' }, completions)
   end)
 
   it('argument completion with spaces', function()
