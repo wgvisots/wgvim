@@ -958,6 +958,44 @@ if(WGVIM_FUZZ)
     target_link_libraries(${f}_fuzzer PRIVATE libnvim -fsanitize=fuzzer,address,undefined)
     list(APPEND WGVIM_FUZZER_TARGETS ${f}_fuzzer)
   endforeach()
+  # Tree-sitter: the runtime and each bundled parser, built from the deps/ sources with the same
+  # instrumentation (the libraries the editor links are not instrumented). One harness per
+  # language, which also runs that language's queries from runtime/queries.
+  set(TS_SRC ${DEPS_PREFIX}/../build/src)
+  set(WGVIM_TS_LANGS c cpp diff lua vim vimdoc query markdown markdown_inline)
+  foreach(lang ${WGVIM_TS_LANGS})
+    if(lang STREQUAL "markdown")
+      set(dir ${TS_SRC}/treesitter_markdown/tree-sitter-markdown/src)
+    elseif(lang STREQUAL "markdown_inline")
+      set(dir ${TS_SRC}/treesitter_markdown/tree-sitter-markdown-inline/src)
+    else()
+      set(dir ${TS_SRC}/treesitter_${lang}/src)
+    endif()
+    set(srcs ${dir}/parser.c)
+    if(EXISTS ${dir}/scanner.c)
+      list(APPEND srcs ${dir}/scanner.c)
+    endif()
+    set(t treesitter_${lang}_fuzzer)
+    add_executable(${t} EXCLUDE_FROM_ALL ${PROJECT_SOURCE_DIR}/test/fuzz/treesitter_fuzzer.c
+      ${TS_SRC}/treesitter/lib/src/lib.c ${srcs})
+    # The runtime and parser are third-party code: no warnings from them. Two harmless UBSan
+    # reports are turned off for them: the runtime passes NULL with length 0 to memcpy() for an
+    # empty string in a query (query.c, symbol_table_insert_name(); still so upstream), and some
+    # scanners declare their functions as f() rather than f(void), which -fsanitize=function
+    # reports when the runtime calls them through a pointer.
+    set_source_files_properties(${srcs} PROPERTIES COMPILE_OPTIONS "-w;-fno-sanitize=function")
+    set_source_files_properties(${TS_SRC}/treesitter/lib/src/lib.c
+      PROPERTIES COMPILE_OPTIONS "-w;-fno-sanitize=nonnull-attribute,function")
+    target_include_directories(${t} PRIVATE
+      ${TS_SRC}/treesitter/lib/include ${TS_SRC}/treesitter/lib/src ${dir})
+    target_compile_definitions(${t} PRIVATE TS_LANG_FN=tree_sitter_${lang}
+      TS_QUERY_DIR="${PROJECT_SOURCE_DIR}/runtime/queries/${lang}"
+      _POSIX_C_SOURCE=200112L _DEFAULT_SOURCE)
+    target_compile_options(${t} PRIVATE -fsanitize=fuzzer,address,undefined
+      -fno-sanitize-recover=undefined -fno-omit-frame-pointer -g)
+    target_link_options(${t} PRIVATE -fsanitize=fuzzer,address,undefined)
+    list(APPEND WGVIM_FUZZER_TARGETS ${t})
+  endforeach()
   add_custom_target(fuzzers DEPENDS ${WGVIM_FUZZER_TARGETS})
 endif()
 

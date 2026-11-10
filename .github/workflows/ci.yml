@@ -171,8 +171,9 @@ jobs:
           done
           [ -z "${missing:-}" ]
 
-  # libFuzzer + ASan/UBSan on the terminal emulator and the terminal input parser
-  # (test/fuzz/README.md). Replays every corpus input, then fuzzes each harness for a while.
+  # libFuzzer + ASan/UBSan on the terminal emulator, the terminal input parser, and the
+  # Tree-sitter runtime with each bundled parser (test/fuzz/README.md). Replays every corpus
+  # input, then fuzzes each harness for a while (the Tree-sitter ones share the job's time).
   fuzz:
     name: fuzz (${{ matrix.harness }})
     runs-on: ubuntu-24.04
@@ -180,9 +181,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        harness: [vterm, termkey]
+        include:
+          - harness: vterm
+            fuzzers: vterm
+            max_len: 8192
+          - harness: termkey
+            fuzzers: termkey
+            max_len: 8192
+          - harness: treesitter
+            fuzzers: >-
+              treesitter_c treesitter_cpp treesitter_diff treesitter_lua treesitter_vim
+              treesitter_vimdoc treesitter_query treesitter_markdown treesitter_markdown_inline
+            max_len: 4096
     env:
       FUZZ_SECONDS: ${{ github.event_name == 'schedule' && '1800' || '300' }}
+      FUZZERS: ${{ matrix.fuzzers }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -194,17 +207,25 @@ jobs:
           make deps CMAKE_BUILD_TYPE=Release
           cmake -S . -B build-fuzz -G Ninja -D CMAKE_C_COMPILER=clang-18 \
             -D CMAKE_BUILD_TYPE=RelWithDebInfo -D WGVIM_FUZZ=ON -D WGVIM_HARDENING=OFF
-          cmake --build build-fuzz --target ${{ matrix.harness }}_fuzzer
+          for f in $FUZZERS; do targets="${targets:-} ${f}_fuzzer"; done
+          cmake --build build-fuzz --target $targets
 
       - name: Replay corpus (including past crash inputs)
-        run: build-fuzz/bin/${{ matrix.harness }}_fuzzer test/fuzz/corpus/${{ matrix.harness }}/* -runs=0
+        run: |
+          for f in $FUZZERS; do
+            build-fuzz/bin/${f}_fuzzer test/fuzz/corpus/$f/* -runs=0
+          done
 
       - name: Fuzz
         run: |
-          mkdir -p corpus artifacts
-          cp test/fuzz/corpus/${{ matrix.harness }}/* corpus/
-          build-fuzz/bin/${{ matrix.harness }}_fuzzer corpus -max_total_time="$FUZZ_SECONDS" \
-            -timeout=10 -max_len=8192 -print_final_stats=1 -artifact_prefix=artifacts/
+          n=$(wc -w <<< "$FUZZERS")
+          for f in $FUZZERS; do
+            mkdir -p corpus/$f artifacts
+            cp test/fuzz/corpus/$f/* corpus/$f/
+            build-fuzz/bin/${f}_fuzzer corpus/$f -max_total_time=$(( FUZZ_SECONDS / n )) \
+              -timeout=10 -max_len=${{ matrix.max_len }} -print_final_stats=1 \
+              -artifact_prefix=artifacts/$f-
+          done
 
       - name: Upload crash inputs
         if: failure()
