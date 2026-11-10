@@ -56,7 +56,7 @@ local function check_option_dirs(health)
   end
 end
 
-function M.check()
+local function check_sandbox()
   local health = vim.health
   local i = vim.api.nvim__sandbox_info()
 
@@ -137,6 +137,50 @@ function M.check()
       health.warn(line .. ': ' .. r.error)
     end
   end
+end
+
+--- Harper, the grammar and spell checker (|wgvim-harper|): installed, the pinned build, and
+--- where the sandbox lets it run from.
+--- @param health table vim.health
+function M.check_harper(health)
+  health.start('Harper (:help wgvim-harper)')
+  local path = vim.fn.exepath('harper-ls')
+  if path == '' then
+    health.info('harper-ls is not installed (optional): scripts/install-harper.sh installs it')
+    return
+  end
+  local real = vim.uv.fs_realpath(path) or path
+  local home = vim.uv.os_homedir() or ''
+  if home ~= '' and vim.startswith(real, home .. '/.cargo/') then
+    health.error(('harper-ls is in %s, which the sandbox does not let programs run from'):format(real), {
+      'Install it with scripts/install-harper.sh (into ~/.local/bin)',
+    })
+    return
+  end
+  local pin = require('wgvim.harper').pin_of(real)
+  if pin then
+    health.ok(('harper-ls %s, the pinned build (%s)'):format(pin.version, real))
+  else
+    health.warn(('%s is not a pinned Harper build (SHA-256 %s)'):format(
+      real,
+      require('wgvim.harper').file_sha256(real) or '?'
+    ), {
+      'Install the pinned release with scripts/install-harper.sh; its dependencies are the ones'
+        .. ' audited in contrib/harper/',
+    })
+  end
+  local enabled = vim.lsp.is_enabled and vim.lsp.is_enabled('harper_ls')
+  if enabled then
+    local mb = tonumber(vim.g.wgvim_harper_memory_mb) or 1024
+    health.ok(('Enabled, memory limited to %d MB'):format(mb))
+  else
+    health.info("Not enabled: add vim.lsp.enable('harper_ls') to your config")
+  end
+end
+
+function M.check()
+  check_sandbox()
+  M.check_harper(vim.health)
 end
 
 return M

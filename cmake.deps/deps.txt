@@ -60,3 +60,10 @@ WASMTIME_SHA256 1ced053e4c04bd7e68c46908f65aac99c90469fc26b7dd86dfaff6551fd40f14
 
 UNCRUSTIFY_URL deps/uncrustify-0.83.0.tar.gz
 UNCRUSTIFY_SHA256 1d4d3ab3a991c66eb24cb0a3e690573b4882fd98bc6ec64a01c283998c20dc87
+
+# wgvim: Harper's VS Code extension package (a zip with the harper-ls language server), for
+# scripts/install-harper.sh. Not built; HARPER_LS_SHA256 is the harper-ls inside it.
+# Lock file and audit: contrib/harper/.
+HARPER_VSIX_URL deps/harper-linux-x64-3.1.0.vsix
+HARPER_VSIX_SHA256 bbaffeb39dacf398a6b09c4d30c576dae28dcfdfe10c033ff5399ff054260e6b
+HARPER_LS_SHA256 4a3a19bd3e538d16a5fd3f17af18d077856e7f200ebe2dfb881ec4c92226afc6

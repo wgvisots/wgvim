@@ -59,6 +59,13 @@ Inside the editor, `:help wgvim` has the full list. In short:
   `:Reading` or `require('wgvim.reading').setup({ rainbow = true, context = true })`;
   see `:help wgvim-reading`.
 
+**Grammar and spell checking**
+- Support for [Harper](https://writewithharper.com), a local grammar and spell
+  checker, as a sandboxed language server: a pinned release installed with
+  `scripts/install-harper.sh` (SHA-256 checked), its dependencies audited
+  against RustSec in CI, and `vim.lsp.enable('harper_ls')` to turn it on;
+  see `:help wgvim-harper`.
+
 **Build and names**
 - Built only from vendored, hash-checked dependencies in [deps/](deps/); the
   build refuses network URLs.
