@@ -436,6 +436,88 @@ describe('sandbox', function()
     }, r)
   end)
 
+  describe('Harper', function()
+    local vsix = t.paths.test_source_path .. '/deps/harper-linux-x64-3.1.0.vsix'
+    local script = t.paths.test_source_path .. '/scripts/install-harper.sh'
+
+    local function install(file)
+      return vim
+        .system({ script, file }, { env = { PREFIX = home .. '/.local' }, text = true })
+        :wait(60000)
+    end
+
+    it('installs only the pinned release', function()
+      write(root .. '/fake.vsix', 'not the pinned file')
+      local r = install(root .. '/fake.vsix')
+      eq(1, r.code)
+      matches('is not the pinned release', r.stderr)
+      eq(nil, vim.uv.fs_stat(home .. '/.local/bin/harper-ls'))
+    end)
+
+    it('runs harper-ls in the sandbox from the shipped config', function()
+      local i = skip_unless_active()
+      t.skip(not vim.uv.fs_stat(vsix), 'no ' .. vsix .. ' (it is pushed to deps/ separately)')
+      local r = install(vsix)
+      eq(0, r.code, r.stderr)
+      if vim.fn.executable('python3') == 1 then
+        local c = vim.system({ 'python3', '-I', t.paths.test_source_path .. '/scripts/check-harper.py',
+          home .. '/.local/bin/harper-ls' }, { text = true }):wait(60000)
+        eq(0, c.code, c.stdout)
+      end
+      write(proj .. '/notes.md', '# Notes\n\nI recieve alot of mail.\n')
+      local out = run([[
+        vim.lsp.enable('harper_ls')
+        vim.cmd.edit('notes.md')
+        local b = vim.api.nvim_get_current_buf()
+        vim.wait(20000, function() return #vim.diagnostic.get(b) > 0 end, 50)
+        local msgs = {}
+        for _, d in ipairs(vim.diagnostic.get(b)) do msgs[#msgs + 1] = d.message end
+        -- "Add to the user dictionary", as the code action does.
+        local client = vim.lsp.get_clients({ bufnr = b })[1]
+        local added
+        for _, d in ipairs(vim.diagnostic.get(b)) do
+          if d.message:find('recieve', 1, true) then
+            local res = client:request_sync('textDocument/codeAction', {
+              textDocument = { uri = vim.uri_from_bufnr(b) },
+              range = { start = { line = d.lnum, character = d.col },
+                        ['end'] = { line = d.end_lnum, character = d.end_col } },
+              context = { diagnostics = { d.user_data.lsp } },
+            }, 10000, b)
+            for _, a in ipairs(res and res.result or {}) do
+              if a.title:find('user dictionary', 1, true) then
+                local cmd = type(a.command) == 'table' and a.command
+                  or { command = a.command, arguments = a.arguments }
+                added = client:request_sync('workspace/executeCommand', cmd, 10000, b)
+              end
+            end
+          end
+        end
+        vim.wait(1000)
+        local dict = vim.fn.stdpath('state') .. '/harper/dictionary.txt'
+        local report = {}
+        for _, k in ipairs({ 'start', 'ok', 'info', 'warn', 'error' }) do
+          vim.health[k] = function(m) report[#report + 1] = k .. ': ' .. m end
+        end
+        require('wgvim.health').check_harper(vim.health)
+        io.stdout:write(vim.json.encode({
+          msgs = msgs,
+          added = added ~= nil and added.err == nil,
+          dict = vim.fn.filereadable(dict) == 1 and vim.fn.readfile(dict) or {},
+          health = table.concat(report, '\n'),
+        }))
+      ]], { path_prefix = home .. '/.local/bin' })
+      local res = vim.json.decode(out)
+      local all = table.concat(res.msgs, '\n')
+      matches('recieve', all)
+      matches('a lot', all)
+      eq(true, res.added)
+      eq({ 'recieve' }, res.dict)
+      matches('ok: harper%-ls 3%.1%.0, the pinned build', res.health)
+      matches('ok: Enabled, memory limited to 1024 MB', res.health)
+      eq(true, i.status == 'active')
+    end)
+  end)
+
   describe('.git watch', function()
     before_each(function()
       vim.fn.mkdir(proj .. '/.git/hooks', 'p')

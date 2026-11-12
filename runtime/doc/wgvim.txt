@@ -359,6 +359,60 @@ Other settings that help reading are part of Vim already, for example
 in 'listchars' for indent guides.
 
 ==============================================================================
+Harper: grammar and spell checking                      *wgvim-harper*
+
+Harper (https://writewithharper.com, Apache-2.0) checks spelling and grammar
+in prose: Markdown, plain text, git commit messages, and the comments of
+source code (C, C++, Lua, Python, ...). It runs as a language server, offline.
+wgvim ships a configuration for it, and pins one release.
+
+Install the pinned release, from Harper's VS Code extension package in deps/
+(a .vsix file, which is a zip): >sh
+    scripts/install-harper.sh
+<This puts harper-ls in ~/.local/bin, only if the package and the harper-ls
+in it both match their SHA-256 in cmake.deps/deps.txt. ("cargo install" puts
+it in ~/.cargo/bin, which the sandbox does not let programs run from.)
+
+Then turn it on in your config: >lua
+    vim.lsp.enable('harper_ls')
+<Problems show as diagnostics; |vim.lsp.buf.code_action()| offers the fixes,
+"add to dictionary" and "ignore". Change the settings with |vim.lsp.config()|,
+for example: >lua
+    vim.lsp.config('harper_ls', {
+      settings = {
+        ['harper-ls'] = { linters = { SentenceCapitalization = false } },
+      },
+    })
+<
+What wgvim's configuration does:
+- Starts harper-ls over stdio. (Without --stdio it listens on a TCP port; the
+  sandbox would refuse that anyway.)
+- Keeps its user dictionary, file dictionaries, ignored lints and statistics
+  in stdpath("state")/harper: its default directories, ~/.config/harper-ls and
+  ~/.local/share/harper-ls, are not writable in the sandbox. A project's
+  ".harper-dictionary.txt" works as is.
+- Limits its address space to 1024 MB, or *g:wgvim_harper_memory_mb* if set
+  before the configuration is first used (in your init.lua). Harper
+  3.1.0 parses Markdown with a library version that a small crafted file can
+  make use memory and CPU without bound (RUSTSEC-2026-0414, -0433); with the
+  limit, harper-ls is stopped instead. wgvim itself is not affected.
+
+It runs in the sandbox like any language server: no network, and only the
+project and wgvim's state directory are writable.
+
+How the pinned release is checked (contrib/harper/README.md):
+- SHA-256 pins for the package and the binary (install script and
+  |:checkhealth|).
+- The crate versions compiled into harper-ls are all in the lock file of that
+  Harper release (scripts/check-harper.py).
+- CI audits that lock file against the RustSec advisory database (cargo
+  audit), on every push and weekly. Advisories that are accepted are listed
+  with the reason in contrib/harper/audit-ignore.txt.
+
+|:checkhealth| wgvim says whether harper-ls is installed, whether it is the
+pinned build, and whether it is enabled.
+
+==============================================================================
 Names                                                   *wgvim-names*
 
 The executable is `wgvim`. Per-user directories and environment variables use

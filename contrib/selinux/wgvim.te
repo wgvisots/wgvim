@@ -21,6 +21,7 @@ policy_module(wgvim, 1.0.0)
 
 gen_require(`
 	type unconfined_t;
+	type home_bin_t;
 	role unconfined_r;
 ')
 
@@ -137,6 +138,11 @@ userdom_manage_user_home_content_sockets(wgvim_t)
 userdom_manage_user_home_content_pipes(wgvim_t)
 # Running what the user built (./a.out, scripts in a project).
 userdom_exec_user_home_content_files(wgvim_t)
+# Programs the user installed in ~/bin and ~/.local/bin (home_bin_t): clangd, harper-ls
+# (:help wgvim-harper), ... The sandbox allows running them; without this, SELinux did not.
+allow wgvim_t home_bin_t:dir list_dir_perms;
+allow wgvim_t home_bin_t:lnk_file read_lnk_file_perms;
+can_exec(wgvim_t, home_bin_t)
 
 files_search_tmp(wgvim_t)
 userdom_manage_user_tmp_dirs(wgvim_t)

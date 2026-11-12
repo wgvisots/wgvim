@@ -1,0 +1,40 @@
+# RustSec advisories that `cargo audit` of contrib/harper/Cargo.lock reports and that wgvim
+# accepts, one per line: ID, then why. CI fails on any vulnerability not listed here, so a new
+# advisory is looked at before it is accepted. Remove a line once the pinned Harper no longer
+# has the crate version.
+#
+# Cargo.lock is the lock file of Harper's whole workspace (the CLI, the WebAssembly build, the
+# web tooling, ...), so it lists crates that harper-ls does not contain. "Not in harper-ls"
+# below was checked in the symbol table of the pinned binary (it is not stripped): no symbols
+# of the crate, and no code from the functions the advisory names.
+#
+# Checked 2026-11-09 against Harper 3.1.0 (harper-ls SHA-256 4a3a19bd...).
+
+# zip 7.2.0 / 8.6.0: archive extraction. Not in harper-ls (no zip::read, ZipArchive, extract;
+# the "zip::" symbols are ndarray's Zip iterator).
+RUSTSEC-2026-0367 zip: not in harper-ls
+RUSTSEC-2026-0368 zip: not in harper-ls
+RUSTSEC-2026-0369 zip: not in harper-ls
+RUSTSEC-2026-0429 zip: not in harper-ls
+
+# TLS certificates. harper-ls contains no TLS code (no rustls or webpki symbols), and runs with
+# no network in wgvim's sandbox.
+RUSTSEC-2026-0381 webpki-roots: not in harper-ls
+RUSTSEC-2026-0382 rustls-webpki: not in harper-ls
+
+# zstd / zstd-safe / zstd-sys (the C zstd library and its bindings). Not in harper-ls: it
+# decompresses its built-in thesaurus with ruzstd, a separate pure-Rust decoder (no ZSTD_
+# functions, no zstd_safe symbols).
+RUSTSEC-2026-0391 zstd: not in harper-ls
+RUSTSEC-2026-0398 zstd-safe: not in harper-ls
+RUSTSEC-2026-0403 zstd-safe: not in harper-ls
+RUSTSEC-2026-0410 zstd-sys: not in harper-ls
+
+# pulldown-cmark 0.13.4: these DO affect harper-ls, which parses Markdown with
+# Options::all() (wiki links on). A small crafted Markdown file makes it use CPU and memory
+# without bound: denial of service of the language server only (wgvim itself keeps
+# working). Accepted until a Harper release has pulldown-cmark >= 0.13.6, with two limits in
+# place: harper-ls runs in the sandbox, and with its address space capped
+# (vim.g.wgvim_harper_memory_mb, default 1024 MB), so it is stopped instead of growing.
+RUSTSEC-2026-0414 pulldown-cmark: affects harper-ls; mitigated (memory cap, sandbox)
+RUSTSEC-2026-0433 pulldown-cmark: affects harper-ls; mitigated (memory cap, sandbox)

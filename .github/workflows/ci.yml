@@ -174,6 +174,34 @@ jobs:
   # libFuzzer + ASan/UBSan on the terminal emulator, the terminal input parser, and the
   # Tree-sitter runtime with each bundled parser (test/fuzz/README.md). Replays every corpus
   # input, then fuzzes each harness for a while (the Tree-sitter ones share the job's time).
+  # Harper (contrib/harper/, :help wgvim-harper): its dependencies against the RustSec advisory
+  # database, and, when the pinned package is in deps/, the binary against its pins and lock
+  # file. Weekly too (the schedule above), so new advisories are seen without a push.
+  harper:
+    name: Harper dependency audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install cargo-audit
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit --version
+
+      - name: Audit contrib/harper/Cargo.lock (RustSec)
+        # Fails on any vulnerability not accepted, with a reason, in audit-ignore.txt;
+        # unmaintained and unsound crates are reported as warnings.
+        run: |
+          ignore=$(grep -E '^RUSTSEC-' contrib/harper/audit-ignore.txt | cut -d' ' -f1 | sed 's/^/--ignore /')
+          cargo audit --file contrib/harper/Cargo.lock $ignore
+
+      - name: Check the pinned harper-ls (SHA-256 pins, crates vs Cargo.lock)
+        if: hashFiles('deps/harper-linux-x64-3.1.0.vsix') != ''
+        run: |
+          scripts/install-harper.sh
+          python3 -I scripts/check-harper.py "$HOME/.local/bin/harper-ls"
+
   fuzz:
     name: fuzz (${{ matrix.harness }})
     runs-on: ubuntu-24.04

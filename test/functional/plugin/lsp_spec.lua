@@ -5306,10 +5306,14 @@ describe('LSP', function()
       -- Does NOT resolve non-enabled configs.
       eq({ foo = true, bar = false }, get_resolved({ 'bar', 'foo' }))
 
-      eq({ 'bar' }, names(exec_lua([[return vim.lsp.get_configs { enabled = false }]])))
+      -- wgvim: harper_ls is the config wgvim ships in runtime/lsp/ (:help wgvim-harper).
+      eq(
+        { 'bar', 'harper_ls' },
+        names(exec_lua([[return vim.lsp.get_configs { enabled = false }]]))
+      )
 
       -- With no filter, return all configs
-      eq({ 'bar', 'foo' }, names(exec_lua([[return vim.lsp.get_configs()]])))
+      eq({ 'bar', 'foo', 'harper_ls' }, names(exec_lua([[return vim.lsp.get_configs()]])))
 
       -- Confirm `filetype` works
       eq({ 'foo' }, names(exec_lua([[return vim.lsp.get_configs { filetype = 'foofile' }]])))
