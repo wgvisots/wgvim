@@ -1030,18 +1030,19 @@ String atom_visual_span(void)
   if (!atom_visual_replayable()) {
     return (String)STRING_INIT;
   }
-  String tail = atoms_concat_keys(vatom.atoms, vatom.done);
-  if (vatom.done == 0) {
-    return tail;
-  }
-
-  // Prefix with "gv".
+  // wgvim: "gv" (if a span cascaded) and the tail keys built in one buffer, like
+  // atoms_concat_keys() does. Copying a finished tail into a second buffer made GCC 13
+  // (-O2) warn about a memcpy of ~SIZE_MAX bytes (-Wstringop-overflow): a false positive, as
+  // the size is that of a string just built, but one in every build.
   StringBuilder keys = KV_INITIAL_VALUE;
-  kv_concat(keys, "gv");
-  kv_concat_len(keys, tail.data, tail.size);
+  if (vatom.done > 0) {
+    kv_concat(keys, "gv");
+  }
+  for (size_t i = vatom.done; i < kv_size(vatom.atoms); i++) {
+    kv_concat(keys, kv_A(vatom.atoms, i).keys);
+  }
   size_t len = kv_size(keys);
   kv_push(keys, NUL);
-  api_free_string(tail);
   return (String){ .data = keys.items, .size = len };
 }
 
