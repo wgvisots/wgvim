@@ -1,0 +1,74 @@
+/// The watcher: records, waits for wgvim to exit (EOF on `fd`), compares, reports.
+static void git_watch_main(int fd, const char *root)
+  FUNC_ATTR_NORETURN
+{
+  GitSnap *before = git_snapshot(root);
+  int32_t n = before->n;
+  if (write(fd, &n, sizeof(n)) != (ssize_t)sizeof(n)) {
+    _exit(1);
+  }
+  char c;
+  ssize_t r;
+  while ((r = read(fd, &c, 1)) != 0) {
+    if (r < 0 && errno != EINTR) {
+      break;
+    }
+  }
+  GitSnap *now = git_snapshot(root);
+  git_report(before, now, root);
+  fflush(stderr);
+  _exit(0);
+}
+
+/// Starts the watcher for the working directory's repository, if it has one that the sandbox can
+/// write to. Call before the restrictions, in the outermost wgvim process.
+static void git_watch_start(void)
+{
+  char *root = real_path(".");
+  if (root == NULL) {
+    return;
+  }
+  char *dotgit = join_path(root, ".git");
+  struct stat st;
+  bool ok = lstat(dotgit, &st) == 0 && S_ISDIR(st.st_mode) && writable_rule(root) != NULL;
+  xfree(dotgit);
+  int sv[2];
+  if (!ok || socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sv) != 0) {
+    xfree(root);
+    return;
+  }
+  pid_t pid = fork();
+  if (pid < 0) {
+    close(sv[0]);
+    close(sv[1]);
+    xfree(root);
+    return;
+  }
+  if (pid == 0) {
+    for (int sig = 1; sig < NSIG; sig++) {
+      signal(sig, SIG_DFL);
+    }
+    // Survive a stray Ctrl-C, and still write the report after wgvim exits, when the shell
+    // has taken the terminal back (with "stty tostop", SIGTTOU would stop it).
+    signal(SIGINT, SIG_IGN);
+    signal(SIGQUIT, SIG_IGN);
+    signal(SIGPIPE, SIG_IGN);
+    signal(SIGTTOU, SIG_IGN);
+    sigset_t none;
+    sigemptyset(&none);
+    sigprocmask(SIG_SETMASK, &none, NULL);
+    int null = open("/dev/null", O_RDWR);
+    dup2(null, 0);
+    dup2(null, 1);  // stderr (2) stays: the report goes there
+    dup2(sv[1], 3);
+    for (int i = 4; i < 1024; i++) {
+      close(i);
+    }
+    if (chdir("/") != 0) {
+      _exit(1);
+    }
+    git_watch_main(3, root);
+  }
+  close(sv[1]);
+  // The record must exist before anything in the project can run.
+  struct 

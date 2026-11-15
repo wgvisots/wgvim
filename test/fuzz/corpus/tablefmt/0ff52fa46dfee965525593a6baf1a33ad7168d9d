@@ -1,0 +1,50 @@
+	typedef uint8_t OptScopeFlags;
+
+/// Value kind of one key in a dict option (see "schema" in options.lua).
+typedef enum {
+  kOptSchemaFlag,   ///< bare flag, e.g. 'diffopt' "filler"
+  kOptSchemaNum,    ///< "key:N" non-negative number, e.g. 'diffopt' "context:4"
+  kOptSchemaSNum,   ///< "key:N" signed number, e.g. 'breakindentopt' "shift:-2"
+  kOptSchemaEnum,   ///< "key:val" where val is one of "enum_values", e.g. "algorithm:patience"
+  kOptSchemaStr,    ///< "key:val" where val is a free string, e.g. 'previewpopup' "highlight:Foo"
+} OptSchemaKind;
+
+/// One key of a dict option, generated from its `dict` schema in options.lua.
+/// Consumed by opt_strings_check(). A NULL "name" terminates the array.
+typedef struct {
+  const char *name;           ///< key name, without a trailing ':'
+  OptSchemaKind kind;
+  const char **enum_values;    ///< kOptSchemaEnum: NULL-terminated valid values; else NULL
+} OptSchemaItem;
+
+/// Schema for a dict option (`schema.dict` in options.lua).
+typedef struct {
+  FieldHashfn get_field;        ///< Keyset perfect-hash lookup, for opt_fill().
+  const OptSchemaItem *schema;  ///< Grammar, for opt_strings_check() validation.
+  size_t size;                  ///< sizeof the keyset, for opt_keyset() storage.
+} OptDictSchema;
+
+/// :set operator types
+typedef enum {
+  OP_NONE = 0,
+  OP_ADDING,      ///< "opt+=arg"
+  OP_PREPENDING,  ///< "opt^=arg"
+  OP_REMOVING,    ///< "opt-=arg"
+} set_op_T;
+
+/// Arguments for validating an option value or applying it after storage.
+typedef struct {
+  /// Pointer to the option variable.  The variable can be an OptInt (numeric
+  /// option), an int (boolean option), a char pointer (string option), or a Callback.
+  /// Holds the old value during validation and the new value when applying it.
+  void *os_varp;
+  OptIndex os_idx;
+  int os_flags;
+
+  /// Old value of the option.
+  Object os_oldval;
+  /// New value of the option (not yet stored during validation).
+  Object os_newval;
+
+  /// Initially empty; validation may prepare data for the did_set callback.
+  /// Th

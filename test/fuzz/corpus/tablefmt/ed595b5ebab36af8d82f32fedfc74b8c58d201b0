@@ -1,0 +1,49 @@
+	  linenr_T df_lnum[DB_COUNT];           // line number in buffer
+  linenr_T df_count[DB_COUNT];          // nr of inserted/changed lines
+  bool is_linematched;  // has the linematch algorithm ran on this diff hunk to divide it into
+                        // smaller diff hunks?
+
+  bool has_changes;     ///< has cached list of inline changes
+  garray_T df_changes;  ///< list of inline changes (diffline_change_T)
+};
+
+/// Each entry stores a single inline change within a diff block. Line numbers
+/// are recorded as relative offsets, and columns are byte offsets, not
+/// character counts.
+/// Ranges are [start,end), with the end being exclusive.
+typedef struct diffline_change_S diffline_change_T;
+struct diffline_change_S {
+  colnr_T dc_start[DB_COUNT];       ///< byte offset of start of range in the line
+  colnr_T dc_end[DB_COUNT];         ///< 1 past byte offset of end of range in line
+  int dc_start_lnum_off[DB_COUNT];  ///< starting line offset
+  int dc_end_lnum_off[DB_COUNT];    ///< end line offset
+};
+
+/// Describes a single line's list of inline changes. Use diff_change_parse() to
+/// parse this.
+typedef struct diffline_S diffline_T;
+struct diffline_S {
+  diffline_change_T *changes;
+  int num_changes;
+  int bufidx;
+  int lineoff;
+};
+
+#define SNAP_HELP_IDX       0
+#define SNAP_AUCMD_IDX      1
+#define SNAP_QUICKFIX_IDX   2
+#define SNAP_COUNT          3
+
+/// Tab pages point to the top frame of each tab page.
+/// Note: Most values are NOT valid for the current tab page!  Use "curwin",
+/// "firstwin", etc. for that.  "tp_topframe" is always valid and can be
+/// compared against "topframe" to find the current tab page.
+typedef struct tabpage_S tabpage_T;
+struct tabpage_S {
+  handle_T handle;
+  tabpage_T *tp_next;         ///< next tabpage or NULL
+  frame_T *tp_topframe;       ///< topframe for the windows
+  win_T *tp_curwin;           ///< current window in this Tab page
+  win_T *tp_prevwin;          ///< previous window in this Tab page
+  win_T *tp_firstwin;         ///< first window in this Tab page
+  win_T *tp_la

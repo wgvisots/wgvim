@@ -66,6 +66,12 @@ Inside the editor, `:help wgvim` has the full list. In short:
   against RustSec in CI, and `vim.lsp.enable('harper_ls')` to turn it on;
   see `:help wgvim-harper`.
 
+**Tabular C and C++**
+- `tablefmt`, a post-processor for clang-format that aligns runs of similar
+  lines into tables, is built and installed with wgvim; `:TableFmt` runs
+  clang-format and then tablefmt on a buffer or a range. See
+  `:help wgvim-tablefmt`.
+
 **Build and names**
 - Built only from vendored, hash-checked dependencies in [deps/](deps/); the
   build refuses network URLs.

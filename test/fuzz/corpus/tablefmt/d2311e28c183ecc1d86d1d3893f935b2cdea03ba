@@ -1,0 +1,61 @@
+    const GitSnap *a = pass == 0 ? now : before;
+    const GitSnap *b = pass == 0 ? before : now;
+    for (int i = 0; i < a->n; i++) {
+      const GitFile *f = &a->f[i];
+      const GitFile *other = git_find(b, f->path);
+      const char *what = other == NULL ? (pass == 0 ? "added" : "removed")
+                         : (pass == 0 && memcmp(other->digest, f->digest, SHA256_SUM_SIZE) != 0)
+                         ? "changed" : NULL;
+      if (what == NULL) {
+        continue;
+      }
+      if (!header) {
+        fputs("\nwgvim: while wgvim ran, these files changed that git takes commands from, and "
+              "runs outside the sandbox (in ", stderr);
+        git_put(root, 200);
+        fputs("):\n", stderr);
+        header = true;
+      }
+      const char *rel = f->path;
+      if (path_within(f->path, root) && f->path[strlen(root)] == '/') {
+        rel = f->path + strlen(root) + 1;
+      }
+      fprintf(stderr, "  %-9s  ", what);
+      git_put(rel, 200);
+      fputs("\n", stderr);
+      if (pass == 0 && f->text != NULL) {
+        git_put_added_lines(other != NULL ? other->text : NULL, f->text);
+      }
+    }
+  }
+  if (header) {
+    fputs("If you made these changes yourself (git remote add, git branch -u, installing hooks), "
+          "there is nothing to do. Otherwise check them before you run git there again "
+          "(:help wgvim-sandbox-git).\n", stderr);
+  }
+}
+
+/// The watcher: records, waits for wgvim to exit (EOF on `fd`), compares, reports.
+static void git_watch_main(int fd, const char *root)
+  FUNC_ATTR_NORETURN
+{
+  GitSnap *before = git_snapshot(root);
+  int32_t n = before->n;
+  if (write(fd, &n, sizeof(n)) != (ssize_t)sizeof(n)) {
+    _exit(1);
+  }
+  char c;
+  ssize_t r;
+  while ((r = read(fd, &c, 1)) != 0) {
+    if (r < 0 && errno != EINTR) {
+      break;
+    }
+  }
+  GitSnap *now = git_snapshot(root);
+  git_report(before, now, root);
+  fflush(stderr);
+  _exit(0);
+}
+
+/// Starts the watcher for the working directory's repository, if it has one that the sandbox can
+/// write to. Call before the 

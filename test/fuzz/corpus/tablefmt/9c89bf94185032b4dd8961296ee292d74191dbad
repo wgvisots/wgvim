@@ -1,0 +1,50 @@
+                                    LUA_NOREF, LUA_NOREF, false, false }
+
+#define BUF_HAS_QF_ENTRY 1
+#define BUF_HAS_LL_ENTRY 2
+
+// Maximum number of maphash blocks we will have
+#define MAX_MAPHASH 256
+
+// buffer: structure that holds information about one file
+//
+// Several windows can share a single Buffer
+// A buffer is unallocated if there is no memfile for it.
+// A buffer is new if the associated file has never been loaded yet.
+
+struct file_buffer {
+  handle_T handle;              // unique id for the buffer (buffer number)
+#define b_fnum handle
+
+  memline_T b_ml;               // associated memline (also contains line count
+
+  buf_T *b_next;          // links in list of buffers
+  buf_T *b_prev;
+
+  int b_nwindows;               // nr of windows open on this buffer
+
+  int b_flags;                  // various BF_ flags
+  int b_locked;                 // Buffer is being closed or referenced, don't
+                                // let autocommands wipe it out.
+  int b_locked_split;           // Buffer is being closed, don't allow opening
+                                // it in more windows.
+  int b_ro_locked;              // Non-zero when the buffer can't be changed.
+                                // Used for FileChangedRO
+
+  // b_ffname   has the full path of the file (NULL for no name).
+  // b_sfname   is the name as the user typed it (or NULL).
+  // b_fname    is the same as b_sfname, unless ":cd" has been done,
+  //            then it is the same as b_ffname (NULL for no name).
+  char *b_ffname;          // full path file name, allocated
+  char *b_sfname;          // short file name, allocated, may be equal to
+                           // b_ffname
+  char *b_fname;           // current file name, points to b_ffname or
+                           // b_sfname
+
+  bool file_id_valid;
+  FileID file_id;
+
+  int b_changed;                // 'modified': Set to true if something in the
+                                // file has been changed and not written out.
+
+  /// Change-identifier incremented for each change,

@@ -1,0 +1,66 @@
+	        if (l == 0) {
+          emsg(_(e_invarg));
+          return 0;
+        }
+        key = (int)n;
+      } else {
+        int off = 1;
+
+        // Modifier with single letter, or special key name.
+        if (in_string && last_dash[1] == '\\' && last_dash[2] == '"') {
+          // Special case for a double-quoted string
+          off = l = 2;
+        } else {
+          l = utfc_ptr2len(last_dash + 1);
+        }
+        if (modifiers != 0 && last_dash[l + 1] == '>') {
+          key = utf_ptr2char(last_dash + off);
+        } else {
+          key = get_special_key_code(last_dash + off);
+          if (!(flags & FSK_KEEP_X_KEY)) {
+            key = handle_x_keys(key);
+          }
+        }
+      }
+
+      // get_special_key_code() may return NUL for invalid
+      // special key name.
+      if (key != NUL) {
+        // Only use a modifier when there is no special key code that
+        // includes the modifier.
+        key = simplify_key(key, &modifiers);
+
+        if (!(flags & FSK_KEYCODE)) {
+          // don't want keycode, use single byte code
+          if (key == K_BS) {
+            key = BS;
+          } else if (key == K_DEL || key == K_KDEL) {
+            key = DEL;
+          }
+        }
+
+        // Normal Key with modifier:
+        // Try to make a single byte code (except for Alt/Meta modifiers).
+        if (!IS_SPECIAL(key)) {
+          key = extract_modifiers(key, &modifiers, flags & FSK_SIMPLIFY, did_simplify);
+        }
+
+        *modp = modifiers;
+        *srcp = end_of_name;
+        return key;
+      }  // else { ELOG("unknown key: '%s'", src); }
+    }
+  }
+  return 0;
+}
+
+/// Try to include modifiers (except alt/meta) in the key.
+/// Changes "Shift-a" to 'A', "Ctrl-@" to <Nul>, etc.
+/// @param[in]  simplify  if false, don't do Ctrl
+/// @param[out]  did_simplify  set when it is not NULL and "simplify" is true and
+///                            Ctrl is removed from modifiers
+static int extract_modifiers(int key, int *modp, const bool simplify, bool *const did_simplify)
+{
+  int modifiers = *modp;
+
+  if ((mod

@@ -1,0 +1,27 @@
+#include <assert.h>
+#include <cstdint>
+#include <cstring>
+#include <vector>
+
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include <boost/asio.hpp>
+#include <nlohmann/json.hpp>
+
+#include "my_header.hpp"
+#include "util.hpp"
+
+struct MyStruct{
+    double              a       {0.0};
+    std::int32_t        b       {0  };
+    std::string         c       {   };
+    std::vector<double> whatsits{   };
+};
+
+void to_json(nlohmann::json& me, const MyStruct& d){
+    me["a"       ] = d.a       ;
+    me["b"       ] = d.b       ;
+    me["c"       ] = d.c       ;
+    me["whatsits"] = d.whatsits;
+}

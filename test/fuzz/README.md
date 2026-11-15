@@ -6,6 +6,7 @@ libFuzzer harnesses for code that parses untrusted bytes:
 |---|---|---|
 | `vterm_fuzzer.c` | `src/nvim/vterm` (terminal emulator) | Output of a program running in `:terminal`, configured as `terminal.c` does (UTF-8, altscreen, reflow, scrollback, fallbacks; plus libvterm's OSC 52 decoder), with a resize and keyboard/mouse input part-way |
 | `termkey_fuzzer.c` | `src/nvim/tui/termkey` (terminal input parser) | Bytes from the terminal wgvim runs in (keys, mouse, paste, OSC/DCS/APC replies), configured as `tui/input.c` does, pushed in chunks |
+| `tablefmt_fuzzer.cpp` | `src/tablefmt` (the tablefmt program) | Any text, with any combination of its options. Checks that only whitespace changes (as many lines, the same tokens and comment on each); with `TABLEFMT_FUZZ_STRICT=1` also idempotence and that its own safety net never fires |
 | `treesitter_fuzzer.c` | The Tree-sitter runtime and one bundled parser, built from the `deps/` sources (one binary per language: `treesitter_<lang>_fuzzer`, for c, cpp, diff, lua, vim, vimdoc, query, markdown, markdown_inline) | A file opened in wgvim: parsed in line-sized chunks as wgvim's buffer reader does, every node visited, the language's queries from `runtime/queries` run over it; then an edit and an incremental reparse (changed ranges, queries again), and a parse of only some ranges, as for an injected language |
 
 Seed inputs are in `corpus/<name>/`. The first bytes of each input are a small header (sizes,
@@ -48,6 +49,12 @@ A crash or hang writes `crash-*` / `timeout-*` next to the current directory (or
 ## Findings so far
 
 All fixed; details in SECURITY-AUDIT.md row 23. Crash inputs are kept in `corpus/` (`regress-*`).
+
+tablefmt (2026-11-15): about 1.2 million inputs. No memory errors or undefined behaviour; one
+bug: a cell made only of UTF-8 continuation bytes (Latin-1 text, say) measured 0 wide and its
+column was dropped, which the safety net caught (the line was left unchanged) and which also
+made output unstable. Fixed; inputs in `corpus/tablefmt/regress-*`. Strict mode still fails on
+inputs that are not code (lines starting with "=", NUL bytes), so CI runs the default checks.
 
 Tree-sitter (2026-11-07): about 430,000 inputs over the nine parsers, no memory errors, hangs
 or out-of-memory; see "Fuzzing of dependencies" in SECURITY-AUDIT.md.

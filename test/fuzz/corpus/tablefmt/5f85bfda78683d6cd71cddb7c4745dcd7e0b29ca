@@ -1,0 +1,30 @@
+  MOD_MASK_SHIFT, '*', '5',                   'k', 'L',         // delete line
+  MOD_MASK_SHIFT, '*', '7',                   '@', '7',         // end
+  MOD_MASK_CTRL,  KS_EXTRA, KE_C_END,         '@', '7',         // end
+  MOD_MASK_SHIFT, '*', '9',                   '@', '9',         // exit
+  MOD_MASK_SHIFT, '*', '0',                   '@', '0',         // find
+  MOD_MASK_SHIFT, '#', '1',                   '%', '1',         // help
+  MOD_MASK_SHIFT, '#', '2',                   'k', 'h',         // home
+  MOD_MASK_CTRL,  KS_EXTRA, KE_C_HOME,        'k', 'h',         // home
+  MOD_MASK_SHIFT, '#', '3',                   'k', 'I',         // insert
+  MOD_MASK_SHIFT, '#', '4',                   'k', 'l',         // left arrow
+  MOD_MASK_CTRL,  KS_EXTRA, KE_C_LEFT,        'k', 'l',         // left arrow
+  MOD_MASK_SHIFT, '%', 'a',                   '%', '3',         // message
+  MOD_MASK_SHIFT, '%', 'b',                   '%', '4',         // move
+  MOD_MASK_SHIFT, '%', 'c',                   '%', '5',         // next
+  MOD_MASK_SHIFT, '%', 'd',                   '%', '7',         // options
+  MOD_MASK_SHIFT, '%', 'e',                   '%', '8',         // previous
+  MOD_MASK_SHIFT, '%', 'f',                   '%', '9',         // print
+  MOD_MASK_SHIFT, '%', 'g',                   '%', '0',         // redo
+  MOD_MASK_SHIFT, '%', 'h',                   '&', '3',         // replace
+  MOD_MASK_SHIFT, '%', 'i',                   'k', 'r',         // right arr.
+  MOD_MASK_CTRL,  KS_EXTRA, KE_C_RIGHT,       'k', 'r',         // right arr.
+  MOD_MASK_SHIFT, '%', 'j',                   '&', '5',         // resume
+  MOD_MASK_SHIFT, '!', '1',                   '&', '6',         // save
+  MOD_MASK_SHIFT, '!', '2',                   '&', '7',         // suspend
+  MOD_MASK_SHIFT, '!', '3',                   '&', '8',         // undo
+  MOD_MASK_SHIFT, KS_EXTRA, KE_S_UP,          'k', 'u',         // up arrow
+  MOD_MASK_SHIFT, KS_EXTRA, KE_S_DOWN,        'k', 'd',         // down arrow
+
+  // vt100 F1
+  MOD_MASK_SHIFT, KS_EXTRA, K
