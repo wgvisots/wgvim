@@ -85,6 +85,12 @@ Inside the editor, `:help wgvim` has the full list. In short:
   Internal names that plugins rely on (the `nvim_*` API, the `vim` Lua module)
   are unchanged, so most Neovim plugins work as they are.
 
+## Installing a prebuilt tarball (RHEL 9)
+
+Every CI run builds `wgvim-<version>-linux-x86_64.tar.gz` in an offline UBI 9 container from
+the binary its tests just passed, with a SHA-256 checksum (and, on `master`, a GitHub build
+attestation). Unpack it to `/opt/wgvim`; see [INSTALL.md](INSTALL.md#install-from-download).
+
 ## Building
 
 Requirements: a C compiler (GCC 11 or later, or Clang), CMake 3.16 or later,

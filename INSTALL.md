@@ -2,7 +2,7 @@ You can install wgvim from [download](#install-from-download), [package](#instal
 
 ---
 
-- To start wgvim, run `nvim` (not `neovim`).
+- To start wgvim, run `wgvim`.
     - [Discover plugins](https://github.com/neovim/neovim/wiki/Related-projects#plugins).
 - Before upgrading to a new version, **check [Breaking Changes](https://neovim.io/doc/user/news.html#news-breaking).**
 - For config (vimrc) see [the FAQ](https://neovim.io/doc/user/faq.html#faq-general).
@@ -12,22 +12,46 @@ You can install wgvim from [download](#install-from-download), [package](#instal
 Install from download
 =====================
 
-Downloads are available on the [Releases](https://github.com/neovim/neovim/releases) page.
+wgvim has no release page yet. Every CI run on GitHub builds a tarball for
+**RHEL 9 and compatible systems** (x86_64, glibc 2.34 or later), in the same
+offline UBI 9 container that runs the test suites, from the binary those tests
+just passed, and tests it again in a plain UBI 9 container:
 
-* Latest [stable release](https://github.com/neovim/neovim/releases/latest)
-    * [macOS x86_64](https://github.com/neovim/neovim/releases/latest/download/nvim-macos-x86_64.tar.gz)
-    * [macOS arm64](https://github.com/neovim/neovim/releases/latest/download/nvim-macos-arm64.tar.gz)
-    * [Linux x86_64](https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz)
-    * [Linux arm64](https://github.com/neovim/neovim/releases/latest/download/nvim-linux-arm64.tar.gz)
-    * [Windows x86_64](https://github.com/neovim/neovim/releases/latest/download/nvim-win64.msi)
-    * [Windows arm64](https://github.com/neovim/neovim/releases/latest/download/nvim-win-arm64.msi)
-* Latest [development prerelease](https://github.com/neovim/neovim/releases/nightly)
+1. Open a run of the [CI workflow](https://github.com/wgvisots/wgvim/actions/workflows/ci.yml)
+   on `master` and download the `wgvim-<version>-linux-x86_64` artifact (a zip
+   with the tarball and its `.sha256`). The run's summary shows the checksum.
+2. Check it, and on `master` builds the GitHub build attestation:
+   ```bash
+   unzip wgvim-*-linux-x86_64.zip
+   sha256sum -c wgvim-*-linux-x86_64.tar.gz.sha256
+   gh attestation verify wgvim-*-linux-x86_64.tar.gz --repo wgvisots/wgvim
+   ```
+3. Install to `/opt/wgvim` (the path the SELinux policy labels):
+   ```bash
+   sudo rm -rf /opt/wgvim && sudo mkdir -p /opt/wgvim
+   sudo tar -C /opt/wgvim --strip-components=1 -xzf wgvim-*-linux-x86_64.tar.gz
+   sudo ln -sf /opt/wgvim/bin/wgvim /usr/local/bin/wgvim    # optional
+   ```
+   The tree also works from any other directory, without root (wgvim finds its
+   runtime files and parsers next to its binary).
+4. Optional: confine it with SELinux, from the copy of the policy in the tarball:
+   ```bash
+   sudo dnf install selinux-policy-devel policycoreutils-python-utils
+   sudo /opt/wgvim/share/wgvim/selinux/wgvim-selinux.sh install
+   ```
+
+`README-tarball.txt` in the tarball has the details, and `licenses/` the
+licence of every library built into wgvim. To make the same tarball yourself,
+offline: `scripts/rhel9-container-test.sh --committed --package`, or after a
+plain build, `scripts/package-tarball.sh` (see BUILD.md).
 
 
 Install from package
 ====================
 
-Packages are listed below. (You can also [build wgvim from source](#install-from-source).)
+The packages listed below install **Neovim**, not wgvim; they are kept from Neovim's
+install guide for reference. To install wgvim, use the [tarball](#install-from-download) or
+[build wgvim from source](#install-from-source).
 
 ## Windows
 

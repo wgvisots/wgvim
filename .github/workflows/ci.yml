@@ -102,15 +102,46 @@ jobs:
 
   # The same script you run locally: UBI 9 with its own GCC 11 toolchain, the build and the tests
   # in a container started with --network none, non-root. podman is preinstalled on the runner.
+  # --package also makes the release tarball from the binary that is tested here, and tests it
+  # in a fresh plain UBI 9 container (no compilers, no source tree).
   rhel9:
     name: RHEL 9 (UBI 9 container, offline)
     runs-on: ubuntu-24.04
     timeout-minutes: 120
+    permissions:
+      contents: read
+      id-token: write      # build attestation of the tarball (pushes to master only)
+      attestations: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Build and test in UBI 9
-        run: scripts/rhel9-container-test.sh --engine podman --committed --out rhel9-results
+        run: scripts/rhel9-container-test.sh --engine podman --committed --package --out rhel9-results
+
+      - name: Release tarball
+        id: tarball
+        run: |
+          d=$(ls -d rhel9-results/*/package 2>/dev/null | tail -1)
+          f=$(ls "$d"/*.tar.gz)
+          mkdir -p tarball && cp "$f" "$f.sha256" tarball/
+          name=$(basename "$f" .tar.gz)
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          { echo "**Release tarball:** \`$name.tar.gz\`"; echo '```'; cat "$f.sha256"; echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Only on master: attestations are public records, and PR builds are not releases.
+      - name: Attest the tarball
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: tarball/*.tar.gz
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.tarball.outputs.name }}
+          path: tarball/
+          if-no-files-found: error
+          retention-days: 90
 
       - name: Summary
         if: success() || failure()

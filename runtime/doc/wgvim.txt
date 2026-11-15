@@ -288,7 +288,9 @@ permissive mode: denials are logged, nothing is blocked. After using wgvim
 for a while, "scripts/wgvim-selinux.sh denials" shows what would have been
 refused; "scripts/wgvim-selinux.sh enforce" turns it on. "status" and
 "uninstall" do what they say. Needs selinux-policy-devel and
-policycoreutils-python-utils.
+policycoreutils-python-utils. The release tarball has a copy of the policy
+and the script in "share/wgvim/selinux/" (with the tree in "/opt/wgvim":
+"sudo /opt/wgvim/share/wgvim/selinux/wgvim-selinux.sh install").
 
 ==============================================================================
 Reading aids                                            *wgvim-reading*
