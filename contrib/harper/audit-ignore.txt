@@ -30,6 +30,11 @@ RUSTSEC-2026-0398 zstd-safe: not in harper-ls
 RUSTSEC-2026-0403 zstd-safe: not in harper-ls
 RUSTSEC-2026-0410 zstd-sys: not in harper-ls
 
+# ammonia 4.2.4: HTML sanitizer (mutation XSS, published 2026-11-12). Not in harper-ls: no
+# symbols of ammonia, nor of html5ever, the HTML parser it is built on. harper-core depends on
+# it, but harper-ls does not use that code.
+RUSTSEC-2026-0533 ammonia: not in harper-ls
+
 # pulldown-cmark 0.13.4: these DO affect harper-ls, which parses Markdown with
 # Options::all() (wiki links on). A small crafted Markdown file makes it use CPU and memory
 # without bound: denial of service of the language server only (wgvim itself keeps

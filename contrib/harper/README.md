@@ -41,6 +41,13 @@ contains:
   harper-ls uses ruzstd, a separate pure-Rust decoder, for its built-in thesaurus),
   rustls-webpki and webpki-roots (no TLS code at all), bincode, paste.
 
+Later advisories, found by the weekly CI audit:
+
+- 2026-11-15: **ammonia 4.2.4**, RUSTSEC-2026-0533 (HTML sanitizer, mutation XSS, published
+  2026-11-12). Not in `harper-ls` (no symbols of ammonia or of html5ever); accepted in
+  `audit-ignore.txt`. Also new, as a warning only: rustix 1.1.5 RUSTSEC-2026-0486 (unsound
+  xattr functions); rustix is not in `harper-ls` either.
+
 ## Updating to a new Harper release
 
 1. Put the new `.vsix` in `deps/`, and its SHA-256 and that of `extension/bin/harper-ls` in
