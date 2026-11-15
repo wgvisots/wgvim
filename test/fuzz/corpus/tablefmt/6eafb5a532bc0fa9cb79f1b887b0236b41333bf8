@@ -1,0 +1,63 @@
+# define GIT_MAX_HASH (16u << 20)    // bytes hashed per file
+
+static pid_t git_watch_pid = 0;  // the watcher, in the process that started it
+static int git_watch_fd = -1;    // its socket: EOF tells it that wgvim exits
+static char *git_watch_root = NULL;  // the project it watches (also for :checkhealth)
+static int git_watch_nfiles = -1;    // files it recorded
+
+static void git_add(GitSnap *s, const char *path, bool keep_text)
+{
+  struct stat st;
+  if (s->n >= GIT_MAX_FILES || lstat(path, &st) != 0) {
+    return;
+  }
+  for (int i = 0; i < s->n; i++) {
+    if (strcmp(s->f[i].path, path) == 0) {
+      return;
+    }
+  }
+  context_sha256_T ctx;
+  sha256_start(&ctx);
+  uint32_t mode = (uint32_t)st.st_mode;
+  sha256_update(&ctx, (uint8_t *)&mode, sizeof(mode));
+  char *text = NULL;
+  if (S_ISLNK(st.st_mode)) {
+    char t[4096];
+    ssize_t n = readlink(path, t, sizeof(t));
+    sha256_update(&ctx, (uint8_t *)t, n > 0 ? (size_t)n : 0);
+  } else if (S_ISREG(st.st_mode)) {
+    int fd = open(path, O_RDONLY | O_CLOEXEC | O_NOFOLLOW | O_NONBLOCK);
+    if (fd >= 0) {
+      size_t total = 0;
+      size_t cap = keep_text ? GIT_MAX_TEXT : 0;
+      text = keep_text ? xmalloc(cap + 1) : NULL;
+      uint8_t buf[8192];
+      ssize_t n;
+      while (total < GIT_MAX_HASH && (n = read(fd, buf, sizeof(buf))) > 0) {
+        sha256_update(&ctx, buf, (size_t)n);
+        if (text != NULL && total < cap) {
+          size_t k = MIN((size_t)n, cap - total);
+          memcpy(text + total, buf, k);
+        }
+        total += (size_t)n;
+      }
+      close(fd);
+      if (text != NULL) {
+        text[MIN(total, cap)] = NUL;
+      }
+    }
+  }
+  GitFile *f = &s->f[s->n++];
+  sha256_finish(&ctx, f->digest);
+  f->path = xstrdup(path);
+  f->text = text;
+}
+
+/// Adds the entries of directory `dir` (and of its subdirectories, one level: husky keeps its
+/// hook runner in one).
+static void git_add_dir(GitSnap *s, const char *dir, int depth)
+{
+  DIR *d = opendir(dir);
+  struct dirent *e;
+  while (d != NULL && (e = readdir(d)) != NULL) {
+    if (strcmp(e->d

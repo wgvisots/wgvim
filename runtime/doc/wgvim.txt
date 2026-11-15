@@ -413,6 +413,46 @@ How the pinned release is checked (contrib/harper/README.md):
 pinned build, and whether it is enabled.
 
 ==============================================================================
+tablefmt: tabular C and C++                             *wgvim-tablefmt*
+
+tablefmt aligns runs of similar lines into tables, after clang-format: >cpp
+    struct MyStruct{
+        double              a       {0.0};
+        std::int32_t        b       {0  };
+        std::vector<double> whatsits{   };
+    };
+<It only ever changes whitespace: each line it rewrites is lexed again and
+compared with the original, and kept as it was if they differ. wgvim builds
+it (src/tablefmt, when a C++20 compiler is available) and installs it next to
+the wgvim executable. clang-format itself (18 or later for the style in
+src/tablefmt/.clang-format) comes from the system.
+
+							*:TableFmt*
+:TableFmt		Format the buffer: clang-format, then tablefmt. One |u|
+			undoes it.
+:{range}TableFmt	Only the tables in {range} (both programs get --lines).
+
+The result is applied as the lines that changed, so marks, diagnostics and
+folds on the other lines stay where they were. Neither program goes through a
+shell. clang-format uses the ".clang-format" it finds from the file's
+directory upwards; in the sandbox that must be inside the project (copy
+src/tablefmt/.clang-format into it), as directories above the project cannot
+be read.
+
+Settings:
+	*g:tablefmt_gq*		1: |gq| in C and C++ buffers runs tablefmt
+				alone on the lines (sets 'formatexpr').
+	*g:tablefmt_on_save*	1: format C and C++ files on |:w|.
+	*g:tablefmt_cmd*		The tablefmt command, a string or a list,
+				e.g. "tablefmt --hug-commas". Default: the
+				tablefmt next to wgvim, else from $PATH.
+	*g:tablefmt_clang_format*	The clang-format command, e.g.
+				"clang-format-18". Default: "clang-format".
+
+tablefmt's own options (--hug-commas, --no-attach-braces, --column-limit,
+...) are in src/tablefmt/README.md. It is fuzzed in CI (test/fuzz).
+
+==============================================================================
 Names                                                   *wgvim-names*
 
 The executable is `wgvim`. Per-user directories and environment variables use

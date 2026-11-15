@@ -1,0 +1,115 @@
+# .clang-format -- "aggressively tabular" base style.
+# Works with clang-format 18 and newer.  Run `tablefmt` after clang-format to get
+# the alignment clang-format cannot do (padding inside brackets, semicolon
+# columns, no space before block braces).
+---
+Language:        Cpp
+BasedOnStyle:    LLVM
+Standard:        Latest
+
+# ---- Basic layout -----------------------------------------------------------
+IndentWidth:     4
+TabWidth:        4
+UseTab:          Never
+ColumnLimit:     120
+AccessModifierOffset: -4
+NamespaceIndentation: None
+PointerAlignment: Left
+ReferenceAlignment: Pointer
+QualifierAlignment: Leave
+BreakBeforeBraces: Attach
+Cpp11BracedListStyle: true
+SpaceBeforeCpp11BracedList: false   # a{0.0}  not  a {0.0}
+SpaceBeforeParens: ControlStatements
+SpacesInContainerLiterals: false
+SpaceInEmptyBlock: false
+MaxEmptyLinesToKeep: 1
+KeepEmptyLinesAtTheStartOfBlocks: false
+FixNamespaceComments: true
+BinPackArguments: false
+BinPackParameters: false
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+
+# Keep short things on one line: one-liners stack up into columns nicely.
+AllowShortFunctionsOnASingleLine: All
+AllowShortLambdasOnASingleLine: All
+AllowShortEnumsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# ---- Everything clang-format itself can align -------------------------------
+AlignAfterOpenBracket: Align
+AlignOperands: AlignAfterOperator
+BreakBeforeBinaryOperators: NonAssignment
+AlignEscapedNewlines: Left
+AlignArrayOfStructures: Left
+AlignTrailingComments:
+  Kind:            Always
+  OverEmptyLines:  0
+AlignConsecutiveAssignments:
+  Enabled:         true
+  AcrossEmptyLines: false
+  AcrossComments:  true
+  AlignCompound:   true
+  PadOperators:    true
+AlignConsecutiveDeclarations:
+  Enabled:         true
+  AcrossEmptyLines: false
+  AcrossComments:  true
+  AlignFunctionPointers: true
+AlignConsecutiveBitFields:
+  Enabled:         true
+  AcrossEmptyLines: false
+  AcrossComments:  true
+AlignConsecutiveMacros:
+  Enabled:         true
+  AcrossEmptyLines: false
+  AcrossComments:  true
+AlignConsecutiveShortCaseStatements:
+  Enabled:         true
+  AcrossEmptyLines: false
+  AcrossComments:  true
+  AlignCaseColons: false
+
+# ---- Include ordering: hardest-to-edit first ---------------------------------
+# Priority     = which blank-line-separated block a header lands in.
+# SortPriority = order within / across blocks.
+#   block 1: C standard <x.h>, then C++ <cx> wrappers, then C++ standard
+#   block 2: OS / system headers (POSIX, Linux, Windows)
+#   block 3: third-party <...>
+#   block 4: your project "..."
+SortIncludes:    CaseSensitive
+IncludeBlocks:   Regroup
+IncludeIsMainRegex: 'ThisWillNeverMatch_9f2c$'   # don't hoist the "main" header to the top
+IncludeCategories:
+  # 1. Standard C headers
+  - Regex:           '^<(assert|complex|ctype|errno|fenv|float|inttypes|iso646|limits|locale|math|setjmp|signal|stdalign|stdarg|stdatomic|stdbit|stdbool|stdckdint|stddef|stdint|stdio|stdlib|stdnoreturn|string|tgmath|threads|time|uchar|wchar|wctype)\.h>$'
+    Priority:        1
+    SortPriority:    1
+  # 2. C++ versions of the C headers
+  - Regex:           '^<c(assert|complex|ctype|errno|fenv|float|inttypes|iso646|limits|locale|math|setjmp|signal|stdalign|stdarg|stdatomic|stdbool|stddef|stdint|stdio|stdlib|string|tgmath|time|uchar|wchar|wctype)>$'
+    Priority:        1
+    SortPriority:    2
+  # 3. C++ standard library
+  - Regex:           '^<(algorithm|any|array|atomic|barrier|bit|bitset|charconv|chrono|codecvt|compare|complex|concepts|condition_variable|contracts|coroutine|debugging|deque|exception|execution|expected|filesystem|flat_map|flat_set|format|forward_list|fstream|functional|future|generator|hazard_pointer|hive|initializer_list|inplace_vector|iomanip|ios|iosfwd|iostream|istream|iterator|latch|limits|linalg|list|locale|map|mdspan|memory|memory_resource|meta|mutex|new|numbers|numeric|optional|ostream|print|queue|random|ranges|ratio|rcu|regex|scoped_allocator|semaphore|set|shared_mutex|simd|source_location|span|spanstream|sstream|stack|stacktrace|stdexcept|stdfloat|stop_token|streambuf|string|string_view|strstream|syncstream|system_error|text_encoding|thread|tuple|type_traits|typeindex|typeinfo|unordered_map|unordered_set|utility|valarray|variant|vector|version)>$'
+    Priority:        1
+    SortPriority:    3
+  # 4. System headers: POSIX / Linux / BSD sockets / Windows
+  - Regex:           '^<(sys|linux|asm|asm-generic|arpa|net|netinet|netpacket|bits|gnu|scsi|mtd|sound|drm|xen)/'
+    Priority:        2
+    SortPriority:    4
+  - Regex:           '^<(aio|cpio|dirent|dlfcn|elf|endian|err|error|execinfo|fcntl|fmtmsg|fnmatch|ftw|getopt|glob|grp|iconv|ifaddrs|langinfo|libgen|link|malloc|mntent|monetary|mqueue|ndbm|netdb|nl_types|poll|pthread|pty|pwd|regex|resolv|sched|search|semaphore|shadow|spawn|strings|stropts|syslog|tar|termios|trace|ucontext|ulimit|unistd|utime|utmp|utmpx|wordexp|windows|winsock2|ws2tcpip|io|direct|process|conio)\.h>$'
+    Priority:        2
+    SortPriority:    4
+  # 5. Third-party: anything else in angle brackets
+  - Regex:           '^<.*>$'
+    Priority:        3
+    SortPriority:    5
+  # 6. Your project: quoted includes
+  - Regex:           '^".*"$'
+    Priority:        4
+    SortPriority:    6
+...
