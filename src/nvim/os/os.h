@@ -16,6 +16,7 @@ EXTERN bool nvim_testing INIT( = false);
 extern char *default_vim_dir;
 extern char *default_vimruntime_dir;
 extern char *default_lib_dir;
+extern char *lib_dir_in_prefix;
 extern char *build_tree_exe;
 extern char *build_tree_runtime;
 

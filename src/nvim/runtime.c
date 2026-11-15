@@ -1813,15 +1813,28 @@ static inline char *add_dir(char *dest, const char *const dir, const size_t dir_
 
 char *get_lib_dir(void)
 {
-  // wgvim: the lib/wgvim next to the binary comes first, like the runtime files
+  // wgvim: the library directory next to the binary comes first, like the runtime files
   // (vim_getenv("VIMRUNTIME")). A moved install tree (the release tarball unpacked somewhere
   // other than its build prefix) or the build tree must not load the tree-sitter parsers of
   // some other installation that happens to exist at the compiled-in default_lib_dir.
-  char exe_name[MAXPATHL];
-  vim_get_prefix_from_exepath(exe_name);
-  bool beside = append_path(exe_name, "lib/wgvim", MAXPATHL) == OK;
-  if (beside && os_isdir(exe_name)) {
-    return xstrdup(exe_name);
+  // Next to the binary: the configured libdir ("lib64/wgvim" on RHEL), then "lib/wgvim" (the
+  // build tree, and Debian-style installs).
+  char prefix[MAXPATHL];
+  vim_get_prefix_from_exepath(prefix);
+  char first[MAXPATHL] = "";  // the first candidate, for the fallback below
+  const char *rels[] = { lib_dir_in_prefix, "lib/wgvim" };
+  for (size_t i = 0; i < ARRAY_SIZE(rels); i++) {
+    char cand[MAXPATHL];
+    xstrlcpy(cand, prefix, sizeof(cand));
+    if (*rels[i] == NUL || append_path(cand, rels[i], MAXPATHL) != OK) {
+      continue;
+    }
+    if (os_isdir(cand)) {
+      return xstrdup(cand);
+    }
+    if (*first == NUL) {
+      xstrlcpy(first, cand, sizeof(first));
+    }
   }
 
   if (strlen(default_lib_dir) != 0
@@ -1829,8 +1842,8 @@ char *get_lib_dir(void)
     return xstrdup(default_lib_dir);
   }
 
-  // Neither exists: the path next to the binary, as before.
-  return beside ? xstrdup(exe_name) : NULL;
+  // None exists: the path next to the binary, as before.
+  return *first != NUL ? xstrdup(first) : NULL;
 }
 
 /// Determine the startup value for &runtimepath
