@@ -7,6 +7,16 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
   ERROR_QUIET
   RESULT_VARIABLE RES)
+# wgvim: no .git (a source tree from "git archive"): use the commit that git archive wrote into
+# cmake.config/source-commit.txt (export-subst in .gitattributes). Outside an archive the file
+# still holds the unexpanded "$Format:...$" and is ignored.
+if(RES AND EXISTS "${NVIM_SOURCE_DIR}/cmake.config/source-commit.txt")
+  file(STRINGS "${NVIM_SOURCE_DIR}/cmake.config/source-commit.txt" ARCHIVE_COMMIT LIMIT_COUNT 1)
+  if(ARCHIVE_COMMIT MATCHES "^[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]+$")
+    set(GIT_TAG "${ARCHIVE_COMMIT}")
+    set(RES 0)
+  endif()
+endif()
 if(RES)
   message(STATUS "Using NVIM_VERSION: ${NVIM_VERSION}")
   file(WRITE "${OUTPUT}" "")
