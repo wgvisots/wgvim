@@ -33,7 +33,7 @@ finds its runtime files and tree-sitter parsers next to its binary. Run it by
 its real path or through a symlink; do not copy bin/wgvim out of the tree.
 
 Contents: bin/wgvim (the editor), bin/tablefmt (the table formatter for C and
-C++, see ":help wgvim-tablefmt"), lib/wgvim/parser/ (the bundled tree-sitter
+C++, see ":help wgvim-tablefmt"), @LIBDIR@/parser/ (the bundled tree-sitter
 parsers), share/wgvim/runtime/ (runtime files and help), share/man/,
 share/wgvim/selinux/ (the SELinux policy), licenses/ (the licence of every
 library built into wgvim).

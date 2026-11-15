@@ -32,18 +32,23 @@ fi
 
 echo "--- archive layout:"
 NAME="$(basename "$TARBALL" .tar.gz)"
-TOP="$(tar -tzf "$TARBALL" | cut -d/ -f1 | sort -u)"
+# Listed once: "tar | grep -q" fails under pipefail when grep stops reading early.
+LIST="$(tar -tzf "$TARBALL")" || fail "listing the archive"
+VLIST="$(tar -tvzf "$TARBALL")"
+TOP="$(cut -d/ -f1 <<<"$LIST" | sort -u)"
 [ "$TOP" = "$NAME" ] || fail "expected one top-level directory $NAME, got: $(echo $TOP)"
-OWNERS="$(tar -tvzf "$TARBALL" | awk '{print $2}' | sort -u)"
+OWNERS="$(awk '{print $2}' <<<"$VLIST" | sort -u)"
 [ "$OWNERS" = "0/0" ] || fail "files not owned by 0/0: $(echo $OWNERS)"
-WRITABLE="$(tar -tvzf "$TARBALL" | awk '$1 ~ /^.....w|^........w/ {print $NF}' | head -5)"
+WRITABLE="$(awk '$1 ~ /^.....w|^........w/ {print $NF}' <<<"$VLIST" | head -5)"
 [ -z "$WRITABLE" ] || fail "group/other-writable: $WRITABLE"
-for f in bin/wgvim lib/wgvim/parser/c.so share/wgvim/runtime/doc/tags LICENSE.txt NOTICE \
+has() { grep -qE "^$NAME/$1/?\$" <<<"$LIST"; }
+for f in bin/wgvim share/wgvim/runtime/doc/tags LICENSE.txt NOTICE \
          README-tarball.txt licenses/unibilium share/wgvim/selinux/wgvim.te; do
-  tar -tzf "$TARBALL" "$NAME/$f" >/dev/null 2>&1 || tar -tzf "$TARBALL" | grep -q "^$NAME/$f/" \
-    || fail "missing $f"
+  has "$f" || fail "missing $f"
 done
-echo "  $(tar -tzf "$TARBALL" | wc -l) entries under $NAME/"
+# The parsers: lib/ or lib64/ (GNUInstallDirs: lib64 on RHEL).
+has 'lib(64)?/wgvim/parser/c\.so' || fail "missing lib*/wgvim/parser/c.so"
+echo "  $(wc -l <<<"$LIST") entries under $NAME/"
 
 mkdir -p "$T/first" "$T/second/elsewhere"
 tar -C "$T/first" -xzf "$TARBALL" || fail "unpacking"
@@ -64,7 +69,7 @@ check_paths() {
   rt="$(sed -n 's/^rt=//p' <<<"$out")"
   parser="$(sed -n 's/^parser=//p' <<<"$out")"
   [ "$rt" = "$tree/share/wgvim/runtime" ] || fail "VIMRUNTIME is '$rt', not inside $tree"
-  case "$parser" in "$tree"/lib/wgvim/parser/c.so) ;; *) fail "C parser from '$parser', not $tree" ;; esac
+  case "$parser" in "$tree"/lib/wgvim/parser/c.so|"$tree"/lib64/wgvim/parser/c.so) ;; *) fail "C parser from '$parser', not $tree" ;; esac
   grep -q '^highlight=true' <<<"$out" || fail "the C parser does not load"
   ! grep -q '^help=' <<<"$out" || fail ":help wgvim does not work"
 }
@@ -87,7 +92,7 @@ echo "  $check_paths_link"
 
 if command -v ldd >/dev/null 2>&1; then
   echo "--- shared libraries (from the system):"
-  LIBS="$(find "$TREE/bin" "$TREE/lib" -type f \( -perm -u+x -o -name '*.so' \) \
+  LIBS="$(find "$TREE/bin" "$TREE"/lib* -type f \( -perm -u+x -o -name '*.so' \) \
             ! -name '*.sh' -exec ldd {} + 2>/dev/null)"
   grep 'not found' <<<"$LIBS" && fail "missing shared libraries"
   grep -oE '^\s+[^ ]+\.so[^ ]*' <<<"$LIBS" | sort -u | tr -d '\t ' | tr '\n' ' ' | sed 's/^/  /'

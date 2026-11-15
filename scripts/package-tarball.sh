@@ -9,7 +9,7 @@
 #                 (default: .deps)
 #   --out DIR     where the tarball goes (default: build/package)
 #
-# The tree inside is what "cmake --install" puts under its prefix (bin/, lib/wgvim/,
+# The tree inside is what "cmake --install" puts under its prefix (bin/, lib/wgvim/ or lib64/wgvim/,
 # share/wgvim/runtime/, man pages, ...), plus LICENSE.txt, NOTICE, README.md, README-tarball.txt
 # and licenses/ (the licence of every library built into wgvim or its parsers). wgvim finds its
 # runtime files and parsers next to the binary, so the tree works wherever it is unpacked; the
@@ -66,9 +66,14 @@ echo "package: installing into $NAME/"
 cmake --install "$BUILD" --prefix "$TREE" --strip > "$STAGE/install.log" 2>&1 \
   || { cat "$STAGE/install.log" >&2; die "cmake --install failed"; }
 
+# lib/ or lib64/ (GNUInstallDirs: lib64 on RHEL), as installed.
+LIBDIR="$(cd "$TREE" && ls -d lib*/wgvim 2>/dev/null | head -1)"
+[ -n "$LIBDIR" ] || die "no lib*/wgvim in the installed tree"
+
 # Credit and licences: wgvim is Neovim (and Vim) with changes; NOTICE says so and lists them.
 cp LICENSE.txt NOTICE README.md "$TREE/"
 sed -e "s|@NAME@|$NAME|g" -e "s|@VERSION@|$VERSION|g" -e "s|@COMMIT@|${COMMIT:-unknown}|g" \
+  -e "s|@LIBDIR@|$LIBDIR|g" \
   contrib/tarball/README.txt > "$TREE/README-tarball.txt"
 
 # The SELinux policy and its installer, so the tarball alone is enough to confine wgvim.
@@ -109,7 +114,7 @@ if grep -rIl --exclude-dir=licenses -e "$ROOT/" "$TREE" >/dev/null 2>&1; then
 fi
 
 # Every library the programs and parsers need must come from the system (RHEL 9 base).
-MISSING="$(find "$TREE/bin" "$TREE/lib" -type f \( -perm -u+x -o -name '*.so' \) \
+MISSING="$(find "$TREE/bin" "$TREE/$LIBDIR" -type f \( -perm -u+x -o -name '*.so' \) \
   -exec ldd {} + 2>/dev/null | grep 'not found' || true)"
 [ -z "$MISSING" ] || die "missing libraries: $MISSING"
 
