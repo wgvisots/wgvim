@@ -57,6 +57,23 @@ describe('has()', function()
     eq(1, fn.has('nvim-00.001.05'))
   end)
 
+  it('"wgvim-x.y.z": wgvim\'s own version, separate from "nvim-x.y.z"', function()
+    local v = n.exec_lua(function()
+      return vim.version()
+    end)
+    eq(1, fn.has('wgvim'))
+    eq(1, fn.has('wgvim-1'))
+    eq(1, fn.has('wgvim-1.0'))
+    eq(1, fn.has('wgvim-1.0.0'))
+    eq(1, fn.has('wgvim-0.99'))
+    eq(0, fn.has('wgvim-99'))
+    eq(0, fn.has('wgvim-'))
+    eq(0, fn.has('wgvim-a.b'))
+    -- has('nvim-...') still answers for the Neovim snapshot, which plugins check.
+    eq(1, fn.has(('nvim-%d.%d.%d'):format(v.major, v.minor, v.patch)))
+    eq(0, fn.has(('nvim-%d.%d'):format(v.major, v.minor + 1)))
+  end)
+
   it('"unnamedplus"', function()
     if (not is_os('win')) and fn.has('clipboard') == 1 then
       eq(1, fn.has('unnamedplus'))

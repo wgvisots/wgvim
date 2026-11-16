@@ -25,6 +25,8 @@
 #   --committed              test the last commit (git archive HEAD) instead of the working tree
 #   --package                build for /opt/wgvim and make the release tarball (stage 3);
 #                            with --committed, its name and --version carry the commit
+#   --release                with --package: a release tarball (RELEASING.md), named by the
+#                            version alone; refused for a "-dev" version or uncommitted changes
 #   --no-functional          skip the functional tests
 #   --no-oldtest             skip the old (Vim) tests
 #   --parallel               run the functional test groups in parallel (faster, but the groups
@@ -51,6 +53,7 @@ PARALLEL=0
 REBUILD_IMAGE=0
 OPEN_SHELL=0
 PACKAGE=0
+RELEASE=0
 
 usage() { sed -n '2,/^$/{s/^# \{0,1\}//;p}' "$0"; }
 die() { echo "error: $*" >&2; exit 2; }
@@ -64,6 +67,7 @@ while [ $# -gt 0 ]; do
     --build-type) BUILD_TYPE="${2:?}"; shift 2 ;;
     --committed) SOURCE_MODE="committed"; shift ;;
     --package) PACKAGE=1; shift ;;
+    --release) RELEASE=1; shift ;;
     --no-functional) RUN_FUNCTIONAL=0; shift ;;
     --no-oldtest) RUN_OLDTEST=0; shift ;;
     --parallel) PARALLEL=1; shift ;;
@@ -105,10 +109,11 @@ if [ "$REBUILD_IMAGE" = 1 ] || ! "$ENGINE" image inspect "$TOOL_IMAGE" >/dev/nul
 FROM $BASE_IMAGE
 # Required: compilers and build tools. ninja is not in the UBI repositories; without it the
 # top-level Makefile uses "Unix Makefiles". gettext provides msgfmt for the translations.
+# python3 (3.9) writes the release tarball's SBOM (scripts/generate-sbom.py).
 # Optional: glibc-gconv-extra has the iconv modules (CP1251, GB18030, Shift_JIS, ...) that the
 # 'fileencoding' tests use; the extra langpacks are not in UBI and are skipped.
 RUN dnf -y --setopt=install_weak_deps=0 install \\
-      gcc gcc-c++ make cmake gettext binutils git-core \\
+      gcc gcc-c++ make cmake gettext binutils git-core python3 \\
       diffutils findutils procps-ng which file tar gzip patch util-linux \\
       glibc-langpack-en \\
  && dnf -y --setopt=install_weak_deps=0 --setopt=strict=0 install \\
@@ -223,7 +228,9 @@ if [ "$BUILD_OK" = 1 ]; then
   if [ "$PACKAGE" = 1 ]; then
     # Before the test suites, so nothing they leave in build/ can end up in the tarball.
     step "release tarball"
-    if as_tester "SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH scripts/package-tarball.sh --out package" \
+    RELEASE_OPT=""
+    [ "$RELEASE" = 1 ] && RELEASE_OPT="--release"
+    if as_tester "SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH scripts/package-tarball.sh $RELEASE_OPT --out package" \
          > "$OUT/package.log" 2>&1; then
       mkdir -p "$OUT/package" && cp "$SRC"/package/* "$OUT/package/"
       status "release tarball" "ok ($(cd "$OUT/package" && ls *.tar.gz))"
@@ -287,7 +294,7 @@ set +e
 "$ENGINE" run --rm --network none \
   -e JOBS="$JOBS" -e BUILD_TYPE="$BUILD_TYPE" \
   -e RUN_FUNCTIONAL="$RUN_FUNCTIONAL" -e RUN_OLDTEST="$RUN_OLDTEST" -e OPEN_SHELL="$OPEN_SHELL" \
-  -e PARALLEL="$PARALLEL" -e PACKAGE="$PACKAGE" -e SOURCE_DATE_EPOCH="$SOURCE_DATE_EPOCH" \
+  -e PARALLEL="$PARALLEL" -e PACKAGE="$PACKAGE" -e RELEASE="$RELEASE" -e SOURCE_DATE_EPOCH="$SOURCE_DATE_EPOCH" \
   ${OWNER_OPTS[@]+"${OWNER_OPTS[@]}"} \
   -v "$WORK_DIR:/work:ro,$VOL_OPT" -v "$OUT_DIR:/out:$VOL_OPT" \
   ${TTY_OPTS[@]+"${TTY_OPTS[@]}"} \

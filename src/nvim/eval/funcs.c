@@ -2578,6 +2578,7 @@ static void f_has(typval_T *argvars, typval_T *rettv, EvalFuncData fptr)
     "xattr",
 #endif
     "nvim",
+    "wgvim",
   };
 
   bool x = false;
@@ -2610,6 +2611,10 @@ static void f_has(typval_T *argvars, typval_T *rettv, EvalFuncData fptr)
     x = true;
     // Expect "nvim-x.y.z"
     n = has_nvim_version(name + 5);
+  } else if (STRNICMP(name, "wgvim-", 6) == 0) {
+    x = true;
+    // Expect "wgvim-x.y.z" (wgvim's own version, |wgvim-version|)
+    n = has_wgvim_version(name + 6);
   } else if (STRICMP(name, "vim_starting") == 0) {
     x = true;
     n = (starting != 0);

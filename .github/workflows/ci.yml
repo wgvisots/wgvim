@@ -123,7 +123,7 @@ jobs:
         run: |
           d=$(ls -d rhel9-results/*/package 2>/dev/null | tail -1)
           f=$(ls "$d"/*.tar.gz)
-          mkdir -p tarball && cp "$f" "$f.sha256" tarball/
+          mkdir -p tarball && cp "$f" "$f.sha256" "${f%.tar.gz}.spdx.json" tarball/
           name=$(basename "$f" .tar.gz)
           echo "name=$name" >> "$GITHUB_OUTPUT"
           { echo "**Release tarball:** \`$name.tar.gz\`"; echo '```'; cat "$f.sha256"; echo '```'

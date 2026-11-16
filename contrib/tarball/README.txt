@@ -11,13 +11,24 @@ contributors; see NOTICE. It is not the Neovim project and is not supported by i
 
 Check the download
 ------------------
+A release (https://github.com/wgvisots/wgvim/releases) comes with SHA256SUMS,
+signed by the maintainer (SHA256SUMS.asc; RELEASING.md in the source says how
+to get and check the key):
+
+    gpg --verify SHA256SUMS.asc SHA256SUMS
+    sha256sum -c SHA256SUMS --ignore-missing
+
+A build between releases (a CI artifact) has only a .sha256 file:
+
     sha256sum -c @NAME@.tar.gz.sha256
 
-The checksum comes from the CI run that built and tested this tarball. Builds
-from the master branch also carry a GitHub build attestation; with the GitHub
-CLI:
+Releases, and builds from the master branch, also carry a GitHub build
+attestation; with the GitHub CLI:
 
     gh attestation verify @NAME@.tar.gz --repo wgvisots/wgvim
+
+sbom.spdx.json (SPDX 2.3) lists every file in this tarball with its SHA-256,
+and every library built into wgvim with its version, licence and source.
 
 
 Install (recommended: /opt/wgvim)
@@ -36,7 +47,7 @@ Contents: bin/wgvim (the editor), bin/tablefmt (the table formatter for C and
 C++, see ":help wgvim-tablefmt"), @LIBDIR@/parser/ (the bundled tree-sitter
 parsers), share/wgvim/runtime/ (runtime files and help), share/man/,
 share/wgvim/selinux/ (the SELinux policy), licenses/ (the licence of every
-library built into wgvim).
+library built into wgvim), sbom.spdx.json (the SBOM).
 
 
 SELinux (optional, recommended on RHEL)

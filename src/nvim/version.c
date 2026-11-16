@@ -39,13 +39,25 @@
 #include "nvim/version.h"
 #include "nvim/window.h"
 
-// for ":version", ":intro", and "nvim --version"
-#ifndef NVIM_VERSION_MEDIUM
-# define NVIM_VERSION_MEDIUM "v" STR(NVIM_VERSION_MAJOR) \
-  "." STR(NVIM_VERSION_MINOR) "." STR(NVIM_VERSION_PATCH) \
-  NVIM_VERSION_PRERELEASE
+// for ":version", ":intro", and "wgvim --version"
+//
+// wgvim has its own version (|wgvim-version|): "WGVIM v1.0.0 (commit 1a2b3c4)". The commit is
+// that of the wgvim source (git describe, or the commit "git archive" wrote); it is left out
+// when unknown. The NVIM_VERSION_* stay those of the Neovim snapshot, shown on the next line.
+#define WGVIM_VERSION_SHORT "v" STR(WGVIM_VERSION_MAJOR) \
+  "." STR(WGVIM_VERSION_MINOR) "." STR(WGVIM_VERSION_PATCH) \
+  WGVIM_VERSION_PRERELEASE
+#ifdef NVIM_VERSION_BUILD
+# define WGVIM_VERSION_COMMIT " (commit " NVIM_VERSION_BUILD ")"
+#else
+# define WGVIM_VERSION_COMMIT ""
 #endif
-#define NVIM_VERSION_LONG "WGVIM " NVIM_VERSION_MEDIUM  // NOLINT(bugprone-suspicious-missing-comma)
+#define NVIM_VERSION_LONG "WGVIM " WGVIM_VERSION_SHORT WGVIM_VERSION_COMMIT  // NOLINT(bugprone-suspicious-missing-comma)
+#define WGVIM_VERSION_INTRO "WGVIM " WGVIM_VERSION_SHORT  // NOLINT(bugprone-suspicious-missing-comma)
+// Credit: wgvim is a derivative of Neovim (Apache-2.0 / Vim license); see NOTICE.
+#define WGVIM_BASED_ON "Based on Neovim v" STR(NVIM_VERSION_MAJOR) "." STR(NVIM_VERSION_MINOR) \
+  "." STR(NVIM_VERSION_PATCH) NVIM_VERSION_PRERELEASE \
+  " (snapshot " WGVIM_UPSTREAM_COMMIT_SHORT "), see NOTICE"
 
 char *Versions[] = { "8.1", "8.2", "9.0", "9.1", "9.2" };
 char *longVersion = NVIM_VERSION_LONG;
@@ -3776,12 +3788,34 @@ static const int *included_patchsets[] = {
   },
 };
 
-/// Compares a version string to the current wgvim version.
+/// Compares a version string to the version of the Neovim snapshot wgvim is based on
+/// (has('nvim-x.y.z'), which plugins use).
 ///
 /// @param version Version string like "1.3.42"
 ///
-/// @return true if wgvim is at or above the version.
+/// @return true if that version is at or above the given one.
 bool has_nvim_version(const char *const version_str)
+  FUNC_ATTR_PURE FUNC_ATTR_WARN_UNUSED_RESULT FUNC_ATTR_NONNULL_ALL
+{
+  return version_at_least(version_str, NVIM_VERSION_MAJOR, NVIM_VERSION_MINOR,
+                          NVIM_VERSION_PATCH);
+}
+
+/// Compares a version string to wgvim's own version (has('wgvim-x.y.z'), |wgvim-version|).
+///
+/// @param version Version string like "1.0.0"
+///
+/// @return true if wgvim is at or above the version.
+bool has_wgvim_version(const char *const version_str)
+  FUNC_ATTR_PURE FUNC_ATTR_WARN_UNUSED_RESULT FUNC_ATTR_NONNULL_ALL
+{
+  return version_at_least(version_str, WGVIM_VERSION_MAJOR, WGVIM_VERSION_MINOR,
+                          WGVIM_VERSION_PATCH);
+}
+
+/// @return true if "x", "x.y" or "x.y.z" in `version_str` is at most cur_major.cur_minor.cur_patch.
+static bool version_at_least(const char *const version_str, int cur_major, int cur_minor,
+                             int cur_patch)
   FUNC_ATTR_PURE FUNC_ATTR_WARN_UNUSED_RESULT FUNC_ATTR_NONNULL_ALL
 {
   const char *p = version_str;
@@ -3810,11 +3844,11 @@ bool has_nvim_version(const char *const version_str)
     }
   }
 
-  return (major < NVIM_VERSION_MAJOR
-          || (major == NVIM_VERSION_MAJOR
-              && (minor < NVIM_VERSION_MINOR
-                  || (minor == NVIM_VERSION_MINOR
-                      && patch <= NVIM_VERSION_PATCH))));
+  return (major < cur_major
+          || (major == cur_major
+              && (minor < cur_minor
+                  || (minor == cur_minor
+                      && patch <= cur_patch))));
 }
 
 int min_vim_version(void)
@@ -4007,8 +4041,7 @@ void list_version(void)
   msg_ext_set_kind("list_cmd");
   msg_puts(longVersion);
   msg_putchar('\n');
-  // Credit: wgvim is a derivative of Neovim (Apache-2.0 / Vim license); see NOTICE.
-  msg_puts("Based on Neovim v0.13.0-dev (snapshot d299306), see NOTICE");
+  msg_puts(WGVIM_BASED_ON);
   msg_putchar('\n');
   msg_puts(version_buildtype);
   msg_putchar('\n');
@@ -4083,7 +4116,7 @@ void intro_message(bool colon)
     "║║║║ ╦",
     "╚╩╝╚═╝",
     "",
-    N_(NVIM_VERSION_LONG),
+    N_(WGVIM_VERSION_INTRO),
     "──────────────────────────────────────────────────",
     N_("an offline, hardened build of Neovim"),
     N_("Neovim and Vim are the work of their contributors"),

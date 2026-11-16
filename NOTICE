@@ -54,15 +54,28 @@ Modifications made for wgvim
     SHA256 (fecabdc949b6a39d32c0899fa2545eab25e63f2ed0a33c4ad1511426384d3070)
     matches neovim/neovim at the snapshot commit. It was loaded and exercised
     (spellbadword, spellsuggest, ]s) under AddressSanitizer/UBSan with no findings.
+  * wgvim has its own version number (1.0.0 and later; ":help wgvim-version"),
+    shown by --version next to the Neovim snapshot it is based on. Neovim's
+    version (has('nvim-x.y'), vim.version(), the API level) is unchanged.
   * Further changes (removal of network-capable code, security fixes) are listed
-    in the git history.
+    in the git history; CHANGELOG.md summarises them for each wgvim release.
 
-TODO (provenance still to be recorded)
---------------------------------------
-  * runtime/queries/cpp/*.scm and runtime/queries/matlab/*.scm were supplied by the
-    wgvim maintainers. Their upstream source repository, commit/tag and licence
-    have NOT been recorded yet. Find them (they appear to be nvim-treesitter
-    queries, which would be Apache-2.0, but that is unconfirmed) and record here:
-    project URL, commit, licence, and any local edits.
-  * deps/tree-sitter-cpp-0.23.4.tar.gz: record the download URL and the date it
-    was fetched (the SHA256 is pinned in cmake.deps/deps.txt).
+Provenance of files added by wgvim (recorded 2026-11-15)
+--------------------------------------------------------
+  * runtime/queries/cpp/*.scm and runtime/queries/matlab/*.scm: byte-identical to
+    queries/cpp/*.scm and queries/matlab/*.scm of nvim-treesitter
+    (https://github.com/nvim-treesitter/nvim-treesitter), branch master, commit
+    cf12346a3414fa1b06af75c79faebe7f76df080a (2026-03-23); unchanged there since
+    commit c7dc251cddf2cdef1fa279fa797799728a5bfd78 (2025-01-13). No local edits.
+    Licence: Apache-2.0 (contrib/third-party/nvim-treesitter/LICENSE).
+  * deps/tree-sitter-cpp-0.23.4.tar.gz: its contents are identical to tag v0.23.4
+    (commit f41e1a044c8a84ea9fa8577fdd2eab92ec96de02) of
+    https://github.com/tree-sitter/tree-sitter-cpp (compared file by file). The archive
+    itself is not byte-identical to GitHub's tag archive (it was compressed by another
+    tool), so the exact download URL is not known. Licence: MIT. Its SHA256 is pinned in
+    cmake.deps/deps.txt.
+  * src/nvim/tui/termkey/LICENSE: libtermkey's MIT licence, copied from
+    https://github.com/neovim/libtermkey (commit
+    393e0f0704ccb3b818aff99d2d83f24e232f2515); the adapted code under
+    src/nvim/tui/termkey/ had no licence file.
+

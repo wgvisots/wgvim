@@ -462,4 +462,35 @@ The executable is `wgvim`. Per-user directories and environment variables use
 is "~/.config/wgvim" and the log file is set with $WGVIM_LOG_FILE. Internal
 names used by plugins (the `nvim_*` API, the `vim` Lua module) are unchanged.
 
+==============================================================================
+Version                                                 *wgvim-version*
+
+wgvim has its own version number, separate from Neovim's. `wgvim --version`
+and |:version| show it first, with the wgvim commit it was built from, then
+the Neovim snapshot it is based on: >
+
+    WGVIM v1.0.0 (commit 1a2b3c4)
+    Based on Neovim v0.13.0-dev (snapshot d299306), see NOTICE
+<
+Between releases the version ends in "-dev" (for example "1.0.1-dev").
+
+To test wgvim's version in a config, use `has('wgvim-x.y.z')`, which works
+like `has('nvim-x.y.z')` (|has()|): >vim
+
+    if has('wgvim-1.0')
+      " wgvim 1.0 or later
+    endif
+<
+`has('wgvim')` is true in every wgvim. `has('nvim-x.y.z')`, |vim.version()|
+and the API level stay those of the Neovim snapshot, because plugins use them
+to decide what Neovim features they can use; |vim.version()|.build names the
+wgvim commit.
+
+The major version goes up when a release can break a working config (for
+example, the sandbox starts refusing something it allowed), the minor version
+for new features, the patch version for fixes, updated dependencies or a newer
+Neovim base that changes nothing a config relies on. CHANGELOG.md in the
+source lists the releases; RELEASING.md describes how they are made, signed
+and verified.
+
  vim:tw=78:ts=8:noet:ft=help:norl:

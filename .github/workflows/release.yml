@@ -1,0 +1,106 @@
+# Release: pushing a signed tag vX.Y.Z (RELEASING.md) builds, tests and packages that commit in
+# the offline UBI 9 container, exactly as the CI's RHEL 9 job does, and creates a DRAFT GitHub
+# release with:
+#   wgvim-X.Y.Z-linux-x86_64.tar.gz       the tarball (tested in a plain UBI 9 container)
+#   wgvim-X.Y.Z-linux-x86_64.spdx.json    its SBOM (SPDX 2.3; also inside the tarball)
+#   wgvim-X.Y.Z-src.tar.gz                the complete source, bundled dependencies included
+#   SHA256SUMS                            checksums of the files above
+# plus a GitHub build attestation for each. A maintainer reviews the draft, adds a detached
+# signature of SHA256SUMS (SHA256SUMS.asc) and publishes it.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release ${{ github.ref_name }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    permissions:
+      contents: write      # create the draft release
+      id-token: write      # build attestations
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0   # check-release-tag.sh needs master's history
+
+      - name: Check the tag (version, on master, release notes, verified signature)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: scripts/check-release-tag.sh "$TAG"
+
+      - name: Build, test and package in UBI 9 (offline)
+        run: scripts/rhel9-container-test.sh --engine podman --committed --package --release --out rhel9-results
+
+      - name: Collect the release files
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          v="${TAG#v}"
+          d=$(ls -d rhel9-results/*/package | tail -1)
+          mkdir release
+          cp "$d/wgvim-$v-linux-x86_64.tar.gz" "$d/wgvim-$v-linux-x86_64.spdx.json" release/
+          # The source: what the tarball was built from (git archive of the tag, as the build
+          # used), including deps/ with every bundled dependency.
+          git archive --format=tar --prefix="wgvim-$v/" "$TAG" | gzip -9 -n > "release/wgvim-$v-src.tar.gz"
+          (cd release && sha256sum -- * > SHA256SUMS && cat SHA256SUMS)
+          # Release notes: the CHANGELOG.md section, then how to verify.
+          awk -v h="## $v" '$0 == h || index($0, h " ") == 1 {on=1; next} on && /^## / {exit} on' CHANGELOG.md > notes.md
+          cat >> notes.md <<EOF
+
+          ---
+
+          **Verify** (see \`README-tarball.txt\` and RELEASING.md):
+
+          \`\`\`
+          sha256sum -c SHA256SUMS --ignore-missing
+          gpg --verify SHA256SUMS.asc SHA256SUMS
+          gh attestation verify wgvim-$v-linux-x86_64.tar.gz --repo ${{ github.repository }}
+          \`\`\`
+
+          Built from tag \`$TAG\` (commit \`$(git rev-parse --short=12 "$TAG^{commit}")\`) by [this workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+          EOF
+
+      - name: Attest the release files
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            release/*.tar.gz
+            release/*.spdx.json
+
+      - name: Create the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" --draft --verify-tag --title "wgvim ${TAG#v}" \
+            --notes-file notes.md release/*
+          {
+            echo "### Draft release ${TAG} created"
+            echo 'Review it, add `SHA256SUMS.asc` (RELEASING.md), then publish.'
+            echo '```'; cat release/SHA256SUMS; echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Test results
+        if: success() || failure()
+        run: |
+          d=$(ls -d rhel9-results/*/ 2>/dev/null | tail -1)
+          [ -n "$d" ] && cat "$d/summary.txt" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: success() || failure()
+        with:
+          name: release-${{ github.ref_name }}-logs
+          path: rhel9-results/
+          retention-days: 90

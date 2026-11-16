@@ -85,11 +85,14 @@ Inside the editor, `:help wgvim` has the full list. In short:
   Internal names that plugins rely on (the `nvim_*` API, the `vim` Lua module)
   are unchanged, so most Neovim plugins work as they are.
 
-## Installing a prebuilt tarball (RHEL 9)
+## Releases
 
-Every CI run builds `wgvim-<version>-linux-x86_64.tar.gz` in an offline UBI 9 container from
-the binary its tests just passed, with a SHA-256 checksum (and, on `master`, a GitHub build
-attestation). Unpack it to `/opt/wgvim`; see [INSTALL.md](INSTALL.md#install-from-download).
+wgvim has its own version number (`:help wgvim-version`); [CHANGELOG.md](CHANGELOG.md) lists
+the releases. Each [release](https://github.com/wgvisots/wgvim/releases) has a tarball for RHEL 9
+(x86_64), built and tested offline in UBI 9. It comes with an SPDX SBOM, the complete source,
+and checksums signed by the maintainer. Unpack it to `/opt/wgvim`; see
+[INSTALL.md](INSTALL.md#install-from-download). [RELEASING.md](RELEASING.md) describes how
+releases are made, signed and verified.
 
 ## Building
 
