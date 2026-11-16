@@ -151,6 +151,19 @@ set(NVIM_VERSION_MINOR 13)
 set(NVIM_VERSION_PATCH 0)
 set(NVIM_VERSION_PRERELEASE "-dev") # for package maintainers
 
+# wgvim's own version (:help wgvim-version, RELEASING.md): in --version, the release tag and the
+# tarball name. The NVIM_VERSION_* above stay those of the Neovim snapshot wgvim is based on:
+# has('nvim-x.y'), vim.version() and the API level use them, and plugins check those.
+# Between releases WGVIM_VERSION_PRERELEASE is "-dev"; a release commit has it empty.
+set(WGVIM_VERSION_MAJOR 1)
+set(WGVIM_VERSION_MINOR 0)
+set(WGVIM_VERSION_PATCH 0)
+set(WGVIM_VERSION_PRERELEASE "")
+set(WGVIM_VERSION "${WGVIM_VERSION_MAJOR}.${WGVIM_VERSION_MINOR}.${WGVIM_VERSION_PATCH}${WGVIM_VERSION_PRERELEASE}")
+# The Neovim commit the snapshot was taken from (NOTICE, "Origin").
+set(WGVIM_UPSTREAM_COMMIT d2993065640e1ef93a05b655c76ecabbea5f33f3)
+string(SUBSTRING "${WGVIM_UPSTREAM_COMMIT}" 0 7 WGVIM_UPSTREAM_COMMIT_SHORT)
+
 # API level
 set(NVIM_API_LEVEL 15)        # Bump this after any API/stdlib change.
 set(NVIM_API_LEVEL_COMPAT 0)  # Adjust this after a _breaking_ API change.
