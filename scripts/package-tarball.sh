@@ -1,13 +1,19 @@
 #!/usr/bin/env bash
-# Pack a built wgvim into a relocatable tarball: wgvim-<version>-linux-<arch>.tar.gz plus a
-# .sha256 file.
+# Pack a built wgvim into a relocatable tarball, with a .sha256 file and its SBOM:
+#   wgvim-1.0.0-linux-x86_64.tar.gz               (--release)
+#   wgvim-1.0.0-1a2b3c4-linux-x86_64.tar.gz       (any other build: the version and the commit)
 #
-#   scripts/package-tarball.sh [--build DIR] [--deps DIR] [--out DIR]
+#   scripts/package-tarball.sh [--release] [--build DIR] [--deps DIR] [--out DIR]
 #
+#   --release     a release (RELEASING.md): the version must have no pre-release part ("-dev")
+#                 and the tree no uncommitted changes; the name carries the version only
 #   --build DIR   the CMake build directory (default: build)
 #   --deps DIR    the bundled-dependencies build directory, for their licence files
 #                 (default: .deps)
 #   --out DIR     where the tarball goes (default: build/package)
+#
+# Output in --out: NAME.tar.gz, NAME.tar.gz.sha256 and NAME.spdx.json (the SPDX 2.3 SBOM,
+# scripts/generate-sbom.py; also in the tarball as sbom.spdx.json).
 #
 # The tree inside is what "cmake --install" puts under its prefix (bin/, lib/wgvim/ or lib64/wgvim/,
 # share/wgvim/runtime/, man pages, ...), plus LICENSE.txt, NOTICE, README.md, README-tarball.txt
@@ -25,6 +31,7 @@ set -euo pipefail
 BUILD=build
 DEPS=.deps
 OUT=build/package
+RELEASE=0
 
 die() { echo "package: error: $*" >&2; exit 2; }
 while [ $# -gt 0 ]; do
@@ -32,6 +39,7 @@ while [ $# -gt 0 ]; do
     --build) BUILD="${2:?}"; shift 2 ;;
     --deps) DEPS="${2:?}"; shift 2 ;;
     --out) OUT="${2:?}"; shift 2 ;;
+    --release) RELEASE=1; shift ;;
     -h|--help) sed -n '2,/^$/{s/^# \{0,1\}//;p}' "$0"; exit 0 ;;
     *) die "unknown option: $1" ;;
   esac
@@ -43,16 +51,26 @@ BIN="$BUILD/bin/wgvim"
 [ -x "$BIN" ] || die "$BIN not found; build first"
 [ -d "$DEPS/build/src" ] || die "$DEPS/build/src not found (bundled dependency sources)"
 
-# "WGVIM v0.13.0-dev-8a79cc3" -> "0.13.0-dev-8a79cc3"
-VERSION="$("$BIN" --version | sed -n '1s/^WGVIM v//p')"
-[ -n "$VERSION" ] || die "cannot read the version from $BIN --version"
-case "$VERSION" in
-  *-dirty) echo "package: warning: built from a tree with uncommitted changes ($VERSION)" >&2 ;;
-esac
-COMMIT="$(sed -n 's/^#define NVIM_VERSION_BUILD "\(.*\)"$/\1/p' \
-  "$BUILD/cmake.config/auto/versiondef_git.h" 2>/dev/null || true)"
+# "WGVIM v1.0.0 (commit 1a2b3c4)" -> VERSION=1.0.0 COMMIT=1a2b3c4 ("1a2b3c4-dirty", or empty
+# when the build did not know its commit).
+FIRST="$("$BIN" --version | head -1)"
+VERSION="$(sed -n 's/^WGVIM v\([^ ]*\).*/\1/p' <<<"$FIRST")"
+COMMIT="$(sed -n 's/.* (commit \([^)]*\))$/\1/p' <<<"$FIRST")"
+[ -n "$VERSION" ] || die "cannot read the version from: $FIRST"
 ARCH="$(uname -m)"
-NAME="wgvim-$VERSION-linux-$ARCH"
+if [ "$RELEASE" = 1 ]; then
+  case "$VERSION" in *-*) die "--release, but the version $VERSION has a pre-release part" ;; esac
+  case "$COMMIT" in
+    "") die "--release, but the build does not know its commit" ;;
+    *-dirty) die "--release, but the build has uncommitted changes ($COMMIT)" ;;
+  esac
+  NAME="wgvim-$VERSION-linux-$ARCH"
+else
+  case "$COMMIT" in
+    *-dirty) echo "package: warning: built from a tree with uncommitted changes" >&2 ;;
+  esac
+  NAME="wgvim-$VERSION${COMMIT:+-$COMMIT}-linux-$ARCH"
+fi
 
 if [ -z "${SOURCE_DATE_EPOCH:-}" ]; then
   SOURCE_DATE_EPOCH="$(git log -1 --format=%ct 2>/dev/null || echo 0)"
@@ -98,14 +116,20 @@ for d in "$DEPS"/build/src/*/; do
   done
   [ "$found" = 1 ] || die "no licence file found for bundled dependency $dep"
 done
-for v in src/lpeg src/mpack src/xdiff src/nvim/vterm; do
+for v in src/lpeg src/mpack src/xdiff src/nvim/vterm src/nvim/tui/termkey; do
   files="$(find "$v" -maxdepth 1 -type f \( -name 'LICENSE*' -o -name 'COPYING*' \))"
   [ -n "$files" ] || die "no licence file in $v"
   mkdir -p "$L/$(basename "$v")"
   cp $files "$L/$(basename "$v")/"
 done
-mkdir -p "$L/cjson"
+mkdir -p "$L/cjson" "$L/klib"
 sed -n '1,/\*\//p' src/cjson/lua_cjson.c > "$L/cjson/LICENSE"
+sed -n '1,/^$/p' src/klib/kvec.h > "$L/klib/LICENSE"
+# Third-party files that wgvim added without their own licence file (NOTICE, "Provenance").
+for d in contrib/third-party/*/; do
+  mkdir -p "$L/$(basename "$d")"
+  cp "$d"* "$L/$(basename "$d")/"
+done
 
 # Nothing in the tree may name the build machine's paths as a place to load code from.
 if grep -rIl --exclude-dir=licenses -e "$ROOT/" "$TREE" >/dev/null 2>&1; then
@@ -118,8 +142,13 @@ MISSING="$(find "$TREE/bin" "$TREE/$LIBDIR" -type f \( -perm -u+x -o -name '*.so
   -exec ldd {} + 2>/dev/null | grep 'not found' || true)"
 [ -z "$MISSING" ] || die "missing libraries: $MISSING"
 
+# The SBOM, inside the tree (it describes the files above) and next to the tarball.
+SOURCE_DATE_EPOCH="$SOURCE_DATE_EPOCH" python3 scripts/generate-sbom.py --tree "$TREE" \
+  --name "$NAME" --deps-src "$DEPS/build/src" --out "$TREE/sbom.spdx.json"
+
 mkdir -p "$OUT"
 OUT="$(cd "$OUT" && pwd)"
+cp "$TREE/sbom.spdx.json" "$OUT/$NAME.spdx.json"
 TARBALL="$OUT/$NAME.tar.gz"
 # Normalise modes: no group/other write, everything readable, directories and programs
 # searchable/executable.

@@ -43,7 +43,7 @@ WRITABLE="$(awk '$1 ~ /^.....w|^........w/ {print $NF}' <<<"$VLIST" | head -5)"
 [ -z "$WRITABLE" ] || fail "group/other-writable: $WRITABLE"
 has() { grep -qE "^$NAME/$1/?\$" <<<"$LIST"; }
 for f in bin/wgvim share/wgvim/runtime/doc/tags LICENSE.txt NOTICE \
-         README-tarball.txt licenses/unibilium share/wgvim/selinux/wgvim.te; do
+         README-tarball.txt licenses/unibilium share/wgvim/selinux/wgvim.te sbom.spdx.json; do
   has "$f" || fail "missing $f"
 done
 # The parsers: lib/ or lib64/ (GNUInstallDirs: lib64 on RHEL).
@@ -97,6 +97,38 @@ if command -v ldd >/dev/null 2>&1; then
   grep 'not found' <<<"$LIBS" && fail "missing shared libraries"
   grep -oE '^\s+[^ ]+\.so[^ ]*' <<<"$LIBS" | sort -u | tr -d '\t ' | tr '\n' ' ' | sed 's/^/  /'
   echo
+fi
+
+echo "--- SBOM (sbom.spdx.json):"
+if command -v python3 >/dev/null 2>&1; then
+  # Every file of the tree but the SBOM is listed, with the right SHA256, and nothing else;
+  # the copy next to the tarball (if any) is the same document.
+  python3 -I - "$TREE" "${TARBALL%.tar.gz}.spdx.json" <<'PY' || fail "SBOM does not match the tree"
+import hashlib, json, os, sys
+tree, beside = sys.argv[1], sys.argv[2]
+raw = open(os.path.join(tree, 'sbom.spdx.json'), 'rb').read()
+doc = json.loads(raw)
+assert doc['spdxVersion'] == 'SPDX-2.3', doc['spdxVersion']
+listed = {f['fileName'][2:]: next(c['checksumValue'] for c in f['checksums']
+                                  if c['algorithm'] == 'SHA256') for f in doc['files']}
+actual = {}
+for d, _, fs in os.walk(tree):
+    for fn in fs:
+        rel = os.path.relpath(os.path.join(d, fn), tree)
+        if rel != 'sbom.spdx.json':
+            actual[rel] = hashlib.sha256(open(os.path.join(tree, rel), 'rb').read()).hexdigest()
+bad = sorted(set(listed) ^ set(actual)) + sorted(k for k in listed if k in actual and listed[k] != actual[k])
+if bad:
+    print('  mismatched: ' + ', '.join(bad[:10]))
+    sys.exit(1)
+wg = next(p for p in doc['packages'] if p['name'] == 'wgvim')
+print('  %s %s: %d files match, %d packages' % (wg['name'], wg['versionInfo'], len(listed), len(doc['packages'])))
+if os.path.exists(beside) and open(beside, 'rb').read() != raw:
+    print('  %s differs from the one in the tarball' % os.path.basename(beside))
+    sys.exit(1)
+PY
+else
+  echo "  (no python3: only checked that it is there)"
 fi
 
 if [ -x "$TREE/bin/tablefmt" ]; then
