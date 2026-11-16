@@ -9,8 +9,12 @@
 # Stage 2 (no network): copy the source tree into a fresh container started with
 #   --network none, then build (Release, with the bundled deps/ tarballs), check the
 #   hardening of the binary, and run the functional and old test suites as a non-root user.
+# Stage 3 (with --package, no network): pack the tested binary into the release tarball
+#   (scripts/package-tarball.sh) and test it in a fresh container of the plain base image, with
+#   no compilers and no source tree, as a non-root user (scripts/check-tarball.sh).
 #
-# Results go to ./rhel9-results/<timestamp>/ (summary.txt plus full logs).
+# Results go to ./rhel9-results/<timestamp>/ (summary.txt plus full logs); with --package, the
+# tarball and its .sha256 go to ./rhel9-results/<timestamp>/package/.
 #
 # Options:
 #   --engine podman|docker   container engine (default: podman if installed, else docker)
@@ -19,6 +23,8 @@
 #   --jobs N                 parallel build/test jobs (default: number of CPUs)
 #   --build-type TYPE        CMake build type (default: Release)
 #   --committed              test the last commit (git archive HEAD) instead of the working tree
+#   --package                build for /opt/wgvim and make the release tarball (stage 3);
+#                            with --committed, its name and --version carry the commit
 #   --no-functional          skip the functional tests
 #   --no-oldtest             skip the old (Vim) tests
 #   --parallel               run the functional test groups in parallel (faster, but the groups
@@ -44,6 +50,7 @@ RUN_OLDTEST=1
 PARALLEL=0
 REBUILD_IMAGE=0
 OPEN_SHELL=0
+PACKAGE=0
 
 usage() { sed -n '2,/^$/{s/^# \{0,1\}//;p}' "$0"; }
 die() { echo "error: $*" >&2; exit 2; }
@@ -56,6 +63,7 @@ while [ $# -gt 0 ]; do
     --jobs) JOBS="${2:?}"; shift 2 ;;
     --build-type) BUILD_TYPE="${2:?}"; shift 2 ;;
     --committed) SOURCE_MODE="committed"; shift ;;
+    --package) PACKAGE=1; shift ;;
     --no-functional) RUN_FUNCTIONAL=0; shift ;;
     --no-oldtest) RUN_OLDTEST=0; shift ;;
     --parallel) PARALLEL=1; shift ;;
@@ -119,6 +127,7 @@ fi
 # Source snapshot
 # ---------------------------------------------------------------------------------------------
 log "packing sources ($SOURCE_MODE)"
+SOURCE_DATE_EPOCH=0
 SRC_TAR="$WORK_DIR/src.tar"
 if command -v git >/dev/null 2>&1 && git -C "$REPO_ROOT" rev-parse --git-dir >/dev/null 2>&1; then
   if [ "$SOURCE_MODE" = committed ]; then
@@ -131,6 +140,8 @@ if command -v git >/dev/null 2>&1 && git -C "$REPO_ROOT" rev-parse --git-dir >/d
       | tar --null -T - -cf "$SRC_TAR")
   fi
   git -C "$REPO_ROOT" describe --always --dirty > "$OUT_DIR/source-version.txt" 2>/dev/null || true
+  # The tarball's file times: the commit time (reproducible archives).
+  SOURCE_DATE_EPOCH="$(git -C "$REPO_ROOT" log -1 --format=%ct 2>/dev/null || echo 0)"
 else
   [ "$SOURCE_MODE" = worktree ] || die "--committed needs a git checkout"
   tar -C "$REPO_ROOT" --exclude='./build*' --exclude='./.deps' --exclude='./.git' \
@@ -183,7 +194,11 @@ fi
 
 step "building (offline)"
 BUILD_OK=0
-if as_tester "make CMAKE_BUILD_TYPE=$BUILD_TYPE" \
+# The release tarball is meant for /opt/wgvim (labelled by the SELinux policy): that becomes the
+# compiled-in fallback; the tree still finds its files next to the binary wherever it is.
+PREFIX_OPT=""
+[ "$PACKAGE" = 1 ] && PREFIX_OPT="CMAKE_INSTALL_PREFIX=/opt/wgvim"
+if as_tester "make CMAKE_BUILD_TYPE=$BUILD_TYPE $PREFIX_OPT" \
      > "$OUT/build.log" 2>&1; then
   BUILD_OK=1
   status "build" "ok"
@@ -203,6 +218,23 @@ if [ "$BUILD_OK" = 1 ]; then
     status "smoke tests" "ok"
   else
     status "smoke tests" "FAIL ($(tail -1 "$OUT/smoke.log" | sed 's/^smoke: FAIL: *//'); see smoke.log)"
+  fi
+
+  if [ "$PACKAGE" = 1 ]; then
+    # Before the test suites, so nothing they leave in build/ can end up in the tarball.
+    step "release tarball"
+    if as_tester "SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH scripts/package-tarball.sh --out package" \
+         > "$OUT/package.log" 2>&1; then
+      mkdir -p "$OUT/package" && cp "$SRC"/package/* "$OUT/package/"
+      status "release tarball" "ok ($(cd "$OUT/package" && ls *.tar.gz))"
+      # The installed binary is stripped: check that it is still the hardened one.
+      as_tester "d=\$(mktemp -d) && tar -C \$d -xzf package/*.tar.gz \
+                 && scripts/check-hardening.sh \$d/*/bin/wgvim build/compile_commands.json; \
+                 rc=\$?; rm -rf \$d; exit \$rc" > "$OUT/package-hardening.txt" 2>&1
+      status "tarball hardening" "$(tail -1 "$OUT/package-hardening.txt" | sed 's/^hardening: //')"
+    else
+      status "release tarball" "FAIL ($(tail -1 "$OUT/package.log"); see package.log)"
+    fi
   fi
 
   if [ "$RUN_FUNCTIONAL" = 1 ]; then
@@ -255,7 +287,7 @@ set +e
 "$ENGINE" run --rm --network none \
   -e JOBS="$JOBS" -e BUILD_TYPE="$BUILD_TYPE" \
   -e RUN_FUNCTIONAL="$RUN_FUNCTIONAL" -e RUN_OLDTEST="$RUN_OLDTEST" -e OPEN_SHELL="$OPEN_SHELL" \
-  -e PARALLEL="$PARALLEL" \
+  -e PARALLEL="$PARALLEL" -e PACKAGE="$PACKAGE" -e SOURCE_DATE_EPOCH="$SOURCE_DATE_EPOCH" \
   ${OWNER_OPTS[@]+"${OWNER_OPTS[@]}"} \
   -v "$WORK_DIR:/work:ro,$VOL_OPT" -v "$OUT_DIR:/out:$VOL_OPT" \
   ${TTY_OPTS[@]+"${TTY_OPTS[@]}"} \
@@ -264,6 +296,45 @@ set +e
   2>&1 | tee "$OUT_DIR/container.log"
 RC=${PIPESTATUS[0]}
 set -e
+
+# ---------------------------------------------------------------------------------------------
+# Stage 3: the release tarball in a fresh container of the plain base image (no network)
+# ---------------------------------------------------------------------------------------------
+TARBALL="$(ls "$OUT_DIR"/package/*.tar.gz 2>/dev/null | head -1 || true)"
+if [ "$PACKAGE" = 1 ] && [ -n "$TARBALL" ]; then
+  log "stage 3: checking $(basename "$TARBALL") in a fresh $BASE_IMAGE container (--network none, non-root)"
+  "$ENGINE" image inspect "$BASE_IMAGE" >/dev/null 2>&1 \
+    || "$ENGINE" pull "$BASE_IMAGE" >> "$OUT_DIR/image.log" 2>&1
+  # The check scripts from the same source snapshot that was built.
+  mkdir -p "$WORK_DIR/check/scripts"
+  tar -C "$WORK_DIR/check" -xf "$SRC_TAR" scripts/check-tarball.sh scripts/smoke-test.sh 2>/dev/null \
+    || cp "$REPO_ROOT"/scripts/check-tarball.sh "$REPO_ROOT"/scripts/smoke-test.sh "$WORK_DIR/check/scripts/"
+  # Decoys at the compiled-in prefix: a moved tree must use its own runtime files and parsers,
+  # not those of some other wgvim installed in /opt/wgvim.
+  mkdir -p "$WORK_DIR/decoy/lib/wgvim/parser" "$WORK_DIR/decoy/share/wgvim/runtime/doc"
+  printf 'not a parser\n' > "$WORK_DIR/decoy/lib/wgvim/parser/c.so"
+  chmod -R a+rX "$WORK_DIR/check" "$WORK_DIR/decoy"
+  set +e
+  "$ENGINE" run --rm --network none --user 1000:1000 -e HOME=/tmp -e LANG=C.UTF-8 \
+    -v "$OUT_DIR/package:/pkg:ro,$VOL_OPT" -v "$WORK_DIR/check:/check:ro,$VOL_OPT" \
+    -v "$WORK_DIR/decoy:/opt/wgvim:ro,$VOL_OPT" \
+    "$BASE_IMAGE" bash /check/scripts/check-tarball.sh "/pkg/$(basename "$TARBALL")" \
+    > "$OUT_DIR/check-tarball.log" 2>&1
+  CT=$?
+  set -e
+  if [ "$CT" = 0 ]; then
+    printf '%-28s %s\n' "tarball in plain UBI 9" "ok (moved, non-root, decoys ignored; see check-tarball.log)" \
+      >> "$OUT_DIR/summary.txt"
+  else
+    printf '%-28s %s\n' "tarball in plain UBI 9" \
+      "FAIL ($(tail -1 "$OUT_DIR/check-tarball.log" | sed 's/^check-tarball: FAIL: *//'); see check-tarball.log)" \
+      >> "$OUT_DIR/summary.txt"
+    RC=1
+  fi
+elif [ "$PACKAGE" = 1 ]; then
+  printf '%-28s %s\n' "tarball in plain UBI 9" "FAIL (no tarball was made)" >> "$OUT_DIR/summary.txt"
+  RC=1
+fi
 
 echo
 cat "$OUT_DIR/summary.txt" 2>/dev/null || log "no summary was written; see $OUT_DIR/container.log"

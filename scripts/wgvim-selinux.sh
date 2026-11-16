@@ -26,8 +26,13 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SRC_DIR="$REPO_ROOT/contrib/selinux"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/wgvim.te" ]; then
+  # The copy in the release tarball (share/wgvim/selinux/), next to the policy sources.
+  SRC_DIR="$SCRIPT_DIR"
+else
+  SRC_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/contrib/selinux"
+fi
 DEVEL_MAKEFILE=/usr/share/selinux/devel/Makefile
 BINARIES=(/usr/bin/wgvim /usr/local/bin/wgvim /opt/wgvim/bin/wgvim)
 EXTRA_BINARY=""

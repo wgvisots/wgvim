@@ -16,3 +16,7 @@ src/unicode/**  linguist-vendored
 
 runtime/doc/*.txt diff=helphelp
 runtime/pack/dist/opt/*/doc/*.txt diff=helphelp
+
+# git archive writes the commit into this file, so builds from an archive (the RHEL 9 CI job,
+# the release tarball) report it in --version. cmake/GenerateVersion.cmake reads it.
+cmake.config/source-commit.txt export-subst

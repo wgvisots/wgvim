@@ -191,6 +191,12 @@ file(GENERATE
   OUTPUT "${PROJECT_BINARY_DIR}/cmake.config/auto/versiondef-$<CONFIG>.h"
   INPUT "${PROJECT_BINARY_DIR}/cmake.config/auto/versiondef.h.gen")
 
+# wgvim: the libdir relative to the prefix, for get_lib_dir() in a moved install tree.
+if(IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
+  set(WGVIM_LIBDIR_IN_PREFIX "")
+else()
+  set(WGVIM_LIBDIR_IN_PREFIX "${CMAKE_INSTALL_LIBDIR}/wgvim")
+endif()
 configure_file (
   "${PROJECT_SOURCE_DIR}/cmake.config/pathdef.h.in"
   "${PROJECT_BINARY_DIR}/cmake.config/auto/pathdef.h"

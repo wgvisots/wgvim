@@ -33,6 +33,26 @@ container started with `--network none`, checks the hardening of the binary, and
 functional and old tests as a non-root user. Results go to `rhel9-results/<timestamp>/`;
 start with `summary.txt`. See `scripts/rhel9-container-test.sh --help` for options.
 
+## Release tarball
+
+`scripts/rhel9-container-test.sh --committed --package` also builds for `/opt/wgvim`, packs
+the tested binary into `wgvim-<version>-linux-x86_64.tar.gz` (plus `.sha256`) with
+`scripts/package-tarball.sh`, and tests the tarball with `scripts/check-tarball.sh` in a fresh
+container of the plain UBI 9 image: no compilers, no source tree, a non-root user, the tree
+unpacked and then moved, and decoy wgvim files at `/opt/wgvim` that it must ignore. CI does this
+on every run and keeps the tarball as an artifact; on `master` it also records a GitHub build
+attestation for it. Installing it is described in INSTALL.md.
+
+The tarball holds what `cmake --install` installs (stripped), `LICENSE.txt`, `NOTICE`,
+`README-tarball.txt` (from `contrib/tarball/README.txt`), the SELinux policy with its installer
+(`share/wgvim/selinux/`), and `licenses/`, the licence of every bundled library that was built.
+The archive is reproducible for a given build: sorted, owned by root, dated with the commit time
+(`$SOURCE_DATE_EPOCH`). Built from `git archive` (`--committed`), `--version` and the file name
+carry the commit (`cmake.config/source-commit.txt`, expanded by `export-subst`).
+
+`scripts/package-tarball.sh` also works after a plain local build, but the result then has the
+local install prefix compiled in as its fallback, and is only as portable as the machine's glibc.
+
 `scripts/check-hardening.sh` and `scripts/smoke-test.sh` check a built binary on their own.
 The GitHub workflow (`.github/workflows/ci.yml`) runs all of this on every push and pull
 request: Ubuntu 24.04 builds with GCC and Clang (hardening check, smoke test, help-page lint,
