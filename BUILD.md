@@ -36,7 +36,8 @@ start with `summary.txt`. See `scripts/rhel9-container-test.sh --help` for optio
 ## Release tarball
 
 `scripts/rhel9-container-test.sh --committed --package` also builds for `/opt/wgvim`, packs
-the tested binary into `wgvim-<version>-linux-x86_64.tar.gz` (plus `.sha256`) with
+the tested binary into `wgvim-<version>-<commit>-linux-x86_64.tar.gz` (plus `.sha256` and
+the SBOM `.spdx.json`; with `--release`, `wgvim-<version>-linux-x86_64`, see RELEASING.md) with
 `scripts/package-tarball.sh`, and tests the tarball with `scripts/check-tarball.sh` in a fresh
 container of the plain UBI 9 image: no compilers, no source tree, a non-root user, the tree
 unpacked and then moved, and decoy wgvim files at `/opt/wgvim` that it must ignore. CI does this
@@ -45,10 +46,18 @@ attestation for it. Installing it is described in INSTALL.md.
 
 The tarball holds what `cmake --install` installs (stripped), `LICENSE.txt`, `NOTICE`,
 `README-tarball.txt` (from `contrib/tarball/README.txt`), the SELinux policy with its installer
-(`share/wgvim/selinux/`), and `licenses/`, the licence of every bundled library that was built.
+(`share/wgvim/selinux/`), `licenses/`, the licence of every bundled library that was built, and
+`sbom.spdx.json`. The SBOM (`scripts/generate-sbom.py`, SPDX 2.3) lists every file with its
+checksums, wgvim's Neovim snapshot, every bundled library with its version, licence, upstream
+source and archive SHA256 (`cmake.deps/upstream.txt` and `cmake.deps/deps.txt`), and the system
+libraries the programs load. The generator fails if a bundled dependency has no line in
+`cmake.deps/upstream.txt`, or if that line's version is not the one pinned in `deps.txt`.
 The archive is reproducible for a given build: sorted, owned by root, dated with the commit time
 (`$SOURCE_DATE_EPOCH`). Built from `git archive` (`--committed`), `--version` and the file name
 carry the commit (`cmake.config/source-commit.txt`, expanded by `export-subst`).
+
+Releases (signed tags `vX.Y.Z`) are built by `.github/workflows/release.yml`; see
+RELEASING.md.
 
 `scripts/package-tarball.sh` also works after a plain local build, but the result then has the
 local install prefix compiled in as its fallback, and is only as portable as the machine's glibc.

@@ -12,21 +12,26 @@ You can install wgvim from [download](#install-from-download), [package](#instal
 Install from download
 =====================
 
-wgvim has no release page yet. Every CI run on GitHub builds a tarball for
-**RHEL 9 and compatible systems** (x86_64, glibc 2.34 or later), in the same
-offline UBI 9 container that runs the test suites, from the binary those tests
-just passed, and tests it again in a plain UBI 9 container:
+Each wgvim release on the [releases page](https://github.com/wgvisots/wgvim/releases)
+has a tarball for **RHEL 9 and compatible systems** (x86_64, glibc 2.34 or later).
+It is built in the same offline UBI 9 container that runs the test suites, from
+the binary those tests just passed, and tested again in a plain UBI 9 container.
+Each release has:
 
-1. Open a run of the [CI workflow](https://github.com/wgvisots/wgvim/actions/workflows/ci.yml)
-   on `master` and download the `wgvim-<version>-linux-x86_64` artifact (a zip
-   with the tarball and its `.sha256`). The run's summary shows the checksum.
-2. Check it, and on `master` builds the GitHub build attestation:
+- `wgvim-X.Y.Z-linux-x86_64.tar.gz`: the tarball;
+- `wgvim-X.Y.Z-linux-x86_64.spdx.json`: its SBOM (SPDX 2.3), listing every
+  file and bundled library;
+- `wgvim-X.Y.Z-src.tar.gz`: the complete source;
+- `SHA256SUMS` and `SHA256SUMS.asc`: the checksums, signed by the maintainer.
+
+1. Download the files and verify them (RELEASING.md, "Verifying a release",
+   has how to get and check the maintainer's key):
    ```bash
-   unzip wgvim-*-linux-x86_64.zip
-   sha256sum -c wgvim-*-linux-x86_64.tar.gz.sha256
-   gh attestation verify wgvim-*-linux-x86_64.tar.gz --repo wgvisots/wgvim
+   gpg --verify SHA256SUMS.asc SHA256SUMS
+   sha256sum -c SHA256SUMS --ignore-missing
+   gh attestation verify wgvim-*-linux-x86_64.tar.gz --repo wgvisots/wgvim   # optional
    ```
-3. Install to `/opt/wgvim` (the path the SELinux policy labels):
+2. Install to `/opt/wgvim` (the path the SELinux policy labels):
    ```bash
    sudo rm -rf /opt/wgvim && sudo mkdir -p /opt/wgvim
    sudo tar -C /opt/wgvim --strip-components=1 -xzf wgvim-*-linux-x86_64.tar.gz
@@ -34,16 +39,24 @@ just passed, and tests it again in a plain UBI 9 container:
    ```
    The tree also works from any other directory, without root (wgvim finds its
    runtime files and parsers next to its binary).
-4. Optional: confine it with SELinux, from the copy of the policy in the tarball:
+3. Optional: confine it with SELinux, from the copy of the policy in the tarball:
    ```bash
    sudo dnf install selinux-policy-devel policycoreutils-python-utils
    sudo /opt/wgvim/share/wgvim/selinux/wgvim-selinux.sh install
    ```
 
 `README-tarball.txt` in the tarball has the details, and `licenses/` the
-licence of every library built into wgvim. To make the same tarball yourself,
-offline: `scripts/rhel9-container-test.sh --committed --package`, or after a
-plain build, `scripts/package-tarball.sh` (see BUILD.md).
+licence of every library built into wgvim.
+
+**Builds between releases.** Every CI run also keeps a tarball, for testing:
+open a run of the [CI workflow](https://github.com/wgvisots/wgvim/actions/workflows/ci.yml)
+and download the `wgvim-<version>-<commit>-linux-x86_64` artifact. It has a
+`.sha256` and an SBOM, and on `master` a build attestation, but no maintainer
+signature. These artifacts expire after 90 days.
+
+To make the same tarball yourself, offline:
+`scripts/rhel9-container-test.sh --committed --package`, or after a plain build,
+`scripts/package-tarball.sh` (see BUILD.md).
 
 
 Install from package
